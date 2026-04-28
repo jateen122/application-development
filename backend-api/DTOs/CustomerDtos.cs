@@ -6,11 +6,11 @@ namespace VehiclePartsAPI.DTOs
     public class CustomerDto
     {
         public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 
@@ -20,11 +20,11 @@ namespace VehiclePartsAPI.DTOs
     public class CustomerDetailDto
     {
         public int Id { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
 
         public List<VehicleDto> Vehicles { get; set; } = new();
@@ -36,14 +36,12 @@ namespace VehiclePartsAPI.DTOs
     // ─────────────────────────────────────────────
     public class RegisterCustomerDto
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
-        public string Password { get; set; }
-
-        // 🔥 IMPORTANT FIX (used in controller)
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
         public CreateVehicleDto? Vehicle { get; set; }
     }
 
@@ -52,12 +50,12 @@ namespace VehiclePartsAPI.DTOs
     // ─────────────────────────────────────────────
     public class SelfRegisterCustomerDto
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
-        public string Password { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 
     // ─────────────────────────────────────────────
@@ -65,11 +63,11 @@ namespace VehiclePartsAPI.DTOs
     // ─────────────────────────────────────────────
     public class UpdateCustomerDto
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Phone { get; set; }
-        public string Address { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string LastName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
     }
 
     // ─────────────────────────────────────────────
@@ -77,12 +75,12 @@ namespace VehiclePartsAPI.DTOs
     // ─────────────────────────────────────────────
     public class CreateVehicleDto
     {
-        public string VehicleNumber { get; set; }
-        public string Make { get; set; }
-        public string Model { get; set; }
+        public string VehicleNumber { get; set; } = string.Empty;
+        public string Make { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
         public int Year { get; set; }
-        public string Color { get; set; }
-        public string FuelType { get; set; }
+        public string Color { get; set; } = string.Empty;
+        public string FuelType { get; set; } = string.Empty;
     }
 
     // ─────────────────────────────────────────────
@@ -91,27 +89,15 @@ namespace VehiclePartsAPI.DTOs
     public class VehicleDto
     {
         public int Id { get; set; }
-        public string VehicleNumber { get; set; }
-        public string Make { get; set; }
-        public string Model { get; set; }
+        public string VehicleNumber { get; set; } = string.Empty;
+        public string Make { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
         public int Year { get; set; }
-        public string Color { get; set; }
-        public string FuelType { get; set; }
+        public string Color { get; set; } = string.Empty;
+        public string FuelType { get; set; } = string.Empty;
         public int CustomerId { get; set; }
         public DateTime RegisteredAt { get; set; }
     }
 
-    // ─────────────────────────────────────────────
-    // SALE INVOICE SUMMARY (FOR CUSTOMER DETAIL)
-    // ─────────────────────────────────────────────
-    public class SaleInvoiceSummaryDto
-    {
-        public int Id { get; set; }
-        public string InvoiceNumber { get; set; }
-        public DateTime InvoiceDate { get; set; }
-        public decimal TotalAmount { get; set; }
-        public bool LoyaltyDiscountApplied { get; set; }
-        public string Status { get; set; }
-        public string PaymentMethod { get; set; }
-    }
+    // NOTE: SaleInvoiceSummaryDto is defined in SaleDtos.cs — do NOT duplicate it here.
 }
