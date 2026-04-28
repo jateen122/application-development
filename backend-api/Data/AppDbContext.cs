@@ -1,62 +1,116 @@
 using Microsoft.EntityFrameworkCore;
-
+using VehiclePartsAPI.Models;
+/// <summary>
+/// Entity Framework Core database context for the Vehicle Parts System.
+/// </summary>
 public class AppDbContext : DbContext
 {
-    //Add constructor to accept DbContextOptions 
-    //This allows configuration to be passed in from Program.cs when registering the DbContext 
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Supplier> Suppliers { get; set; }
-    public DbSet<Product> Products { get; set; }
+    // ── DbSets ────────────────────────────────────────────────
+    public DbSet<Vendor> Vendors { get; set; }
+    public DbSet<Part> Parts { get; set; }
+    public DbSet<PurchaseInvoice> PurchaseInvoices { get; set; }
+    public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems { get; set; }
     public DbSet<Customer> Customers { get; set; }
-    public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
-
+    public DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<SaleInvoice> SaleInvoices { get; set; }
+    public DbSet<SaleInvoiceItem> SaleInvoiceItems { get; set; }
+    public DbSet<Staff> Staff { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Composite Key: OrderItem
-        modelBuilder.Entity<OrderItem>()
-            .HasKey(oi => new { oi.OrderId, oi.ProductId });
+        // ── Vendor ──────────────────────────────────────────────
+        modelBuilder.Entity<Vendor>(b =>
+        {
+            b.HasIndex(v => v.Email).IsUnique();
+        });
 
-        // Configure relationships
+        // ── Part ────────────────────────────────────────────────
+        modelBuilder.Entity<Part>(b =>
+        {
+            b.HasIndex(p => p.PartNumber).IsUnique();
+            b.Property(p => p.CostPrice).HasColumnType("numeric(18,2)");
+            b.Property(p => p.SellingPrice).HasColumnType("numeric(18,2)");
+        });
 
-        // Category - Product (1-M)
-        modelBuilder.Entity<Category>()
-            .HasMany(c => c.Products)
-            .WithOne(p => p.Category)
-            .HasForeignKey(p => p.CategoryId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // ── PurchaseInvoice → Vendor (M-to-1) ───────────────────
+        modelBuilder.Entity<PurchaseInvoice>(b =>
+        {
+            b.HasOne(pi => pi.Vendor)
+             .WithMany(v => v.PurchaseInvoices)
+             .HasForeignKey(pi => pi.VendorId)
+             .OnDelete(DeleteBehavior.Restrict);
 
-        // Supplier - Product (1-M)
-        modelBuilder.Entity<Supplier>()
-            .HasMany(s => s.Products)
-            .WithOne(p => p.Supplier)
-            .HasForeignKey(p => p.SupplierId)
-            .OnDelete(DeleteBehavior.Restrict);
+            b.Property(pi => pi.TotalAmount).HasColumnType("numeric(18,2)");
+        });
 
-        // Customer - Order (1-M)
-        modelBuilder.Entity<Customer>()
-            .HasMany(c => c.Orders)
-            .WithOne(o => o.Customer)
-            .HasForeignKey(o => o.CustomerId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // ── PurchaseInvoiceItem → PurchaseInvoice and Part ──────
+        modelBuilder.Entity<PurchaseInvoiceItem>(b =>
+        {
+            b.HasOne(i => i.PurchaseInvoice)
+             .WithMany(pi => pi.Items)
+             .HasForeignKey(i => i.PurchaseInvoiceId)
+             .OnDelete(DeleteBehavior.Cascade);
 
-        // Order - OrderItem (1-M)
-        modelBuilder.Entity<Order>()
-            .HasMany(o => o.OrderItems)
-            .WithOne(oi => oi.Order)
-            .HasForeignKey(oi => oi.OrderId)
-            .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(i => i.Part)
+             .WithMany(p => p.PurchaseInvoiceItems)
+             .HasForeignKey(i => i.PartId)
+             .OnDelete(DeleteBehavior.Restrict);
 
-        // Product - OrderItem (1-M)
-        modelBuilder.Entity<Product>()
-            .HasMany(p => p.OrderItems)
-            .WithOne(oi => oi.Product)
-            .HasForeignKey(oi => oi.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);
+            b.Property(i => i.UnitCost).HasColumnType("numeric(18,2)");
+        });
+
+        // ── Customer ────────────────────────────────────────────
+        modelBuilder.Entity<Customer>(b =>
+        {
+            b.HasIndex(c => c.Email).IsUnique();
+        });
+
+        // ── Vehicle → Customer (M-to-1) ─────────────────────────
+        modelBuilder.Entity<Vehicle>(b =>
+        {
+            b.HasIndex(v => v.VehicleNumber).IsUnique();
+
+            b.HasOne(v => v.Customer)
+             .WithMany(c => c.Vehicles)
+             .HasForeignKey(v => v.CustomerId)
+             .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── SaleInvoice → Customer (M-to-1) ─────────────────────
+        modelBuilder.Entity<SaleInvoice>(b =>
+        {
+            b.HasOne(si => si.Customer)
+             .WithMany(c => c.SaleInvoices)
+             .HasForeignKey(si => si.CustomerId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            b.Property(si => si.SubTotal).HasColumnType("numeric(18,2)");
+            b.Property(si => si.DiscountAmount).HasColumnType("numeric(18,2)");
+            b.Property(si => si.TotalAmount).HasColumnType("numeric(18,2)");
+        });
+
+        // ── SaleInvoiceItem → SaleInvoice and Part ──────────────
+        modelBuilder.Entity<SaleInvoiceItem>(b =>
+        {
+            b.HasOne(i => i.SaleInvoice)
+             .WithMany(si => si.Items)
+             .HasForeignKey(i => i.SaleInvoiceId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(i => i.Part)
+             .WithMany(p => p.SaleInvoiceItems)
+             .HasForeignKey(i => i.PartId)
+             .OnDelete(DeleteBehavior.Restrict);
+
+            b.Property(i => i.UnitPrice).HasColumnType("numeric(18,2)");
+        });
+
+        // ── Staff ───────────────────────────────────────────────
+        modelBuilder.Entity<Staff>(b =>
+        {
+            b.HasIndex(s => s.Email).IsUnique();
+        });
     }
 }

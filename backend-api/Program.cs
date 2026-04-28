@@ -2,49 +2,55 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ── Services ──────────────────────────────────────────────────
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// PostgreSQL via EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
         policy =>
         {
-            policy.AllowAnyOrigin() // Use AllowAnyOrigin() with caution
+            policy.AllowAnyOrigin()
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
 });
 
-
-builder.Services.Configure<ExternalServicesOptions>(builder.Configuration.GetSection("ExternalServices"));
-
-
+// External services options (keep if PaymentController is still in project)
+builder.Services.Configure<ExternalServicesOptions>(
+    builder.Configuration.GetSection("ExternalServices"));
 
 var app = builder.Build();
+
+// ── Database connection check + auto-migrate ──────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.CanConnect();
+
     if (db.Database.CanConnect())
     {
-        Console.WriteLine("Database connected successfully!");
+        Console.WriteLine("✅ Database connected successfully!");
+
+        // Auto-apply any pending migrations on startup
+        db.Database.Migrate();
+        Console.WriteLine("✅ Migrations applied.");
     }
     else
     {
-
-        Console.WriteLine(" Database connection failed!");
+        Console.WriteLine("❌ Database connection failed! Check your connection string.");
     }
 }
 
-// Configure the HTTP request pipeline.
+// ── Middleware ────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -54,9 +60,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAllOrigins");
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
