@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Purchases</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.pi-items-list { display:flex;flex-direction:column;gap:8px; }
+.pi-item-row { display:grid;grid-template-columns:1fr 80px 120px auto;gap:8px;align-items:end; }
+.pi-item-row .form-group { margin-bottom:0; }
+.remove-item { background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;padding:10px 8px;line-height:1; }
+.add-item-btn { background:none;border:1px dashed var(--border-2);border-radius:var(--radius);color:var(--text-3);cursor:pointer;padding:8px;width:100%;font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.2s;margin-top:8px; }
+.add-item-btn:hover { border-color:var(--accent);color:var(--accent); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⚙</span>
+    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="nav-link">Dashboard</a></li>
+    <li><a href="parts.html" class="nav-link">Parts</a></li>
+    <li><a href="customers.html" class="nav-link">Customers</a></li>
+    <li><a href="sales.html" class="nav-link">Sales</a></li>
+    <li><a href="purchases.html" class="nav-link active">Purchases</a></li>
+    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
+    <li><a href="staff.html" class="nav-link">Staff</a></li>
+  </ul>
+  <div class="nav-right"><span class="status-dot"></span><span class="status-text">Live</span></div>
+</nav>
+
+<main class="main-content">
+  <header class="page-header">
+    <div class="header-top">
+      <div><p class="page-label">PROCUREMENT</p><h1 class="page-title">Purchase Invoices</h1></div>
+      <button class="btn btn-primary" onclick="openModal('piModal')">+ New Purchase</button>
+    </div>
+  </header>
+
+  <div class="dash-card">
+    <div class="controls-bar">
+      <select class="select-input" id="piStatusFilter" onchange="filterPurchases()">
+        <option value="">All Statuses</option>
+        <option>Pending</option><option>Received</option><option>Cancelled</option>
+      </select>
+      <select class="select-input" id="piVendorFilter" onchange="filterPurchases()">
+        <option value="">All Vendors</option>
+      </select>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
+        <span id="piCount">—</span> invoices
+      </span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Invoice #</th><th>Date</th><th>Vendor</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="piBody"><tr><td colspan="7" class="table-empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="piDetailModal">
+  <div class="modal" style="max-width:640px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 class="modal-title" style="margin:0" id="piDetailTitle">Invoice</h2>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('piDetailModal')">✕ Close</button>
+    </div>
+    <div id="piDetailContent">Loading…</div>
+  </div>
+</div>
+
+<!-- NEW PURCHASE MODAL -->
+<div class="modal-overlay" id="piModal">
+  <div class="modal" style="max-width:600px">
+    <h2 class="modal-title">New Purchase Invoice</h2>
+    <p style="font-size:12px;color:var(--success);margin:-16px 0 20px;font-family:'JetBrains Mono',monospace">
+      ✓ Stock will be updated automatically on creation
+    </p>
+    <form id="piForm" onsubmit="createPurchase(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vendor *</label>
+          <select class="form-select" id="fPiVendor" required>
+            <option value="">Select vendor…</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Invoice Date</label>
+          <input class="form-input" id="fPiDate" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Items *</label>
+        <div class="pi-items-list" id="piItemsList"></div>
+        <button type="button" class="add-item-btn" onclick="addPiItem()">+ Add Part</button>
+      </div>
+      <div id="piTotal" style="display:none;margin-top:16px;padding:12px;background:var(--bg-3);border-radius:var(--radius);text-align:right">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--accent-2)">
+          Total: <span id="piTotalAmt">NPR 0.00</span>
+        </span>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('piModal');resetPiForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create & Receive</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+let allPI = [], allVendors = [], allParts = [];
+
+async function init() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('fPiDate').value = today;
+  try {
+    [allPI, allVendors, allParts] = await Promise.all([
+      API.get('/purchase-invoices'), API.get('/vendors'), API.get('/parts')
+    ]);
+    renderPI(allPI);
+    populateVendorSelects();
+  } catch (e) {
+    document.getElementById('piBody').innerHTML = '<tr><td colspan="7" class="table-empty error">Failed to load</td></tr>';
+  }
+}
+
+function renderPI(list) {
+  document.getElementById('piCount').textContent = list.length;
+  const body = document.getElementById('piBody');
+  if (!list.length) { body.innerHTML = '<tr><td colspan="7" class="table-empty">No purchase invoices yet</td></tr>'; return; }
+  body.innerHTML = list.map(p => `
+    <tr>
+      <td><code>${p.invoiceNumber}</code></td>
+      <td style="font-size:12px">${fmtDate(p.invoiceDate)}</td>
+      <td style="color:var(--text);font-weight:500">${p.vendorName}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${p.itemCount} item${p.itemCount !== 1 ? 's' : ''}</td>
+      <td class="amount" style="color:var(--accent-2)">NPR ${fmt(p.totalAmount)}</td>
+      <td><span class="status-badge ${p.status.toLowerCase()}">${p.status}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="viewPI(${p.id})">View</button>
+          ${p.status === 'Received' ? `<button class="btn btn-danger btn-sm" onclick="cancelPI(${p.id})">Cancel</button>` : ''}
+          ${p.status === 'Pending' ? `<button class="btn btn-primary btn-sm" onclick="receivePI(${p.id})">Receive</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterPurchases() {
+  const s = document.getElementById('piStatusFilter').value;
+  const v = document.getElementById('piVendorFilter').value;
+  renderPI(allPI.filter(p =>
+    (!s || p.status === s) && (!v || p.vendorId == v)
+  ));
+}
+
+function populateVendorSelects() {
+  const sel1 = document.getElementById('fPiVendor');
+  const sel2 = document.getElementById('piVendorFilter');
+  allVendors.forEach(v => {
+    const o1 = document.createElement('option'); o1.value = v.id; o1.textContent = v.name; sel1.appendChild(o1);
+    const o2 = document.createElement('option'); o2.value = v.id; o2.textContent = v.name; sel2.appendChild(o2);
+  });
+}
+
+let piIdx = 0;
+function addPiItem() {
+  piIdx++;
+  const idx = piIdx;
+  const list = document.getElementById('piItemsList');
+  const row = document.createElement('div');
+  row.className = 'pi-item-row';
+  row.id = `piItem${idx}`;
+  row.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Part</label>
+      <select class="form-select" id="piPart${idx}" onchange="calcPiTotal()" required>
+        <option value="">Select…</option>
+        ${allParts.map(p => `<option value="${p.id}">${p.name} (${p.partNumber})</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Qty</label>
+      <input class="form-input" id="piQty${idx}" type="number" min="1" value="1" onchange="calcPiTotal()" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Unit Cost (NPR)</label>
+      <input class="form-input" id="piCost${idx}" type="number" step="0.01" min="0" placeholder="0.00" onchange="calcPiTotal()" required>
+    </div>
+    <button type="button" class="remove-item" onclick="document.getElementById('piItem${idx}').remove();calcPiTotal()">×</button>`;
+  list.appendChild(row);
+  document.getElementById('piTotal').style.display = 'block';
+}
+
+function calcPiTotal() {
+  let total = 0;
+  document.querySelectorAll('.pi-item-row').forEach(row => {
+    const qty = row.querySelector('input[id^="piQty"]');
+    const cost = row.querySelector('input[id^="piCost"]');
+    if (qty && cost) total += (parseInt(qty.value) || 0) * (parseFloat(cost.value) || 0);
+  });
+  document.getElementById('piTotalAmt').textContent = `NPR ${fmt(total)}`;
+}
+
+async function viewPI(id) {
+  try {
+    const pi = await API.get(`/purchase-invoices/${id}`);
+    document.getElementById('piDetailTitle').textContent = pi.invoiceNumber;
+    document.getElementById('piDetailContent').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+        <div><span class="form-label" style="display:block">Vendor</span><p style="color:var(--text)">${pi.vendor.name}</p><p style="font-size:12px;color:var(--text-3)">${pi.vendor.contactPerson}</p></div>
+        <div><span class="form-label" style="display:block">Date</span><p>${fmtDate(pi.invoiceDate)}</p></div>
+        <div><span class="form-label" style="display:block">Status</span><span class="status-badge ${pi.status.toLowerCase()}">${pi.status}</span></div>
+      </div>
+      <table class="data-table" style="margin-bottom:16px">
+        <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Cost</th><th>Line Total</th></tr></thead>
+        <tbody>${pi.items.map(i => `<tr>
+          <td>${i.partName}</td><td><code>${i.partNumber}</code></td>
+          <td>${i.quantity}</td>
+          <td class="amount">NPR ${fmt(i.unitCost)}</td>
+          <td class="amount">NPR ${fmt(i.lineTotal)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div style="text-align:right;padding:12px;background:var(--bg-3);border-radius:var(--radius)">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent-2)">
+          TOTAL: NPR ${fmt(pi.totalAmount)}
+        </span>
+      </div>`;
+    openModal('piDetailModal');
+  } catch (e) { notify('Failed to load invoice', 'error'); }
+}
+
+async function receivePI(id) {
+  if (!confirm('Mark as Received? This will update stock quantities.')) return;
+  try {
+    await API.patch(`/purchase-invoices/${id}/status`, { status: 'Received' });
+    notify('Invoice received & stock updated!', 'success');
+    allPI = await API.get('/purchase-invoices');
+    renderPI(allPI);
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function cancelPI(id) {
+  if (!confirm('Cancel this invoice? Stock will be reversed.')) return;
+  try {
+    await API.patch(`/purchase-invoices/${id}/status`, { status: 'Cancelled' });
+    notify('Invoice cancelled & stock reversed', 'success');
+    allPI = await API.get('/purchase-invoices');
+    renderPI(allPI);
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function createPurchase(e) {
+  e.preventDefault();
+  const items = [];
+  document.querySelectorAll('.pi-item-row').forEach(row => {
+    const part = row.querySelector('select');
+    const qty = row.querySelector('input[id^="piQty"]');
+    const cost = row.querySelector('input[id^="piCost"]');
+    if (part && part.value && qty && cost) {
+      items.push({ partId: parseInt(part.value), quantity: parseInt(qty.value), unitCost: parseFloat(cost.value) });
+    }
+  });
+  if (!items.length) { notify('Add at least one item', 'error'); return; }
+  const body = {
+    vendorId: parseInt(document.getElementById('fPiVendor').value),
+    invoiceDate: new Date(document.getElementById('fPiDate').value).toISOString(),
+    items
+  };
+  try {
+    await API.post('/purchase-invoices', body);
+    notify('Purchase invoice created & stock updated!', 'success');
+    closeModal('piModal'); resetPiForm();
+    allPI = await API.get('/purchase-invoices');
+    renderPI(allPI);
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+function resetPiForm() {
+  document.getElementById('piForm').reset();
+  document.getElementById('piItemsList').innerHTML = '';
+  document.getElementById('piTotal').style.display = 'none';
+  piIdx = 0;
+  document.getElementById('fPiDate').value = new Date().toISOString().split('T')[0];
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+init();
+</script>
+</body>
+</html>

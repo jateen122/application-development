@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Vendors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⚙</span>
+    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="nav-link">Dashboard</a></li>
+    <li><a href="parts.html" class="nav-link">Parts</a></li>
+    <li><a href="customers.html" class="nav-link">Customers</a></li>
+    <li><a href="sales.html" class="nav-link">Sales</a></li>
+    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
+    <li><a href="vendors.html" class="nav-link active">Vendors</a></li>
+    <li><a href="staff.html" class="nav-link">Staff</a></li>
+  </ul>
+  <div class="nav-right"><span class="status-dot"></span><span class="status-text">Live</span></div>
+</nav>
+
+<main class="main-content">
+  <header class="page-header">
+    <div class="header-top">
+      <div><p class="page-label">SUPPLY CHAIN</p><h1 class="page-title">Vendors</h1></div>
+      <button class="btn btn-primary" onclick="openModal('vendorModal')">+ Add Vendor</button>
+    </div>
+  </header>
+
+  <div class="vendors-grid" id="vendorsGrid">
+    <div class="table-empty" style="padding:48px;text-align:center;color:var(--text-3)">Loading vendors…</div>
+  </div>
+</main>
+
+<!-- ADD/EDIT VENDOR MODAL -->
+<div class="modal-overlay" id="vendorModal">
+  <div class="modal">
+    <h2 class="modal-title" id="vendorModalTitle">Add Vendor</h2>
+    <form id="vendorForm" onsubmit="saveVendor(event)">
+      <input type="hidden" id="vendorId">
+      <div class="form-group">
+        <label class="form-label">Company Name *</label>
+        <input class="form-input" id="fVName" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contact Person *</label>
+        <input class="form-input" id="fVContact" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input class="form-input" id="fVEmail" type="email" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone *</label>
+          <input class="form-input" id="fVPhone" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address</label>
+        <textarea class="form-textarea" id="fVAddress" rows="2"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('vendorModal');resetVendorForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="vendorSubmitBtn">Add Vendor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.vendors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.vendor-card {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+}
+.vendor-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent-2);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+.vendor-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+.vendor-name { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:22px; margin-bottom:4px; }
+.vendor-contact { font-size:12px; color:var(--text-3); margin-bottom:16px; }
+.vendor-info { display:flex; flex-direction:column; gap:6px; margin-bottom:20px; }
+.vendor-info-row { display:flex; gap:8px; align-items:center; font-size:13px; color:var(--text-2); }
+.vendor-info-icon { color:var(--text-3); width:16px; text-align:center; font-size:12px; }
+.vendor-actions { display:flex; gap:8px; border-top:1px solid var(--border); padding-top:16px; }
+.vendor-since { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-3); margin-left:auto; }
+</style>
+
+<script src="api.js"></script>
+<script>
+let allVendors = [];
+
+async function loadVendors() {
+  try {
+    allVendors = await API.get('/vendors');
+    renderVendors();
+  } catch (e) {
+    document.getElementById('vendorsGrid').innerHTML = '<div class="table-empty error">Failed to load vendors</div>';
+  }
+}
+
+function renderVendors() {
+  const grid = document.getElementById('vendorsGrid');
+  if (!allVendors.length) {
+    grid.innerHTML = '<div style="padding:48px;text-align:center;color:var(--text-3);font-family:\'JetBrains Mono\',monospace;font-size:13px">No vendors yet. Add your first vendor!</div>';
+    return;
+  }
+  grid.innerHTML = allVendors.map(v => `
+    <div class="vendor-card">
+      <div class="vendor-name">${v.name}</div>
+      <div class="vendor-contact">Contact: ${v.contactPerson}</div>
+      <div class="vendor-info">
+        <div class="vendor-info-row"><span class="vendor-info-icon">✉</span>${v.email}</div>
+        <div class="vendor-info-row"><span class="vendor-info-icon">📞</span>${v.phone}</div>
+        ${v.address ? `<div class="vendor-info-row"><span class="vendor-info-icon">📍</span>${v.address}</div>` : ''}
+      </div>
+      <div class="vendor-actions">
+        <button class="btn btn-outline btn-sm" onclick="viewInvoices(${v.id},'${v.name}')">View Invoices</button>
+        <button class="btn btn-outline btn-sm" onclick="editVendor(${v.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteVendor(${v.id},'${v.name}')">Delete</button>
+        <span class="vendor-since">Since ${fmtDate(v.createdAt)}</span>
+      </div>
+    </div>`).join('');
+}
+
+function editVendor(id) {
+  const v = allVendors.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('vendorId').value = v.id;
+  document.getElementById('fVName').value = v.name;
+  document.getElementById('fVContact').value = v.contactPerson;
+  document.getElementById('fVEmail').value = v.email;
+  document.getElementById('fVPhone').value = v.phone;
+  document.getElementById('fVAddress').value = v.address;
+  document.getElementById('vendorModalTitle').textContent = 'Edit Vendor';
+  document.getElementById('vendorSubmitBtn').textContent = 'Update';
+  openModal('vendorModal');
+}
+
+async function viewInvoices(id, name) {
+  try {
+    const invs = await API.get(`/vendors/${id}/invoices`);
+    if (!invs.length) { notify(`No invoices for ${name}`, 'info'); return; }
+    alert(`${name} — ${invs.length} invoice(s)\n` + invs.map(i => `${i.invoiceNumber} | NPR ${fmt(i.totalAmount)} | ${i.status}`).join('\n'));
+  } catch (e) { notify('Failed to load invoices', 'error'); }
+}
+
+function resetVendorForm() {
+  document.getElementById('vendorId').value = '';
+  document.getElementById('vendorForm').reset();
+  document.getElementById('vendorModalTitle').textContent = 'Add Vendor';
+  document.getElementById('vendorSubmitBtn').textContent = 'Add Vendor';
+}
+
+async function saveVendor(e) {
+  e.preventDefault();
+  const id = document.getElementById('vendorId').value;
+  const body = {
+    name: document.getElementById('fVName').value,
+    contactPerson: document.getElementById('fVContact').value,
+    email: document.getElementById('fVEmail').value,
+    phone: document.getElementById('fVPhone').value,
+    address: document.getElementById('fVAddress').value,
+  };
+  try {
+    if (id) { await API.put(`/vendors/${id}`, body); notify('Vendor updated!', 'success'); }
+    else { await API.post('/vendors', body); notify('Vendor added!', 'success'); }
+    closeModal('vendorModal'); resetVendorForm(); loadVendors();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function deleteVendor(id, name) {
+  if (!confirm(`Delete vendor "${name}"? Cannot delete if purchase invoices exist.`)) return;
+  try {
+    await API.del(`/vendors/${id}`);
+    notify('Vendor deleted', 'success');
+    loadVendors();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetVendorForm(); } });
+});
+
+loadVendors();
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Sales</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.sale-items-list { display:flex;flex-direction:column;gap:8px;margin-bottom:8px; }
+.sale-item-row { display:grid;grid-template-columns:1fr 80px auto;gap:8px;align-items:end; }
+.sale-item-row .form-group { margin-bottom:0; }
+.remove-item { background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;padding:10px 8px;line-height:1; }
+.remove-item:hover { color:#ff6b6b; }
+.add-item-btn { background:none;border:1px dashed var(--border-2);border-radius:var(--radius);color:var(--text-3);cursor:pointer;padding:8px;width:100%;font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.2s; }
+.add-item-btn:hover { border-color:var(--accent);color:var(--accent); }
+.subtotal-row { display:flex;justify-content:space-between;padding:8px 0;font-size:13px;color:var(--text-2);border-top:1px solid var(--border); }
+.total-row { display:flex;justify-content:space-between;padding:8px 0;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--accent); }
+.discount-row { display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--success); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⚙</span>
+    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="nav-link">Dashboard</a></li>
+    <li><a href="parts.html" class="nav-link">Parts</a></li>
+    <li><a href="customers.html" class="nav-link">Customers</a></li>
+    <li><a href="sales.html" class="nav-link active">Sales</a></li>
+    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
+    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
+    <li><a href="staff.html" class="nav-link">Staff</a></li>
+  </ul>
+  <div class="nav-right"><span class="status-dot"></span><span class="status-text">Live</span></div>
+</nav>
+
+<main class="main-content">
+  <header class="page-header">
+    <div class="header-top">
+      <div><p class="page-label">BILLING</p><h1 class="page-title">Sales Invoices</h1></div>
+      <button class="btn btn-primary" onclick="openModal('saleModal')">+ New Sale</button>
+    </div>
+  </header>
+
+  <div class="dash-card">
+    <div class="controls-bar">
+      <select class="select-input" id="statusFilter" onchange="filterSales()">
+        <option value="">All Statuses</option>
+        <option>Paid</option><option>Credit</option><option>Cancelled</option>
+      </select>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
+        <span id="saleCount">—</span> invoices
+      </span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="salesBody"><tr><td colspan="9" class="table-empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- SALE DETAIL MODAL -->
+<div class="modal-overlay" id="saleDetailModal">
+  <div class="modal" style="max-width:680px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <h2 class="modal-title" style="margin:0" id="saleDetailTitle">Invoice</h2>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saleDetailModal')">✕ Close</button>
+    </div>
+    <div id="saleDetailContent">Loading…</div>
+  </div>
+</div>
+
+<!-- NEW SALE MODAL -->
+<div class="modal-overlay" id="saleModal">
+  <div class="modal" style="max-width:600px">
+    <h2 class="modal-title">New Sale Invoice</h2>
+    <form id="saleForm" onsubmit="createSale(event)">
+      <div class="form-group">
+        <label class="form-label">Customer *</label>
+        <select class="form-select" id="fSaleCustomer" required>
+          <option value="">Select customer…</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method *</label>
+        <select class="form-select" id="fSalePayment" required>
+          <option value="">Select…</option>
+          <option>Cash</option><option>Card</option><option>Credit</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Items *</label>
+        <div class="sale-items-list" id="saleItemsList"></div>
+        <button type="button" class="add-item-btn" onclick="addSaleItem()">+ Add Item</button>
+      </div>
+      <!-- Totals preview -->
+      <div id="saleTotals" style="display:none;margin-top:16px;padding:12px;background:var(--bg-3);border-radius:var(--radius)">
+        <div class="subtotal-row"><span>Subtotal</span><span id="tSubtotal">—</span></div>
+        <div class="discount-row" id="discountRow" style="display:none"><span>✓ Loyalty Discount (10%)</span><span id="tDiscount">—</span></div>
+        <div class="total-row"><span>Total</span><span id="tTotal">—</span></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('saleModal');resetSaleForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Invoice</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+let allSales = [], allParts = [], allCustomers = [];
+
+async function init() {
+  try {
+    [allSales, allParts, allCustomers] = await Promise.all([
+      API.get('/sales'), API.get('/parts'), API.get('/customers')
+    ]);
+    renderSales(allSales);
+    populateCustomerSelect();
+  } catch (e) {
+    document.getElementById('salesBody').innerHTML = '<tr><td colspan="9" class="table-empty error">Failed to load</td></tr>';
+  }
+}
+
+function renderSales(list) {
+  document.getElementById('saleCount').textContent = list.length;
+  const body = document.getElementById('salesBody');
+  if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="table-empty">No invoices yet</td></tr>'; return; }
+  body.innerHTML = list.map(s => `
+    <tr>
+      <td><code>${s.invoiceNumber}</code></td>
+      <td style="font-size:12px">${fmtDate(s.invoiceDate)}</td>
+      <td style="color:var(--text-3);font-size:12px">Customer</td>
+      <td class="amount">—</td>
+      <td>${s.loyaltyDiscountApplied ? '<span style="color:var(--success);font-size:11px">−10%</span>' : '—'}</td>
+      <td class="amount" style="color:var(--accent)">NPR ${fmt(s.totalAmount)}</td>
+      <td><span style="font-size:12px">${s.paymentMethod}</span></td>
+      <td><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewSale(${s.id})">View</button></td>
+    </tr>`).join('');
+}
+
+function filterSales() {
+  const s = document.getElementById('statusFilter').value;
+  renderSales(s ? allSales.filter(x => x.status === s) : allSales);
+}
+
+async function viewSale(id) {
+  try {
+    const s = await API.get(`/sales/${id}`);
+    document.getElementById('saleDetailTitle').textContent = s.invoiceNumber;
+    document.getElementById('saleDetailContent').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
+        <div><span class="form-label" style="display:block">Customer</span><p style="color:var(--text)">${s.customer.firstName} ${s.customer.lastName}</p></div>
+        <div><span class="form-label" style="display:block">Date</span><p>${fmtDateTime(s.invoiceDate)}</p></div>
+        <div><span class="form-label" style="display:block">Payment</span><p>${s.paymentMethod}</p></div>
+        <div><span class="form-label" style="display:block">Status</span><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></div>
+      </div>
+      <table class="data-table" style="margin-bottom:16px">
+        <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
+        <tbody>${s.items.map(i => `<tr>
+          <td>${i.partName}</td><td><code>${i.partNumber}</code></td>
+          <td>${i.quantity}</td>
+          <td class="amount">NPR ${fmt(i.unitPrice)}</td>
+          <td class="amount">NPR ${fmt(i.lineTotal)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div style="text-align:right;padding:12px;background:var(--bg-3);border-radius:var(--radius)">
+        <div class="subtotal-row" style="justify-content:flex-end;gap:40px"><span>Subtotal</span><span>NPR ${fmt(s.subTotal)}</span></div>
+        ${s.loyaltyDiscountApplied ? `<div class="discount-row" style="justify-content:flex-end;gap:40px"><span>Loyalty Discount (10%)</span><span>− NPR ${fmt(s.discountAmount)}</span></div>` : ''}
+        <div class="total-row" style="justify-content:flex-end;gap:40px;font-size:22px"><span>TOTAL</span><span>NPR ${fmt(s.totalAmount)}</span></div>
+      </div>`;
+    openModal('saleDetailModal');
+  } catch (e) { notify('Failed to load invoice detail', 'error'); }
+}
+
+function populateCustomerSelect() {
+  const sel = document.getElementById('fSaleCustomer');
+  allCustomers.forEach(c => {
+    const o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = `${c.firstName} ${c.lastName} (${c.email})`;
+    sel.appendChild(o);
+  });
+}
+
+let itemIdx = 0;
+function addSaleItem() {
+  itemIdx++;
+  const idx = itemIdx;
+  const list = document.getElementById('saleItemsList');
+  const row = document.createElement('div');
+  row.className = 'sale-item-row';
+  row.id = `saleItem${idx}`;
+  row.innerHTML = `
+    <div class="form-group">
+      <label class="form-label">Part</label>
+      <select class="form-select" id="iPart${idx}" onchange="calcTotals()" required>
+        <option value="">Select part…</option>
+        ${allParts.map(p => `<option value="${p.id}" data-price="${p.sellingPrice}" data-stock="${p.stockQty}">${p.name} (Stock: ${p.stockQty})</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Qty</label>
+      <input class="form-input" type="number" id="iQty${idx}" min="1" value="1" onchange="calcTotals()" required>
+    </div>
+    <button type="button" class="remove-item" onclick="document.getElementById('saleItem${idx}').remove();calcTotals()">×</button>`;
+  list.appendChild(row);
+  calcTotals();
+}
+
+function calcTotals() {
+  let sub = 0;
+  let hasItems = false;
+  document.querySelectorAll('.sale-item-row').forEach((_, i) => {
+    const row = document.querySelector(`.sale-item-row:nth-child(${i+1})`);
+    if (!row) return;
+    const selEl = row.querySelector('select');
+    const qtyEl = row.querySelector('input');
+    if (!selEl || !qtyEl) return;
+    const opt = selEl.options[selEl.selectedIndex];
+    if (opt && opt.value) {
+      hasItems = true;
+      sub += parseFloat(opt.dataset.price || 0) * (parseInt(qtyEl.value) || 0);
+    }
+  });
+  const loyaltyApplied = sub > 5000;
+  const discount = loyaltyApplied ? sub * 0.10 : 0;
+  const total = sub - discount;
+  document.getElementById('saleTotals').style.display = hasItems ? 'block' : 'none';
+  document.getElementById('tSubtotal').textContent = `NPR ${fmt(sub)}`;
+  document.getElementById('discountRow').style.display = loyaltyApplied ? 'flex' : 'none';
+  document.getElementById('tDiscount').textContent = `− NPR ${fmt(discount)}`;
+  document.getElementById('tTotal').textContent = `NPR ${fmt(total)}`;
+}
+
+async function createSale(e) {
+  e.preventDefault();
+  const items = [];
+  document.querySelectorAll('.sale-item-row').forEach(row => {
+    const sel = row.querySelector('select');
+    const qty = row.querySelector('input');
+    if (sel && sel.value && qty) items.push({ partId: parseInt(sel.value), quantity: parseInt(qty.value) });
+  });
+  if (!items.length) { notify('Add at least one item', 'error'); return; }
+  const body = {
+    customerId: parseInt(document.getElementById('fSaleCustomer').value),
+    paymentMethod: document.getElementById('fSalePayment').value,
+    items
+  };
+  try {
+    await API.post('/sales', body);
+    notify('Invoice created!', 'success');
+    closeModal('saleModal');
+    resetSaleForm();
+    allSales = await API.get('/sales');
+    renderSales(allSales);
+    allParts = await API.get('/parts');
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+function resetSaleForm() {
+  document.getElementById('saleForm').reset();
+  document.getElementById('saleItemsList').innerHTML = '';
+  document.getElementById('saleTotals').style.display = 'none';
+  itemIdx = 0;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); } });
+});
+
+init();
+</script>
+</body>
+</html>
