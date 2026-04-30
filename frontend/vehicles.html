@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Vehicles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⚙</span>
+    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="index.html" class="nav-link">Dashboard</a></li>
+    <li><a href="parts.html" class="nav-link">Parts</a></li>
+    <li><a href="customers.html" class="nav-link">Customers</a></li>
+    <li><a href="vehicles.html" class="nav-link active">Vehicles</a></li>
+    <li><a href="sales.html" class="nav-link">Sales</a></li>
+    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
+    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
+    <li><a href="staff.html" class="nav-link">Staff</a></li>
+  </ul>
+  <div class="nav-right"><span class="status-dot"></span><span class="status-text">Live</span></div>
+</nav>
+
+<main class="main-content">
+  <header class="page-header">
+    <div class="header-top">
+      <div>
+        <p class="page-label">FLEET</p>
+        <h1 class="page-title">Registered Vehicles</h1>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('vehModal')">+ Add Vehicle</button>
+    </div>
+  </header>
+
+  <div class="dash-card">
+    <div class="controls-bar">
+      <input class="search-input" id="vehSearch" placeholder="Search by vehicle number, make, model, or customer…" oninput="filterVehicles()">
+      <select class="select-input" id="fuelFilter" onchange="filterVehicles()">
+        <option value="">All Fuel Types</option>
+        <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
+      </select>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
+        <span id="vehCount">—</span> vehicles
+      </span>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Vehicle #</th>
+            <th>Make / Model</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Fuel</th>
+            <th>Owner</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="vehBody">
+          <tr><td colspan="8" class="table-empty">Loading vehicles…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- ADD VEHICLE MODAL -->
+<div class="modal-overlay" id="vehModal">
+  <div class="modal">
+    <h2 class="modal-title" id="vehModalTitle">Add Vehicle</h2>
+    <form id="vehForm" onsubmit="saveVehicle(event)">
+      <input type="hidden" id="vehId">
+      <input type="hidden" id="vehCustomerId">
+
+      <!-- Customer search (only on create) -->
+      <div class="form-group" id="customerSearchGroup">
+        <label class="form-label">Customer *</label>
+        <input class="form-input" id="custSearchInput" placeholder="Type name or email to search…" oninput="searchCustomer()">
+        <div id="custDropdown" style="display:none;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);margin-top:4px;max-height:180px;overflow-y:auto"></div>
+        <div id="selectedCust" style="display:none;margin-top:8px;padding:8px 12px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:var(--radius);font-size:13px;color:var(--accent)"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Vehicle Number *</label>
+          <input class="form-input" id="fVehNum" required placeholder="e.g. BA 1 PA 2222">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Make *</label>
+          <input class="form-input" id="fVehMake" required placeholder="e.g. Toyota">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Model *</label>
+          <input class="form-input" id="fVehModel" required placeholder="e.g. Hilux">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Year *</label>
+          <input class="form-input" id="fVehYear" type="number" min="1980" max="2030" required placeholder="e.g. 2021">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <input class="form-input" id="fVehColor" placeholder="e.g. White">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fuel Type *</label>
+          <select class="form-select" id="fVehFuel" required>
+            <option value="">Select…</option>
+            <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('vehModal');resetVehForm()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="vehSubmitBtn">Add Vehicle</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+let allVehicles = [];    // flat list: { ...vehicle, customerName, customerEmail }
+let allCustomers = [];
+
+async function loadAll() {
+  try {
+    // Load all customers, then their vehicles
+    allCustomers = await API.get('/customers');
+    const vehicleArrays = await Promise.all(
+      allCustomers.map(c => API.get(`/customers/${c.id}/vehicles`).then(vs => vs.map(v => ({
+        ...v,
+        customerName: `${c.firstName} ${c.lastName}`,
+        customerEmail: c.email,
+        customerPhone: c.phone
+      }))))
+    );
+    allVehicles = vehicleArrays.flat();
+    renderVehicles(allVehicles);
+  } catch (e) {
+    document.getElementById('vehBody').innerHTML = '<tr><td colspan="8" class="table-empty error">Failed to load vehicles. Is the backend running?</td></tr>';
+  }
+}
+
+function renderVehicles(list) {
+  document.getElementById('vehCount').textContent = list.length;
+  const body = document.getElementById('vehBody');
+  if (!list.length) { body.innerHTML = '<tr><td colspan="8" class="table-empty">No vehicles found</td></tr>'; return; }
+  body.innerHTML = list.map(v => `
+    <tr>
+      <td><code>${v.vehicleNumber}</code></td>
+      <td style="color:var(--text);font-weight:500">${v.make} ${v.model}</td>
+      <td style="font-family:'JetBrains Mono',monospace">${v.year}</td>
+      <td>${v.color || '—'}</td>
+      <td><span class="badge" style="background:var(--accent-2-dim);color:var(--accent-2)">${v.fuelType}</span></td>
+      <td>
+        <div style="color:var(--text);font-size:13px">${v.customerName}</div>
+        <div style="color:var(--text-3);font-size:11px;font-family:'JetBrains Mono',monospace">${v.customerEmail}</div>
+      </td>
+      <td style="font-size:11px;color:var(--text-3)">${fmtDate(v.registeredAt)}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id},${v.customerId})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${v.id},${v.customerId},'${v.vehicleNumber}')">Del</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterVehicles() {
+  const q = document.getElementById('vehSearch').value.toLowerCase();
+  const fuel = document.getElementById('fuelFilter').value;
+  renderVehicles(allVehicles.filter(v =>
+    (!fuel || v.fuelType === fuel) &&
+    (!q || v.vehicleNumber.toLowerCase().includes(q) ||
+           v.make.toLowerCase().includes(q) ||
+           v.model.toLowerCase().includes(q) ||
+           v.customerName.toLowerCase().includes(q) ||
+           v.customerEmail.toLowerCase().includes(q))
+  ));
+}
+
+// Customer search in modal
+let searchTimer;
+function searchCustomer() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const q = document.getElementById('custSearchInput').value.trim().toLowerCase();
+    const dd = document.getElementById('custDropdown');
+    if (!q) { dd.style.display = 'none'; return; }
+    const matches = allCustomers.filter(c =>
+      `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(q)
+    ).slice(0, 8);
+    if (!matches.length) { dd.style.display = 'none'; return; }
+    dd.style.display = 'block';
+    dd.innerHTML = matches.map(c => `
+      <div onclick="selectCustomer(${c.id},'${c.firstName} ${c.lastName}','${c.email}')"
+           style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;transition:background 0.15s"
+           onmouseover="this.style.background='var(--bg-4)'" onmouseout="this.style.background=''">
+        <div style="color:var(--text)">${c.firstName} ${c.lastName}</div>
+        <div style="color:var(--text-3);font-size:11px;font-family:'JetBrains Mono',monospace">${c.email} · ${c.phone}</div>
+      </div>`).join('');
+  }, 200);
+}
+
+function selectCustomer(id, name, email) {
+  document.getElementById('vehCustomerId').value = id;
+  document.getElementById('custSearchInput').value = name;
+  document.getElementById('custDropdown').style.display = 'none';
+  const sel = document.getElementById('selectedCust');
+  sel.style.display = 'block';
+  sel.textContent = `✓ ${name} (${email})`;
+}
+
+function editVehicle(id, customerId) {
+  const v = allVehicles.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('vehId').value = id;
+  document.getElementById('vehCustomerId').value = customerId;
+  document.getElementById('fVehNum').value = v.vehicleNumber;
+  document.getElementById('fVehMake').value = v.make;
+  document.getElementById('fVehModel').value = v.model;
+  document.getElementById('fVehYear').value = v.year;
+  document.getElementById('fVehColor').value = v.color || '';
+  document.getElementById('fVehFuel').value = v.fuelType;
+  document.getElementById('customerSearchGroup').style.display = 'none';
+  document.getElementById('vehModalTitle').textContent = 'Edit Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Update Vehicle';
+  openModal('vehModal');
+}
+
+function resetVehForm() {
+  document.getElementById('vehId').value = '';
+  document.getElementById('vehCustomerId').value = '';
+  document.getElementById('vehForm').reset();
+  document.getElementById('custDropdown').style.display = 'none';
+  document.getElementById('selectedCust').style.display = 'none';
+  document.getElementById('customerSearchGroup').style.display = 'block';
+  document.getElementById('vehModalTitle').textContent = 'Add Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Add Vehicle';
+}
+
+async function saveVehicle(e) {
+  e.preventDefault();
+  const id = document.getElementById('vehId').value;
+  const customerId = document.getElementById('vehCustomerId').value;
+
+  if (!id && !customerId) { notify('Please select a customer first.', 'error'); return; }
+
+  const body = {
+    vehicleNumber: document.getElementById('fVehNum').value.trim(),
+    make: document.getElementById('fVehMake').value.trim(),
+    model: document.getElementById('fVehModel').value.trim(),
+    year: parseInt(document.getElementById('fVehYear').value),
+    color: document.getElementById('fVehColor').value.trim(),
+    fuelType: document.getElementById('fVehFuel').value
+  };
+
+  try {
+    if (id) {
+      await API.put(`/customers/${customerId}/vehicles/${id}`, body);
+      notify('Vehicle updated!', 'success');
+    } else {
+      await API.post(`/customers/${customerId}/vehicles`, body);
+      notify('Vehicle added!', 'success');
+    }
+    closeModal('vehModal');
+    resetVehForm();
+    loadAll();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function deleteVehicle(id, customerId, vnum) {
+  if (!confirm(`Delete vehicle "${vnum}"? This cannot be undone.`)) return;
+  try {
+    await API.del(`/customers/${customerId}/vehicles/${id}`);
+    notify('Vehicle deleted', 'success');
+    loadAll();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetVehForm(); } });
+});
+
+loadAll();
+</script>
+</body>
+</html>

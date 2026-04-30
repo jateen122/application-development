@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — My Profile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.portal-nav-link{color:var(--text-2);text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border-radius:var(--radius);transition:color 0.2s,background 0.2s}
+.portal-nav-link:hover{color:var(--text);background:var(--bg-3)}
+.portal-nav-link.active{color:var(--accent);background:var(--accent-dim)}
+.avatar{width:80px;height:80px;border-radius:50%;background:var(--bg-3);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:var(--accent);margin-bottom:16px}
+.profile-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;margin-bottom:4px}
+.profile-role{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);background:var(--accent-dim);padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:20px}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⚙</span>
+    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="portal-profile.html" class="portal-nav-link active">My Profile</a></li>
+    <li><a href="portal-vehicles.html" class="portal-nav-link">My Vehicles</a></li>
+    <li><a href="portal-history.html" class="portal-nav-link">Purchase History</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="status-dot"></span>
+    <span class="status-text" id="navName">—</span>
+    <button class="btn btn-outline btn-sm" onclick="logout()" style="margin-left:8px">Logout</button>
+  </div>
+</nav>
+
+<main class="main-content">
+  <header class="page-header">
+    <div class="header-top">
+      <div>
+        <p class="page-label">CUSTOMER PORTAL</p>
+        <h1 class="page-title">My Profile</h1>
+      </div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start">
+
+    <!-- Profile card -->
+    <div class="dash-card" style="text-align:center">
+      <div class="avatar" id="avatarEl">—</div>
+      <div class="profile-name" id="profileName">Loading…</div>
+      <div class="profile-role">Customer</div>
+      <div style="font-size:13px;color:var(--text-3);line-height:1.8" id="profileMeta">—</div>
+      <div style="margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openModal('editModal')">Edit Profile</button>
+        <button class="btn btn-outline btn-sm" onclick="openModal('pwdModal')">Change Password</button>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div>
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+        <div class="stat-card accent">
+          <div class="stat-label">Total Spent</div>
+          <div class="stat-value" id="statSpend">—</div>
+          <div class="stat-sub">NPR (lifetime)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Purchases</div>
+          <div class="stat-value" id="statPurchases">—</div>
+          <div class="stat-sub">Invoices</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Vehicles</div>
+          <div class="stat-value" id="statVehicles">—</div>
+          <div class="stat-sub">Registered</div>
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="dash-card">
+        <div class="card-header-row">
+          <h2 class="card-title">Recent Purchases</h2>
+          <a href="portal-history.html" class="view-all">View All →</a>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Invoice #</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="recentPurchases"><tr><td colspan="4" class="table-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h2 class="modal-title">Edit Profile</h2>
+    <form id="editForm" onsubmit="saveProfile(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" id="eFirstName" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" id="eLastName" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" id="eEmail" type="email" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone *</label>
+        <input class="form-input" id="ePhone" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address</label>
+        <input class="form-input" id="eAddress">
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-overlay" id="pwdModal">
+  <div class="modal" style="max-width:400px">
+    <h2 class="modal-title">Change Password</h2>
+    <p style="font-size:12px;color:var(--text-3);margin-bottom:20px;font-family:'JetBrains Mono',monospace">Enter your new password below.</p>
+    <div class="form-group">
+      <label class="form-label">New Password *</label>
+      <input class="form-input" id="newPwd" type="password" placeholder="Min 6 characters">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm Password *</label>
+      <input class="form-input" id="confirmPwd" type="password" placeholder="Repeat password">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeModal('pwdModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+// Auth guard
+const userJson = sessionStorage.getItem('user');
+if (!userJson) { window.location.href = 'login.html'; }
+const user = JSON.parse(userJson || '{}');
+if (user.role !== 'Customer') { window.location.href = 'login.html'; }
+
+document.getElementById('navName').textContent = `${user.firstName} ${user.lastName}`;
+
+async function loadProfile() {
+  try {
+    const detail = await API.get(`/customers/${user.id}`);
+
+    // Avatar initials
+    document.getElementById('avatarEl').textContent = `${detail.firstName[0]}${detail.lastName[0]}`;
+    document.getElementById('profileName').textContent = `${detail.firstName} ${detail.lastName}`;
+    document.getElementById('profileMeta').innerHTML =
+      `${detail.email}<br>${detail.phone}<br>${detail.address || 'No address set'}`;
+
+    // Pre-fill edit form
+    document.getElementById('eFirstName').value = detail.firstName;
+    document.getElementById('eLastName').value = detail.lastName;
+    document.getElementById('eEmail').value = detail.email;
+    document.getElementById('ePhone').value = detail.phone;
+    document.getElementById('eAddress').value = detail.address || '';
+
+    // Stats
+    const invoices = detail.recentPurchases || [];
+    const allInvoices = await API.get(`/sales/customer/${user.id}`);
+    const totalSpend = allInvoices.reduce((s, i) => s + (i.status !== 'Cancelled' ? i.totalAmount : 0), 0);
+    document.getElementById('statSpend').textContent = fmt(totalSpend);
+    document.getElementById('statPurchases').textContent = allInvoices.filter(i => i.status !== 'Cancelled').length;
+    document.getElementById('statVehicles').textContent = detail.vehicles.length;
+
+    // Recent
+    const body = document.getElementById('recentPurchases');
+    const recent = allInvoices.slice(0, 5);
+    body.innerHTML = recent.length ? recent.map(i => `<tr>
+      <td><code>${i.invoiceNumber}</code></td>
+      <td style="font-size:12px">${fmtDate(i.invoiceDate)}</td>
+      <td class="amount">NPR ${fmt(i.totalAmount)}</td>
+      <td><span class="status-badge ${i.status.toLowerCase()}">${i.status}</span></td>
+    </tr>`).join('') : '<tr><td colspan="4" class="table-empty">No purchases yet</td></tr>';
+
+  } catch (e) {
+    notify('Failed to load profile', 'error');
+  }
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const body = {
+    firstName: document.getElementById('eFirstName').value,
+    lastName: document.getElementById('eLastName').value,
+    email: document.getElementById('eEmail').value,
+    phone: document.getElementById('ePhone').value,
+    address: document.getElementById('eAddress').value,
+  };
+  try {
+    await API.put(`/customers/${user.id}`, body);
+    // Update session name
+    user.firstName = body.firstName; user.lastName = body.lastName;
+    sessionStorage.setItem('user', JSON.stringify(user));
+    notify('Profile updated!', 'success');
+    closeModal('editModal');
+    loadProfile();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function changePassword() {
+  const np = document.getElementById('newPwd').value;
+  const cp = document.getElementById('confirmPwd').value;
+  if (!np || np.length < 6) { notify('Password must be at least 6 characters', 'error'); return; }
+  if (np !== cp) { notify('Passwords do not match', 'error'); return; }
+  // Note: a real app would have a dedicated change-password endpoint with current-password verification.
+  // Here we update via the customer update endpoint extended with a password field.
+  try {
+    const detail = await API.get(`/customers/${user.id}`);
+    await fetch(`http://localhost:5033/api/customers/${user.id}/password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: np })
+    });
+    notify('Password updated!', 'success');
+    closeModal('pwdModal');
+    document.getElementById('newPwd').value = '';
+    document.getElementById('confirmPwd').value = '';
+  } catch (err) { notify('Password update requires backend endpoint. Profile update still works.', 'info'); closeModal('pwdModal'); }
+}
+
+function logout() {
+  sessionStorage.removeItem('user');
+  window.location.href = 'login.html';
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+loadProfile();
+</script>
+</body>
+</html>
