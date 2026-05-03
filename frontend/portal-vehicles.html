@@ -5,105 +5,96 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — My Vehicles</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-.portal-nav-link{color:var(--text-2);text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border-radius:var(--radius);transition:color 0.2s,background 0.2s}
-.portal-nav-link:hover{color:var(--text);background:var(--bg-3)}
-.portal-nav-link.active{color:var(--accent);background:var(--accent-dim)}
-.veh-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
-.veh-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s}
-.veh-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.veh-card.petrol::before{background:var(--accent)}
-.veh-card.diesel::before{background:var(--warn,#e8964b)}
-.veh-card.electric::before{background:var(--success)}
-.veh-card.hybrid::before{background:var(--accent-2)}
-.veh-card:hover{border-color:var(--border-2);transform:translateY(-2px)}
-.veh-icon{font-size:32px;margin-bottom:12px}
-.veh-number{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--accent);letter-spacing:2px;margin-bottom:4px}
-.veh-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;margin-bottom:12px}
-.veh-details{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
-.veh-detail-row{display:flex;gap:8px;font-size:13px}
-.veh-detail-key{color:var(--text-3);width:60px;font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
-.veh-detail-val{color:var(--text-2)}
-.veh-actions{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:14px}
-.fuel-chip{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:20px;font-weight:600}
-.fuel-chip.petrol{background:var(--accent-dim);color:var(--accent)}
-.fuel-chip.diesel{background:rgba(232,150,75,0.12);color:#e8964b}
-.fuel-chip.electric{background:var(--success-dim);color:var(--success)}
-.fuel-chip.hybrid{background:var(--accent-2-dim);color:var(--accent-2)}
+.portal-nav { display: flex; gap: 2px; flex: 1; }
+.portal-link { color: var(--text-2); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 11px; border-radius: var(--radius-sm); white-space: nowrap; transition: color 0.15s, background 0.15s; }
+.portal-link:hover { color: var(--text); background: var(--surface-2); }
+.portal-link.active { color: var(--blue); background: var(--blue-dim); font-weight: 600; }
+.veh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.veh-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+.veh-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.veh-card.petrol::before { background: var(--blue); }
+.veh-card.diesel::before { background: var(--amber); }
+.veh-card.electric::before { background: var(--green); }
+.veh-card.hybrid::before { background: var(--red); }
+.veh-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
+.veh-icon { font-size: 30px; margin-bottom: 10px; }
+.veh-number { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--blue); letter-spacing: 2px; margin-bottom: 4px; }
+.veh-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 12px; color: var(--text); }
+.veh-details { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
+.veh-detail-row { display: flex; gap: 8px; font-size: 13px; }
+.veh-detail-key { color: var(--text-3); width: 50px; font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.veh-detail-val { color: var(--text-2); }
+.veh-actions { display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  <a href="portal-profile.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div class="portal-nav">
+    <a href="portal-profile.html" class="portal-link">My Profile</a>
+    <a href="portal-vehicles.html" class="portal-link active">My Vehicles</a>
+    <a href="portal-history.html" class="portal-link">Purchase History</a>
   </div>
-  <ul class="nav-links">
-    <li><a href="portal-profile.html" class="portal-nav-link">My Profile</a></li>
-    <li><a href="portal-vehicles.html" class="portal-nav-link active">My Vehicles</a></li>
-    <li><a href="portal-history.html" class="portal-nav-link">Purchase History</a></li>
-  </ul>
-  <div class="nav-right">
-    <span class="status-dot"></span>
-    <span class="status-text" id="navName">—</span>
-    <button class="btn btn-outline btn-sm" onclick="logout()" style="margin-left:8px">Logout</button>
-  </div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <p class="page-label">CUSTOMER PORTAL</p>
-        <h1 class="page-title">My Vehicles</h1>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('vehModal')">+ Add Vehicle</button>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Customer Portal</div>
+      <h1 class="page-title">My Vehicles</h1>
     </div>
-  </header>
+    <button class="btn btn-primary" onclick="openModal('vehModal')">+ Add Vehicle</button>
+  </div>
 
-  <div class="veh-cards" id="vehCards">
-    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading…</div>
+  <div class="veh-grid" id="vehGrid">
+    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading...</div>
   </div>
 </main>
 
-<!-- ADD / EDIT VEHICLE MODAL -->
 <div class="modal-overlay" id="vehModal">
   <div class="modal">
-    <h2 class="modal-title" id="vehModalTitle">Add Vehicle</h2>
+    <div class="modal-hd">
+      <div class="modal-title" id="vehModalTitle">Add Vehicle</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('vehModal');resetForm()">Close</button>
+    </div>
     <form id="vehForm" onsubmit="saveVehicle(event)">
       <input type="hidden" id="vehId">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Vehicle Number *</label>
-          <input class="form-input" id="fVehNum" required placeholder="e.g. BA 1 PA 2222">
+          <label class="form-label">Vehicle Number</label>
+          <input class="input" id="fVehNum" required placeholder="BA 1 PA 2222">
         </div>
         <div class="form-group">
-          <label class="form-label">Make *</label>
-          <input class="form-input" id="fVehMake" required placeholder="e.g. Toyota">
+          <label class="form-label">Make</label>
+          <input class="input" id="fVehMake" required placeholder="Toyota">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Model *</label>
-          <input class="form-input" id="fVehModel" required placeholder="e.g. Hilux">
+          <label class="form-label">Model</label>
+          <input class="input" id="fVehModel" required placeholder="Hilux">
         </div>
         <div class="form-group">
-          <label class="form-label">Year *</label>
-          <input class="form-input" id="fVehYear" type="number" min="1980" max="2030" required>
+          <label class="form-label">Year</label>
+          <input class="input" id="fVehYear" type="number" min="1980" max="2030" required>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Color</label>
-          <input class="form-input" id="fVehColor" placeholder="e.g. White">
+          <input class="input" id="fVehColor" placeholder="White">
         </div>
         <div class="form-group">
-          <label class="form-label">Fuel Type *</label>
-          <select class="form-select" id="fVehFuel" required>
-            <option value="">Select…</option>
+          <label class="form-label">Fuel Type</label>
+          <select class="input select" id="fVehFuel" required>
+            <option value="">Select...</option>
             <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
           </select>
         </div>
@@ -116,35 +107,39 @@
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-const userJson = sessionStorage.getItem('user');
-if (!userJson) { window.location.href = 'login.html'; }
-const user = JSON.parse(userJson || '{}');
-if (user.role !== 'Customer') { window.location.href = 'login.html'; }
-document.getElementById('navName').textContent = `${user.firstName} ${user.lastName}`;
+const user = requireRole('Customer');
+if (user) {
+  const navUser = document.getElementById('nav-user');
+  navUser.innerHTML = `
+    <span class="nav-username">${user.firstName} ${user.lastName}</span>
+    <span class="nav-role">Customer</span>
+    <button class="nav-logout" onclick="logout()">Logout</button>
+  `;
+  loadVehicles();
+}
 
 let myVehicles = [];
-
-const fuelIcons = { Petrol:'⛽', Diesel:'🛢', Electric:'⚡', Hybrid:'🌿' };
+const fuelIcons = { Petrol: '&#9981;', Diesel: '&#128021;', Electric: '&#9889;', Hybrid: '&#127807;' };
 
 async function loadVehicles() {
   try {
     myVehicles = await API.get(`/customers/${user.id}/vehicles`);
     renderVehicles();
   } catch (e) {
-    document.getElementById('vehCards').innerHTML = '<div class="table-empty error" style="padding:48px;text-align:center">Failed to load vehicles</div>';
+    document.getElementById('vehGrid').innerHTML = '<div class="tbl-empty" style="padding:48px;text-align:center">Failed to load vehicles</div>';
   }
 }
 
 function renderVehicles() {
-  const grid = document.getElementById('vehCards');
+  const grid = document.getElementById('vehGrid');
   if (!myVehicles.length) {
     grid.innerHTML = `
       <div style="grid-column:1/-1;padding:60px;text-align:center">
-        <div style="font-size:48px;margin-bottom:16px">🚗</div>
+        <div style="font-size:48px;margin-bottom:16px">&#128663;</div>
         <p style="color:var(--text-2);font-size:16px;margin-bottom:8px">No vehicles registered yet.</p>
-        <p style="color:var(--text-3);font-size:13px">Add your vehicle to get started.</p>
+        <p class="muted">Add your vehicle to get started.</p>
       </div>`;
     return;
   }
@@ -152,14 +147,14 @@ function renderVehicles() {
     const fuelClass = v.fuelType.toLowerCase();
     return `
     <div class="veh-card ${fuelClass}">
-      <div class="veh-icon">${fuelIcons[v.fuelType] || '🚗'}</div>
+      <div class="veh-icon">${fuelIcons[v.fuelType] || '&#128663;'}</div>
       <div class="veh-number">${v.vehicleNumber}</div>
       <div class="veh-title">${v.make} ${v.model}</div>
       <div class="veh-details">
         <div class="veh-detail-row"><span class="veh-detail-key">Year</span><span class="veh-detail-val">${v.year}</span></div>
         <div class="veh-detail-row"><span class="veh-detail-key">Color</span><span class="veh-detail-val">${v.color || '—'}</span></div>
-        <div class="veh-detail-row"><span class="veh-detail-key">Fuel</span><span class="fuel-chip ${fuelClass}">${v.fuelType}</span></div>
-        <div class="veh-detail-row"><span class="veh-detail-key">Since</span><span class="veh-detail-val" style="font-size:11px;color:var(--text-3)">${fmtDate(v.registeredAt)}</span></div>
+        <div class="veh-detail-row"><span class="veh-detail-key">Fuel</span><span class="veh-detail-val"><span class="badge badge-blue">${v.fuelType}</span></span></div>
+        <div class="veh-detail-row"><span class="veh-detail-key">Since</span><span class="veh-detail-val muted" style="font-size:11px">${fmtDate(v.registeredAt)}</span></div>
       </div>
       <div class="veh-actions">
         <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id})">Edit</button>
@@ -203,14 +198,11 @@ async function saveVehicle(e) {
     fuelType: document.getElementById('fVehFuel').value
   };
   try {
-    if (id) {
-      await API.put(`/customers/${user.id}/vehicles/${id}`, body);
-      notify('Vehicle updated!', 'success');
-    } else {
-      await API.post(`/customers/${user.id}/vehicles`, body);
-      notify('Vehicle added!', 'success');
-    }
-    closeModal('vehModal'); resetForm(); loadVehicles();
+    if (id) { await API.put(`/customers/${user.id}/vehicles/${id}`, body); notify('Vehicle updated', 'success'); }
+    else { await API.post(`/customers/${user.id}/vehicles`, body); notify('Vehicle added', 'success'); }
+    closeModal('vehModal');
+    resetForm();
+    loadVehicles();
   } catch (err) { notify(err.message, 'error'); }
 }
 
@@ -223,13 +215,9 @@ async function deleteVehicle(id, vnum) {
   } catch (err) { notify(err.message, 'error'); }
 }
 
-function logout() { sessionStorage.removeItem('user'); window.location.href = 'login.html'; }
-
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } });
 });
-
-loadVehicles();
 </script>
 </body>
 </html>

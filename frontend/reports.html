@@ -5,193 +5,171 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Reports</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-.report-tabs{display:flex;gap:6px;margin-bottom:28px;background:var(--bg-2);padding:6px;border-radius:var(--radius-lg);border:1px solid var(--border)}
-.rtab{flex:1;padding:10px;border:none;background:none;color:var(--text-3);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:1.5px;text-transform:uppercase;border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
-.rtab.active{background:var(--bg-4);color:var(--accent);border:1px solid var(--border-2)}
-.rtab:hover:not(.active){color:var(--text-2)}
-
-.report-controls{display:flex;gap:12px;align-items:center;margin-bottom:24px;flex-wrap:wrap}
-
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-.kpi-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 22px;position:relative;overflow:hidden}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-.kpi-card.green::before{background:var(--success)}
-.kpi-card.blue::before{background:var(--accent-2)}
-.kpi-card.gold::before{background:var(--accent)}
-.kpi-card.red::before{background:var(--danger)}
-.kpi-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
-.kpi-value{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;line-height:1;color:var(--text)}
-.kpi-card.green .kpi-value{color:var(--success)}
-.kpi-card.blue .kpi-value{color:var(--accent-2)}
-.kpi-card.gold .kpi-value{color:var(--accent)}
-.kpi-card.red .kpi-value{color:var(--danger)}
-.kpi-sub{font-size:11px;color:var(--text-3);margin-top:4px}
-
-.chart-bar-wrap{display:flex;flex-direction:column;gap:6px}
-.chart-bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
-.chart-bar-label{width:90px;color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;flex-shrink:0}
-.chart-bar-track{flex:1;height:18px;background:var(--bg-3);border-radius:3px;overflow:hidden}
-.chart-bar-fill{height:100%;border-radius:3px;transition:width 0.5s ease;background:var(--accent-2)}
-.chart-bar-fill.gold{background:var(--accent)}
-.chart-bar-fill.green{background:var(--success)}
-.chart-bar-val{width:90px;color:var(--text-2);font-family:'JetBrains Mono',monospace;font-size:11px;flex-shrink:0}
-
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-
-/* Customer reports tab */
-.cust-report-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-.crtab{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--text-3);font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all 0.2s}
-.crtab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
-
-@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}}
-@media(max-width:600px){.kpi-grid{grid-template-columns:1fr}}
+.report-tabs { display: flex; gap: 6px; margin-bottom: 28px; background: var(--surface); padding: 6px; border-radius: var(--radius-lg); border: 1px solid var(--border); }
+.rtab { flex: 1; padding: 10px; border: none; background: none; color: var(--text-3); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; border-radius: var(--radius); cursor: pointer; transition: all 0.2s; }
+.rtab.active { background: var(--bg); color: var(--blue); border: 1px solid var(--border); font-weight: 700; }
+.rtab:hover:not(.active) { color: var(--text-2); }
+.report-controls { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden; }
+.kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--border); }
+.kpi.blue::before { background: var(--blue); }
+.kpi.green::before { background: var(--green); }
+.kpi.amber::before { background: var(--amber); }
+.kpi.red::before { background: var(--red); }
+.kpi-label { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.kpi-value { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; line-height: 1; color: var(--text); }
+.kpi.blue .kpi-value { color: var(--blue); }
+.kpi.green .kpi-value { color: var(--green); }
+.kpi.amber .kpi-value { color: var(--amber); }
+.kpi.red .kpi-value { color: var(--red); }
+.kpi-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.bar-label { width: 90px; color: var(--text-3); font-family: 'Space Mono', monospace; font-size: 10px; text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 16px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; background: var(--blue); }
+.bar-fill.amber { background: var(--amber); }
+.bar-fill.green { background: var(--green); }
+.bar-val { width: 90px; color: var(--text-2); font-family: 'Space Mono', monospace; font-size: 11px; flex-shrink: 0; }
+.crtabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.crtab { padding: 7px 16px; border: 1px solid var(--border); border-radius: 20px; background: none; color: var(--text-3); font-size: 12px; font-family: 'Space Mono', monospace; cursor: pointer; transition: all 0.2s; }
+.crtab.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+@media(max-width:1100px) { .kpi-grid { grid-template-columns: repeat(2,1fr) } .two-col { grid-template-columns: 1fr } }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link">Parts</a></li>
-    <li><a href="customers.html" class="nav-link">Customers</a></li>
-    <li><a href="sales.html" class="nav-link">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link">Staff</a></li>
-    <li><a href="reports.html" class="nav-link active">Reports</a></li>
-  </ul>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <p class="page-label">ANALYTICS</p>
-        <h1 class="page-title">Financial Reports</h1>
-      </div>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Analytics</div>
+      <h1 class="page-title">Financial Reports</h1>
     </div>
-  </header>
-
-  <!-- Top-level tabs -->
-  <div class="report-tabs">
-    <button class="rtab active" onclick="switchTab('daily',this)">Daily</button>
-    <button class="rtab" onclick="switchTab('monthly',this)">Monthly</button>
-    <button class="rtab" onclick="switchTab('yearly',this)">Yearly</button>
-    <button class="rtab" onclick="switchTab('customers',this)">Customer Reports</button>
   </div>
 
-  <!-- ── DAILY ── -->
+  <div class="report-tabs">
+    <button class="rtab active" onclick="switchTab('daily', this)">Daily</button>
+    <button class="rtab" onclick="switchTab('monthly', this)">Monthly</button>
+    <button class="rtab" onclick="switchTab('yearly', this)">Yearly</button>
+    <button class="rtab" onclick="switchTab('customers', this)">Customer Reports</button>
+  </div>
+
   <div id="tab-daily">
     <div class="report-controls">
       <div>
         <label class="form-label" style="display:block;margin-bottom:4px">Date</label>
-        <input class="search-input" id="dailyDate" type="date" style="min-width:180px">
+        <input class="input" id="dailyDate" type="date" style="min-width:180px">
       </div>
-      <button class="btn btn-primary" style="margin-top:18px" onclick="loadDaily()">Generate</button>
+      <button class="btn btn-primary" onclick="loadDaily()">Generate</button>
     </div>
     <div id="dailyResult" style="display:none">
       <div class="kpi-grid" id="dailyKpis"></div>
       <div class="two-col">
-        <div class="dash-card"><h3 class="card-title">Top Parts Sold</h3><div id="dailyTopParts"></div></div>
-        <div class="dash-card"><h3 class="card-title">Revenue by Payment</h3><div id="dailyPayment"></div></div>
+        <div class="card"><div class="card-title">Top Parts Sold</div><div class="bar-wrap" id="dailyTopParts"></div></div>
+        <div class="card"><div class="card-title">Revenue by Payment</div><div class="bar-wrap" id="dailyPayment"></div></div>
       </div>
     </div>
-    <div id="dailyEmpty" class="dash-card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:13px">
+    <div id="dailyEmpty" class="card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'Space Mono',monospace;font-size:13px">
       Select a date and click Generate
     </div>
   </div>
 
-  <!-- ── MONTHLY ── -->
   <div id="tab-monthly" style="display:none">
     <div class="report-controls">
       <div>
         <label class="form-label" style="display:block;margin-bottom:4px">Year</label>
-        <input class="search-input" id="monthYear" type="number" min="2020" max="2099" value="2026" style="width:100px">
+        <input class="input" id="monthYear" type="number" min="2020" max="2099" value="2026" style="width:100px">
       </div>
       <div>
         <label class="form-label" style="display:block;margin-bottom:4px">Month</label>
-        <select class="select-input" id="monthMonth">
+        <select class="input select" id="monthMonth">
           <option value="1">January</option><option value="2">February</option><option value="3">March</option>
           <option value="4">April</option><option value="5">May</option><option value="6">June</option>
           <option value="7">July</option><option value="8">August</option><option value="9">September</option>
           <option value="10">October</option><option value="11">November</option><option value="12">December</option>
         </select>
       </div>
-      <button class="btn btn-primary" style="margin-top:18px" onclick="loadMonthly()">Generate</button>
+      <button class="btn btn-primary" onclick="loadMonthly()">Generate</button>
     </div>
     <div id="monthlyResult" style="display:none">
       <div class="kpi-grid" id="monthlyKpis"></div>
-      <div class="dash-card" style="margin-bottom:16px">
-        <h3 class="card-title">Revenue by Day</h3>
-        <div id="monthlyDayChart" class="chart-bar-wrap"></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Revenue by Day</div>
+        <div class="bar-wrap" id="monthlyDayChart"></div>
       </div>
       <div class="two-col">
-        <div class="dash-card"><h3 class="card-title">Top Parts Sold</h3><div id="monthlyTopParts"></div></div>
-        <div class="dash-card"><h3 class="card-title">Revenue by Payment</h3><div id="monthlyPayment"></div></div>
+        <div class="card"><div class="card-title">Top Parts Sold</div><div class="bar-wrap" id="monthlyTopParts"></div></div>
+        <div class="card"><div class="card-title">Revenue by Payment</div><div class="bar-wrap" id="monthlyPayment"></div></div>
       </div>
     </div>
-    <div id="monthlyEmpty" class="dash-card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:13px">
+    <div id="monthlyEmpty" class="card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'Space Mono',monospace;font-size:13px">
       Select a month and click Generate
     </div>
   </div>
 
-  <!-- ── YEARLY ── -->
   <div id="tab-yearly" style="display:none">
     <div class="report-controls">
       <div>
         <label class="form-label" style="display:block;margin-bottom:4px">Year</label>
-        <input class="search-input" id="yearYear" type="number" min="2020" max="2099" value="2026" style="width:100px">
+        <input class="input" id="yearYear" type="number" min="2020" max="2099" value="2026" style="width:100px">
       </div>
-      <button class="btn btn-primary" style="margin-top:18px" onclick="loadYearly()">Generate</button>
+      <button class="btn btn-primary" onclick="loadYearly()">Generate</button>
     </div>
     <div id="yearlyResult" style="display:none">
       <div class="kpi-grid" id="yearlyKpis"></div>
-      <div class="dash-card" style="margin-bottom:16px">
-        <h3 class="card-title">Monthly Revenue vs Cost</h3>
-        <div id="yearlyMonthChart" class="chart-bar-wrap"></div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">Monthly Revenue</div>
+        <div class="bar-wrap" id="yearlyMonthChart"></div>
       </div>
       <div class="two-col">
-        <div class="dash-card"><h3 class="card-title">Top Parts Sold</h3><div id="yearlyTopParts"></div></div>
-        <div class="dash-card"><h3 class="card-title">Revenue by Payment</h3><div id="yearlyPayment"></div></div>
+        <div class="card"><div class="card-title">Top Parts Sold</div><div class="bar-wrap" id="yearlyTopParts"></div></div>
+        <div class="card"><div class="card-title">Revenue by Payment</div><div class="bar-wrap" id="yearlyPayment"></div></div>
       </div>
     </div>
-    <div id="yearlyEmpty" class="dash-card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:13px">
+    <div id="yearlyEmpty" class="card" style="text-align:center;padding:48px;color:var(--text-3);font-family:'Space Mono',monospace;font-size:13px">
       Select a year and click Generate
     </div>
   </div>
 
-  <!-- ── CUSTOMER REPORTS ── -->
   <div id="tab-customers" style="display:none">
-    <div class="cust-report-tabs">
-      <button class="crtab active" onclick="loadCustReport('top-spenders',this)">Top Spenders</button>
-      <button class="crtab" onclick="loadCustReport('regulars',this)">Regular Customers</button>
-      <button class="crtab" onclick="loadCustReport('pending-credits',this)">Pending Credits</button>
-      <button class="crtab" onclick="loadCustReport('overdue-credits',this)">Overdue Credits (&gt;30 days)</button>
+    <div class="crtabs">
+      <button class="crtab active" onclick="loadCustReport('top-spenders', this)">Top Spenders</button>
+      <button class="crtab" onclick="loadCustReport('regulars', this)">Regular Customers</button>
+      <button class="crtab" onclick="loadCustReport('pending-credits', this)">Pending Credits</button>
+      <button class="crtab" onclick="loadCustReport('overdue-credits', this)">Overdue (&gt;30 days)</button>
     </div>
-    <div class="dash-card">
+    <div class="card">
       <div class="table-wrap">
-        <table class="data-table" id="custReportTable">
+        <table class="tbl">
           <thead id="custReportHead"></thead>
-          <tbody id="custReportBody"><tr><td colspan="6" class="table-empty">Select a report above</td></tr></tbody>
+          <tbody id="custReportBody"><tr><td colspan="6" class="tbl-empty">Select a report above</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 </main>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-// Set defaults
-document.getElementById('dailyDate').value = new Date().toISOString().split('T')[0];
-const now = new Date();
-document.getElementById('monthMonth').value = now.getMonth() + 1;
+const user = requireRole('Admin', 'Staff');
+if (user) {
+  buildNav();
+  document.getElementById('dailyDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('monthMonth').value = new Date().getMonth() + 1;
+}
 
 function switchTab(tab, el) {
   ['daily','monthly','yearly','customers'].forEach(t => {
@@ -202,45 +180,32 @@ function switchTab(tab, el) {
   if (tab === 'customers') loadCustReport('top-spenders', document.querySelector('.crtab'));
 }
 
-// ── KPI helpers ──────────────────────────────────────────────
-function kpi(label, value, cls='', sub='') {
-  return `<div class="kpi-card ${cls}"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div>${sub ? `<div class="kpi-sub">${sub}</div>` : ''}</div>`;
+function kpi(label, value, cls, sub) {
+  return `<div class="kpi ${cls||''}"><div class="kpi-label">${label}</div><div class="kpi-value">${value}</div>${sub ? `<div class="kpi-sub">${sub}</div>` : ''}</div>`;
 }
 
-function barChart(items, labelKey, valueKey, cls='', maxVal) {
-  if (!items.length) return '<p style="color:var(--text-3);font-size:12px;padding:8px">No data</p>';
-  const max = maxVal || Math.max(...items.map(i => i[valueKey]));
+function bars(items, labelKey, valueKey, fillCls) {
+  if (!items.length) return '<p class="muted" style="padding:8px">No data</p>';
+  const max = Math.max(...items.map(i => i[valueKey]));
   return items.map(i => `
-    <div class="chart-bar-row">
-      <div class="chart-bar-label">${i[labelKey]}</div>
-      <div class="chart-bar-track"><div class="chart-bar-fill ${cls}" style="width:${max ? (i[valueKey]/max*100).toFixed(1) : 0}%"></div></div>
-      <div class="chart-bar-val">NPR ${fmt(i[valueKey])}</div>
+    <div class="bar-row">
+      <div class="bar-label">${String(i[labelKey]).slice(0,10)}</div>
+      <div class="bar-track"><div class="bar-fill ${fillCls||''}" style="width:${max?(i[valueKey]/max*100).toFixed(1):0}%"></div></div>
+      <div class="bar-val">NPR ${fmt(i[valueKey])}</div>
     </div>`).join('');
 }
 
-function topPartsHtml(parts) {
-  if (!parts.length) return '<p style="color:var(--text-3);font-size:12px;padding:8px">No data</p>';
+function topPartsBars(parts) {
+  if (!parts.length) return '<p class="muted" style="padding:8px">No data</p>';
   const max = Math.max(...parts.map(p => p.quantitySold));
   return parts.map(p => `
-    <div class="chart-bar-row">
-      <div class="chart-bar-label" style="font-size:9px;width:100px">${p.partName.length>12?p.partName.slice(0,12)+'…':p.partName}</div>
-      <div class="chart-bar-track"><div class="chart-bar-fill gold" style="width:${max?(p.quantitySold/max*100).toFixed(1):0}%"></div></div>
-      <div class="chart-bar-val">${p.quantitySold} units</div>
+    <div class="bar-row">
+      <div class="bar-label" style="font-size:9px">${p.partName.length>10?p.partName.slice(0,10)+'…':p.partName}</div>
+      <div class="bar-track"><div class="bar-fill amber" style="width:${max?(p.quantitySold/max*100).toFixed(1):0}%"></div></div>
+      <div class="bar-val">${p.quantitySold} units</div>
     </div>`).join('');
 }
 
-function paymentHtml(methods) {
-  if (!methods.length) return '<p style="color:var(--text-3);font-size:12px;padding:8px">No data</p>';
-  const max = Math.max(...methods.map(m => m.totalRevenue));
-  return methods.map(m => `
-    <div class="chart-bar-row">
-      <div class="chart-bar-label">${m.paymentMethod}</div>
-      <div class="chart-bar-track"><div class="chart-bar-fill green" style="width:${max?(m.totalRevenue/max*100).toFixed(1):0}%"></div></div>
-      <div class="chart-bar-val">NPR ${fmt(m.totalRevenue)}</div>
-    </div>`).join('');
-}
-
-// ── DAILY ────────────────────────────────────────────────────
 async function loadDaily() {
   const date = document.getElementById('dailyDate').value;
   if (!date) { notify('Select a date', 'error'); return; }
@@ -248,19 +213,16 @@ async function loadDaily() {
     const r = await API.get(`/reports/daily?date=${date}`);
     document.getElementById('dailyEmpty').style.display = 'none';
     document.getElementById('dailyResult').style.display = 'block';
-
     document.getElementById('dailyKpis').innerHTML =
-      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'gold') +
+      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'amber') +
       kpi('Gross Profit', `NPR ${fmt(r.grossProfit)}`, r.grossProfit >= 0 ? 'green' : 'red') +
       kpi('Purchase Cost', `NPR ${fmt(r.totalPurchaseCost)}`, 'blue') +
       kpi('Sales Invoices', r.totalSalesInvoices, '', `${r.loyaltyDiscountCount} with loyalty`);
-
-    document.getElementById('dailyTopParts').innerHTML = topPartsHtml(r.topSellingParts);
-    document.getElementById('dailyPayment').innerHTML = paymentHtml(r.revenueByPaymentMethod);
+    document.getElementById('dailyTopParts').innerHTML = topPartsBars(r.topSellingParts);
+    document.getElementById('dailyPayment').innerHTML = bars(r.revenueByPaymentMethod, 'paymentMethod', 'totalRevenue', 'green');
   } catch (e) { notify('Failed to load daily report', 'error'); }
 }
 
-// ── MONTHLY ──────────────────────────────────────────────────
 async function loadMonthly() {
   const year = document.getElementById('monthYear').value;
   const month = document.getElementById('monthMonth').value;
@@ -268,102 +230,78 @@ async function loadMonthly() {
     const r = await API.get(`/reports/monthly?year=${year}&month=${month}`);
     document.getElementById('monthlyEmpty').style.display = 'none';
     document.getElementById('monthlyResult').style.display = 'block';
-
     document.getElementById('monthlyKpis').innerHTML =
-      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'gold') +
+      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'amber') +
       kpi('Gross Profit', `NPR ${fmt(r.grossProfit)}`, r.grossProfit >= 0 ? 'green' : 'red') +
-      kpi('Total Discount', `NPR ${fmt(r.totalDiscount)}`, '') +
+      kpi('Total Discount', `NPR ${fmt(r.totalDiscount)}`) +
       kpi('Sales Invoices', r.totalSalesInvoices, '', `${r.loyaltyDiscountCount} loyalty`);
-
     const maxRev = Math.max(...r.salesByDay.map(d => d.revenue), 1);
     document.getElementById('monthlyDayChart').innerHTML = r.salesByDay.length
-      ? r.salesByDay.map(d => `
-        <div class="chart-bar-row">
-          <div class="chart-bar-label">${d.date.slice(5)}</div>
-          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(d.revenue/maxRev*100).toFixed(1)}%"></div></div>
-          <div class="chart-bar-val">NPR ${fmt(d.revenue)} <span style="color:var(--text-3)">(${d.invoiceCount})</span></div>
-        </div>`).join('')
-      : '<p style="color:var(--text-3);font-size:12px;padding:8px">No sales this month</p>';
-
-    document.getElementById('monthlyTopParts').innerHTML = topPartsHtml(r.topSellingParts);
-    document.getElementById('monthlyPayment').innerHTML = paymentHtml(r.revenueByPaymentMethod);
+      ? r.salesByDay.map(d => `<div class="bar-row"><div class="bar-label">${d.date.slice(5)}</div><div class="bar-track"><div class="bar-fill" style="width:${(d.revenue/maxRev*100).toFixed(1)}%"></div></div><div class="bar-val">NPR ${fmt(d.revenue)}</div></div>`).join('')
+      : '<p class="muted" style="padding:8px">No sales this month</p>';
+    document.getElementById('monthlyTopParts').innerHTML = topPartsBars(r.topSellingParts);
+    document.getElementById('monthlyPayment').innerHTML = bars(r.revenueByPaymentMethod, 'paymentMethod', 'totalRevenue', 'green');
   } catch (e) { notify('Failed to load monthly report', 'error'); }
 }
 
-// ── YEARLY ───────────────────────────────────────────────────
 async function loadYearly() {
   const year = document.getElementById('yearYear').value;
   try {
     const r = await API.get(`/reports/yearly?year=${year}`);
     document.getElementById('yearlyEmpty').style.display = 'none';
     document.getElementById('yearlyResult').style.display = 'block';
-
     document.getElementById('yearlyKpis').innerHTML =
-      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'gold') +
+      kpi('Total Revenue', `NPR ${fmt(r.totalRevenue)}`, 'amber') +
       kpi('Gross Profit', `NPR ${fmt(r.grossProfit)}`, r.grossProfit >= 0 ? 'green' : 'red') +
       kpi('Purchase Cost', `NPR ${fmt(r.totalPurchaseCost)}`, 'blue') +
       kpi('Sales Invoices', r.totalSalesInvoices, '', `${r.loyaltyDiscountCount} loyalty`);
-
     const maxRev = Math.max(...r.salesByMonth.map(m => m.revenue), 1);
     document.getElementById('yearlyMonthChart').innerHTML = r.salesByMonth.map(m => `
-      <div class="chart-bar-row">
-        <div class="chart-bar-label">${m.monthName.slice(0,3)}</div>
-        <div class="chart-bar-track">
-          <div class="chart-bar-fill gold" style="width:${(m.revenue/maxRev*100).toFixed(1)}%" title="Revenue: NPR ${fmt(m.revenue)}"></div>
-        </div>
-        <div class="chart-bar-val">NPR ${fmt(m.revenue)}</div>
+      <div class="bar-row">
+        <div class="bar-label">${m.monthName.slice(0,3)}</div>
+        <div class="bar-track"><div class="bar-fill amber" style="width:${(m.revenue/maxRev*100).toFixed(1)}%"></div></div>
+        <div class="bar-val">NPR ${fmt(m.revenue)}</div>
       </div>`).join('');
-
-    document.getElementById('yearlyTopParts').innerHTML = topPartsHtml(r.topSellingParts);
-    document.getElementById('yearlyPayment').innerHTML = paymentHtml(r.revenueByPaymentMethod);
+    document.getElementById('yearlyTopParts').innerHTML = topPartsBars(r.topSellingParts);
+    document.getElementById('yearlyPayment').innerHTML = bars(r.revenueByPaymentMethod, 'paymentMethod', 'totalRevenue', 'green');
   } catch (e) { notify('Failed to load yearly report', 'error'); }
 }
 
-// ── CUSTOMER REPORTS ─────────────────────────────────────────
 async function loadCustReport(type, el) {
   document.querySelectorAll('.crtab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('custReportBody').innerHTML = '<tr><td colspan="6" class="table-empty">Loading…</td></tr>';
-
+  document.getElementById('custReportBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Loading...</td></tr>';
   try {
     const data = await API.get(`/customer-reports/${type}`);
-
     if (type === 'top-spenders' || type === 'regulars') {
-      document.getElementById('custReportHead').innerHTML = `<tr>
-        <th>#</th><th>Customer</th><th>Phone</th>
-        <th>Invoices</th><th>Loyalty Uses</th><th>Last Purchase</th><th>Total Spend</th>
-      </tr>`;
+      document.getElementById('custReportHead').innerHTML = `<tr><th>#</th><th>Customer</th><th>Phone</th><th>Invoices</th><th>Loyalty</th><th>Last Purchase</th><th>Total Spend</th></tr>`;
       document.getElementById('custReportBody').innerHTML = data.length
         ? data.map((c, i) => `<tr>
-            <td style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:700">#${i+1}</td>
-            <td><div style="color:var(--text);font-weight:500">${c.firstName} ${c.lastName}</div><div style="font-size:11px;color:var(--text-3)">${c.email}</div></td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.phone}</td>
-            <td style="font-family:'JetBrains Mono',monospace">${c.invoiceCount}</td>
-            <td>${c.loyaltyInvoices > 0 ? `<span class="loyalty">★ ${c.loyaltyInvoices}</span>` : '—'}</td>
-            <td style="font-size:11px;color:var(--text-3)">${c.lastPurchase ? fmtDate(c.lastPurchase) : '—'}</td>
-            <td class="amount" style="color:var(--accent)">NPR ${fmt(c.totalSpend)}</td>
+            <td class="mono text-blue">#${i+1}</td>
+            <td><div class="text-strong">${c.firstName} ${c.lastName}</div><div class="muted">${c.email}</div></td>
+            <td class="mono">${c.phone}</td>
+            <td class="mono">${c.invoiceCount}</td>
+            <td>${c.loyaltyInvoices > 0 ? `<span class="badge badge-blue">${c.loyaltyInvoices}</span>` : '—'}</td>
+            <td class="muted">${c.lastPurchase ? fmtDate(c.lastPurchase) : '—'}</td>
+            <td class="amount text-blue">NPR ${fmt(c.totalSpend)}</td>
           </tr>`).join('')
-        : '<tr><td colspan="7" class="table-empty">No data found</td></tr>';
+        : '<tr><td colspan="7" class="tbl-empty">No data found</td></tr>';
     } else {
-      document.getElementById('custReportHead').innerHTML = `<tr>
-        <th>Customer</th><th>Phone</th>
-        <th>Credit Invoices</th><th>Oldest Credit</th><th>Total Owed</th>
-      </tr>`;
+      document.getElementById('custReportHead').innerHTML = `<tr><th>Customer</th><th>Phone</th><th>Credit Invoices</th><th>Oldest Credit</th><th>Total Owed</th></tr>`;
       document.getElementById('custReportBody').innerHTML = data.length
         ? data.map(c => `<tr>
-            <td><div style="color:var(--text);font-weight:500">${c.firstName} ${c.lastName}</div><div style="font-size:11px;color:var(--text-3)">${c.email}</div></td>
-            <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.phone}</td>
-            <td style="font-family:'JetBrains Mono',monospace">${c.creditInvoiceCount}</td>
-            <td style="font-size:11px;color:var(--warn)">${c.oldestCreditDate ? fmtDate(c.oldestCreditDate) : '—'}</td>
-            <td class="amount" style="color:var(--danger)">NPR ${fmt(c.totalCreditAmount)}</td>
+            <td><div class="text-strong">${c.firstName} ${c.lastName}</div><div class="muted">${c.email}</div></td>
+            <td class="mono">${c.phone}</td>
+            <td class="mono">${c.creditInvoiceCount}</td>
+            <td class="muted text-amber">${c.oldestCreditDate ? fmtDate(c.oldestCreditDate) : '—'}</td>
+            <td class="amount text-red">NPR ${fmt(c.totalCreditAmount)}</td>
           </tr>`).join('')
-        : '<tr><td colspan="5" class="table-empty">No pending credits — great!</td></tr>';
+        : '<tr><td colspan="5" class="tbl-empty">No pending credits</td></tr>';
     }
   } catch (e) { notify('Failed to load customer report', 'error'); }
 }
 
-// Auto-load top spenders on page open
-loadCustReport('top-spenders', document.querySelector('.crtab'));
+if (user) loadCustReport('top-spenders', document.querySelector('.crtab'));
 </script>
 </body>
 </html>

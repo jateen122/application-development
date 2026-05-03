@@ -5,115 +5,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Staff</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-.staff-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px; }
-.staff-card { background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;transition:all 0.2s;position:relative;overflow:hidden; }
-.staff-card::before { content:'';position:absolute;top:0;left:0;right:0;height:2px; }
-.staff-card.admin::before { background:var(--accent); }
-.staff-card.staff-role::before { background:var(--accent-2); }
-.staff-card.inactive { opacity:0.55; }
-.staff-avatar { width:52px;height:52px;border-radius:50%;background:var(--bg-3);border:2px solid var(--border-2);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;margin-bottom:14px; }
-.staff-avatar.admin { border-color:var(--accent);color:var(--accent); }
-.staff-avatar.staff-role { border-color:var(--accent-2);color:var(--accent-2); }
-.staff-name { font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;margin-bottom:2px; }
-.staff-email { font-size:12px;color:var(--text-3);margin-bottom:14px; }
-.staff-meta { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px; }
-.role-badge { font-size:10px;font-family:'JetBrains Mono',monospace;padding:3px 10px;border-radius:20px;font-weight:700;letter-spacing:1px; }
-.role-badge.admin { background:var(--accent-dim);color:var(--accent); }
-.role-badge.staff-role { background:var(--accent-2-dim);color:var(--accent-2); }
-.staff-actions { display:flex;gap:6px;border-top:1px solid var(--border);padding-top:16px;flex-wrap:wrap; }
-.stats-mini { display:flex;gap:4px;margin-bottom:0;margin-top:auto; }
+.staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.staff-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; transition: all 0.2s; position: relative; overflow: hidden; }
+.staff-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.staff-card.admin::before { background: var(--blue); }
+.staff-card.staff-role::before { background: var(--amber); }
+.staff-card.inactive { opacity: 0.55; }
+.staff-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+.staff-avatar.admin { border-color: var(--blue); color: var(--blue); }
+.staff-avatar.staff-role { border-color: var(--amber); color: var(--amber); }
+.staff-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 2px; color: var(--text); }
+.staff-email { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
+.staff-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.staff-actions { display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 16px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link">Parts</a></li>
-    <li><a href="customers.html" class="nav-link">Customers</a></li>
-    <li><a href="sales.html" class="nav-link">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link active">Staff</a></li>
-  </ul>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div><p class="page-label"></p><h1 class="page-title">Admin and Staff Management</h1></div>
-      <button class="btn btn-primary" onclick="openModal('staffModal')">+ Add Staff</button>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Administration</div>
+      <h1 class="page-title">Staff Management</h1>
     </div>
-  </header>
+    <button class="btn btn-primary" onclick="openModal('staffModal')">+ Add Staff</button>
+  </div>
 
-  <!-- Mini stats -->
-  <div style="display:flex;gap:12px;margin-bottom:24px" id="staffStats">
-    <div class="stat-card" style="flex:1;padding:16px 20px">
-      <div class="stat-label">Total Staff</div><div class="stat-value" id="sTotalStaff">—</div>
+  <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat">
+      <div class="stat-label">Total Staff</div>
+      <div class="stat-value" id="sTotalStaff">—</div>
     </div>
-    <div class="stat-card" style="flex:1;padding:16px 20px">
-      <div class="stat-label">Active</div><div class="stat-value" style="color:var(--success)" id="sActiveStaff">—</div>
+    <div class="stat stat--green">
+      <div class="stat-label">Active</div>
+      <div class="stat-value" id="sActiveStaff">—</div>
     </div>
-    <div class="stat-card" style="flex:1;padding:16px 20px">
-      <div class="stat-label">Inactive</div><div class="stat-value" style="color:var(--text-3)" id="sInactiveStaff">—</div>
+    <div class="stat">
+      <div class="stat-label">Inactive</div>
+      <div class="stat-value" id="sInactiveStaff">—</div>
     </div>
   </div>
 
-  <div class="controls-bar" style="margin-bottom:20px">
-    <select class="select-input" id="roleFilter" onchange="filterStaff()">
-      <option value="">All Roles</option><option>Admin</option><option>Staff</option>
+  <div class="controls" style="margin-bottom:20px">
+    <select class="select-filter" id="roleFilter" onchange="filterStaff()">
+      <option value="">All Roles</option>
+      <option>Admin</option><option>Staff</option>
     </select>
-    <select class="select-input" id="activeFilter" onchange="filterStaff()">
-      <option value="">All Status</option><option value="true">Active</option><option value="false">Inactive</option>
+    <select class="select-filter" id="activeFilter" onchange="filterStaff()">
+      <option value="">All Status</option>
+      <option value="true">Active</option><option value="false">Inactive</option>
     </select>
   </div>
 
   <div class="staff-grid" id="staffGrid">
-    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading…</div>
+    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading...</div>
   </div>
 </main>
 
-<!-- ADD STAFF MODAL -->
 <div class="modal-overlay" id="staffModal">
   <div class="modal">
-    <h2 class="modal-title" id="staffModalTitle">Add Staff Member</h2>
+    <div class="modal-hd">
+      <div class="modal-title" id="staffModalTitle">Add Staff Member</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('staffModal');resetStaffForm()">Close</button>
+    </div>
     <form id="staffForm" onsubmit="saveStaff(event)">
       <input type="hidden" id="staffId">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">First Name *</label>
-          <input class="form-input" id="fSFirstName" required>
+          <label class="form-label">First Name</label>
+          <input class="input" id="fSFirstName" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Last Name *</label>
-          <input class="form-input" id="fSLastName" required>
+          <label class="form-label">Last Name</label>
+          <input class="input" id="fSLastName" required>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Email *</label>
-        <input class="form-input" id="fSEmail" type="email" required>
+        <label class="form-label">Email</label>
+        <input class="input" id="fSEmail" type="email" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Phone *</label>
-        <input class="form-input" id="fSPhone" required>
+        <label class="form-label">Phone</label>
+        <input class="input" id="fSPhone" required>
       </div>
       <div class="form-group" id="staffRoleGroup">
-        <label class="form-label">Role *</label>
-        <select class="form-select" id="fSRole" required>
+        <label class="form-label">Role</label>
+        <select class="input select" id="fSRole">
           <option value="Staff">Staff</option>
           <option value="Admin">Admin</option>
         </select>
       </div>
       <div class="form-group" id="staffPasswordGroup">
-        <label class="form-label">Password *</label>
-        <input class="form-input" id="fSPassword" type="password" placeholder="Min 6 characters">
+        <label class="form-label">Password</label>
+        <input class="input" id="fSPassword" type="password" placeholder="Min 6 characters">
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeModal('staffModal');resetStaffForm()">Cancel</button>
@@ -123,33 +118,30 @@
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
+const user = requireRole('Admin');
+if (user) { buildNav(); loadStaff(); }
+
 let allStaff = [];
 
 async function loadStaff() {
   try {
     allStaff = await API.get('/staff');
     renderStaff(allStaff);
-    loadStaffCount();
-  } catch (e) {
-    document.getElementById('staffGrid').innerHTML = '<div class="table-empty error">Failed to load staff</div>';
-  }
-}
-
-async function loadStaffCount() {
-  try {
     const c = await API.get('/staff/count');
     document.getElementById('sTotalStaff').textContent = c.totalStaff;
     document.getElementById('sActiveStaff').textContent = c.activeStaff;
     document.getElementById('sInactiveStaff').textContent = c.inactiveStaff;
-  } catch (_) {}
+  } catch (e) {
+    document.getElementById('staffGrid').innerHTML = '<div class="tbl-empty">Failed to load staff</div>';
+  }
 }
 
 function renderStaff(list) {
   const grid = document.getElementById('staffGrid');
   if (!list.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3);font-family:\'JetBrains Mono\',monospace;font-size:13px">No staff members found</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3)">No staff members found</div>';
     return;
   }
   grid.innerHTML = list.map(s => {
@@ -161,10 +153,10 @@ function renderStaff(list) {
       <div class="staff-name">${s.firstName} ${s.lastName}</div>
       <div class="staff-email">${s.email}</div>
       <div class="staff-meta">
-        <span class="role-badge ${roleClass}">${s.role.toUpperCase()}</span>
-        <span class="status-badge ${s.isActive ? 'active' : 'inactive'}">${s.isActive ? 'Active' : 'Inactive'}</span>
+        <span class="badge ${s.role === 'Admin' ? 'badge-blue' : 'badge-amber'}">${s.role}</span>
+        <span class="badge ${s.isActive ? 'badge-green' : 'badge-gray'}">${s.isActive ? 'Active' : 'Inactive'}</span>
       </div>
-      <div style="font-size:12px;color:var(--text-3);margin-bottom:16px;font-family:'JetBrains Mono',monospace">${s.phone}</div>
+      <div class="muted" style="margin-bottom:16px;font-family:'Space Mono',monospace;font-size:12px">${s.phone}</div>
       <div class="staff-actions">
         <button class="btn btn-outline btn-sm" onclick="editStaff(${s.id})">Edit</button>
         <button class="btn btn-outline btn-sm" onclick="changeRole(${s.id},'${s.role}','${s.firstName}')">Role</button>
@@ -180,10 +172,7 @@ function renderStaff(list) {
 function filterStaff() {
   const r = document.getElementById('roleFilter').value;
   const a = document.getElementById('activeFilter').value;
-  renderStaff(allStaff.filter(s =>
-    (!r || s.role === r) &&
-    (a === '' || String(s.isActive) === a)
-  ));
+  renderStaff(allStaff.filter(s => (!r || s.role === r) && (a === '' || String(s.isActive) === a)));
 }
 
 function editStaff(id) {
@@ -250,7 +239,7 @@ async function saveStaff(e) {
         email: document.getElementById('fSEmail').value,
         phone: document.getElementById('fSPhone').value,
       });
-      notify('Staff updated!', 'success');
+      notify('Staff updated', 'success');
     } else {
       await API.post('/staff', {
         firstName: document.getElementById('fSFirstName').value,
@@ -260,17 +249,17 @@ async function saveStaff(e) {
         role: document.getElementById('fSRole').value,
         password: document.getElementById('fSPassword').value,
       });
-      notify('Staff added!', 'success');
+      notify('Staff added', 'success');
     }
-    closeModal('staffModal'); resetStaffForm(); loadStaff();
+    closeModal('staffModal');
+    resetStaffForm();
+    loadStaff();
   } catch (err) { notify(err.message, 'error'); }
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetStaffForm(); } });
 });
-
-loadStaff();
 </script>
 </body>
 </html>

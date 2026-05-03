@@ -5,66 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Purchase History</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-.portal-nav-link{color:var(--text-2);text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;padding:6px 12px;border-radius:var(--radius);transition:color 0.2s,background 0.2s}
-.portal-nav-link:hover{color:var(--text);background:var(--bg-3)}
-.portal-nav-link.active{color:var(--accent);background:var(--accent-dim)}
-.subtotal-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:var(--text-2)}
-.discount-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--success)}
-.total-row{display:flex;justify-content:space-between;padding:8px 0;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700;color:var(--accent)}
+.portal-nav { display: flex; gap: 2px; flex: 1; }
+.portal-link { color: var(--text-2); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 11px; border-radius: var(--radius-sm); white-space: nowrap; transition: color 0.15s, background 0.15s; }
+.portal-link:hover { color: var(--text); background: var(--surface-2); }
+.portal-link.active { color: var(--blue); background: var(--blue-dim); font-weight: 600; }
+.subtotal-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: var(--text-2); }
+.discount-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; color: var(--green); }
+.total-row { display: flex; justify-content: space-between; padding: 8px 0; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--blue); }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  <a href="portal-profile.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div class="portal-nav">
+    <a href="portal-profile.html" class="portal-link">My Profile</a>
+    <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
+    <a href="portal-history.html" class="portal-link active">Purchase History</a>
   </div>
-  <ul class="nav-links">
-    <li><a href="portal-profile.html" class="portal-nav-link">My Profile</a></li>
-    <li><a href="portal-vehicles.html" class="portal-nav-link">My Vehicles</a></li>
-    <li><a href="portal-history.html" class="portal-nav-link active">Purchase History</a></li>
-  </ul>
-  <div class="nav-right">
-    <span class="status-dot"></span>
-    <span class="status-text" id="navName">—</span>
-    <button class="btn btn-outline btn-sm" onclick="logout()" style="margin-left:8px">Logout</button>
-  </div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <p class="page-label">CUSTOMER PORTAL</p>
-        <h1 class="page-title">Purchase History</h1>
-      </div>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Customer Portal</div>
+      <h1 class="page-title">Purchase History</h1>
     </div>
-  </header>
-
-  <!-- Summary stats -->
-  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px" id="histStats">
-    <div class="stat-card accent"><div class="stat-label">Total Spent</div><div class="stat-value" id="hTotalSpent">—</div><div class="stat-sub">NPR (all time)</div></div>
-    <div class="stat-card"><div class="stat-label">Invoices</div><div class="stat-value" id="hCount">—</div><div class="stat-sub">Total purchases</div></div>
-    <div class="stat-card"><div class="stat-label">Loyalty Discounts</div><div class="stat-value" id="hLoyalty">—</div><div class="stat-sub">Times applied</div></div>
-    <div class="stat-card warn"><div class="stat-label">Pending Credit</div><div class="stat-value" id="hCredit">—</div><div class="stat-sub">Unpaid invoices</div></div>
   </div>
 
-  <div class="dash-card">
-    <div class="controls-bar">
-      <select class="select-input" id="statusFilter" onchange="filterInvoices()">
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+    <div class="stat stat--blue">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value" id="hTotalSpent">—</div>
+      <div class="stat-sub">NPR (all time)</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Invoices</div>
+      <div class="stat-value" id="hCount">—</div>
+      <div class="stat-sub">Total purchases</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Loyalty Discounts</div>
+      <div class="stat-value" id="hLoyalty">—</div>
+      <div class="stat-sub">Times applied</div>
+    </div>
+    <div class="stat stat--amber">
+      <div class="stat-label">Pending Credit</div>
+      <div class="stat-value" id="hCredit">—</div>
+      <div class="stat-sub">Unpaid invoices</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="controls">
+      <select class="select-filter" id="statusFilter" onchange="filterInvoices()">
         <option value="">All Statuses</option>
         <option>Paid</option><option>Credit</option><option>Cancelled</option>
       </select>
-      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
-        <span id="invCount">—</span> invoices
-      </span>
+      <span class="muted" style="margin-left:auto"><span id="invCount">0</span> invoices</span>
     </div>
     <div class="table-wrap">
-      <table class="data-table">
+      <table class="tbl">
         <thead>
           <tr>
             <th>Invoice #</th>
@@ -78,70 +85,66 @@
             <th></th>
           </tr>
         </thead>
-        <tbody id="histBody">
-          <tr><td colspan="9" class="table-empty">Loading…</td></tr>
-        </tbody>
+        <tbody id="histBody"><tr><td colspan="9" class="tbl-empty">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
-<!-- INVOICE DETAIL MODAL -->
 <div class="modal-overlay" id="detailModal">
-  <div class="modal" style="max-width:640px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h2 class="modal-title" style="margin:0" id="detailTitle">Invoice</h2>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">✕ Close</button>
+  <div class="modal modal--wide">
+    <div class="modal-hd">
+      <div class="modal-title" id="detailTitle">Invoice</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
     </div>
-    <div id="detailContent">Loading…</div>
+    <div id="detailContent">Loading...</div>
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-const userJson = sessionStorage.getItem('user');
-if (!userJson) { window.location.href = 'login.html'; }
-const user = JSON.parse(userJson || '{}');
-if (user.role !== 'Customer') { window.location.href = 'login.html'; }
-document.getElementById('navName').textContent = `${user.firstName} ${user.lastName}`;
+const user = requireRole('Customer');
+if (user) {
+  const navUser = document.getElementById('nav-user');
+  navUser.innerHTML = `
+    <span class="nav-username">${user.firstName} ${user.lastName}</span>
+    <span class="nav-role">Customer</span>
+    <button class="nav-logout" onclick="logout()">Logout</button>
+  `;
+  loadHistory();
+}
 
 let allInvoices = [];
 
 async function loadHistory() {
   try {
     allInvoices = await API.get(`/sales/customer/${user.id}`);
-
-    // Stats
     const paid = allInvoices.filter(i => i.status !== 'Cancelled');
     const totalSpent = paid.reduce((s, i) => s + i.totalAmount, 0);
-    const loyaltyCount = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
-    const creditCount = allInvoices.filter(i => i.status === 'Credit').length;
-
     document.getElementById('hTotalSpent').textContent = fmt(totalSpent);
     document.getElementById('hCount').textContent = paid.length;
-    document.getElementById('hLoyalty').textContent = loyaltyCount;
-    document.getElementById('hCredit').textContent = creditCount;
-
+    document.getElementById('hLoyalty').textContent = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
+    document.getElementById('hCredit').textContent = allInvoices.filter(i => i.status === 'Credit').length;
     renderInvoices(allInvoices);
   } catch (e) {
-    document.getElementById('histBody').innerHTML = '<tr><td colspan="9" class="table-empty error">Failed to load purchase history</td></tr>';
+    document.getElementById('histBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Failed to load purchase history</td></tr>';
   }
 }
 
 function renderInvoices(list) {
   document.getElementById('invCount').textContent = list.length;
   const body = document.getElementById('histBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="table-empty">No purchases found</td></tr>'; return; }
+  if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="tbl-empty">No purchases found</td></tr>'; return; }
   body.innerHTML = list.map(i => `
     <tr>
       <td><code>${i.invoiceNumber}</code></td>
-      <td style="font-size:12px">${fmtDate(i.invoiceDate)}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">${i.items ? i.items.length : '—'} items</td>
+      <td class="muted">${fmtDate(i.invoiceDate)}</td>
+      <td class="mono">${i.items ? i.items.length : '—'}</td>
       <td class="amount">${i.subTotal !== undefined ? `NPR ${fmt(i.subTotal)}` : '—'}</td>
-      <td>${i.loyaltyDiscountApplied ? `<span class="loyalty">−10%</span>` : '—'}</td>
-      <td class="amount" style="color:var(--accent)">NPR ${fmt(i.totalAmount)}</td>
-      <td style="font-size:12px">${i.paymentMethod}</td>
-      <td><span class="status-badge ${i.status.toLowerCase()}">${i.status}</span></td>
+      <td>${i.loyaltyDiscountApplied ? `<span class="badge badge-green">-10%</span>` : '—'}</td>
+      <td class="amount text-blue">NPR ${fmt(i.totalAmount)}</td>
+      <td class="muted">${i.paymentMethod}</td>
+      <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="viewDetail(${i.id})">View</button></td>
     </tr>`).join('');
 }
@@ -156,40 +159,36 @@ async function viewDetail(id) {
     const inv = await API.get(`/sales/${id}`);
     document.getElementById('detailTitle').textContent = inv.invoiceNumber;
     document.getElementById('detailContent').innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
-        <div><span class="form-label" style="display:block;margin-bottom:4px">Invoice Date</span><p style="color:var(--text)">${fmtDateTime(inv.invoiceDate)}</p></div>
-        <div><span class="form-label" style="display:block;margin-bottom:4px">Payment</span><p>${inv.paymentMethod}</p></div>
-        <div><span class="form-label" style="display:block;margin-bottom:4px">Status</span><span class="status-badge ${inv.status.toLowerCase()}">${inv.status}</span></div>
-        ${inv.loyaltyDiscountApplied ? '<div><span class="form-label" style="display:block;margin-bottom:4px">Loyalty</span><span class="loyalty">✓ 10% discount applied</span></div>' : ''}
+      <div class="grid-2" style="margin-bottom:20px;gap:12px">
+        <div><div class="form-label">Invoice Date</div><p>${fmtDateTime(inv.invoiceDate)}</p></div>
+        <div><div class="form-label">Payment</div><p>${inv.paymentMethod}</p></div>
+        <div><div class="form-label">Status</div><span class="status status-${inv.status.toLowerCase()}">${inv.status}</span></div>
+        ${inv.loyaltyDiscountApplied ? '<div><div class="form-label">Loyalty</div><span class="badge badge-green">10% discount applied</span></div>' : ''}
       </div>
-      <table class="data-table" style="margin-bottom:16px">
+      <table class="tbl" style="margin-bottom:16px">
         <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
         <tbody>
           ${inv.items.map(it => `<tr>
-            <td style="color:var(--text);font-weight:500">${it.partName}</td>
+            <td class="text-strong">${it.partName}</td>
             <td><code>${it.partNumber}</code></td>
-            <td style="font-family:'JetBrains Mono',monospace">${it.quantity}</td>
+            <td class="mono">${it.quantity}</td>
             <td class="amount">NPR ${fmt(it.unitPrice)}</td>
             <td class="amount">NPR ${fmt(it.lineTotal)}</td>
           </tr>`).join('')}
         </tbody>
       </table>
-      <div style="padding:14px;background:var(--bg-3);border-radius:var(--radius)">
+      <div style="padding:14px;background:var(--bg);border-radius:var(--radius)">
         <div class="subtotal-row"><span>Subtotal</span><span>NPR ${fmt(inv.subTotal)}</span></div>
-        ${inv.loyaltyDiscountApplied ? `<div class="discount-row"><span>Loyalty Discount (10%)</span><span>− NPR ${fmt(inv.discountAmount)}</span></div>` : ''}
+        ${inv.loyaltyDiscountApplied ? `<div class="discount-row"><span>Loyalty Discount (10%)</span><span>-NPR ${fmt(inv.discountAmount)}</span></div>` : ''}
         <div class="total-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span>TOTAL</span><span>NPR ${fmt(inv.totalAmount)}</span></div>
       </div>`;
     openModal('detailModal');
   } catch (e) { notify('Failed to load invoice detail', 'error'); }
 }
 
-function logout() { sessionStorage.removeItem('user'); window.location.href = 'login.html'; }
-
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
-
-loadHistory();
 </script>
 </body>
 </html>
