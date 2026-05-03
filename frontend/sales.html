@@ -5,107 +5,181 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Sales</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-.sale-items-list { display:flex;flex-direction:column;gap:8px;margin-bottom:8px; }
-.sale-item-row { display:grid;grid-template-columns:1fr 80px auto;gap:8px;align-items:end; }
-.sale-item-row .form-group { margin-bottom:0; }
-.remove-item { background:none;border:none;color:var(--danger);cursor:pointer;font-size:18px;padding:10px 8px;line-height:1; }
-.remove-item:hover { color:#ff6b6b; }
-.add-item-btn { background:none;border:1px dashed var(--border-2);border-radius:var(--radius);color:var(--text-3);cursor:pointer;padding:8px;width:100%;font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;transition:all 0.2s; }
-.add-item-btn:hover { border-color:var(--accent);color:var(--accent); }
-.subtotal-row { display:flex;justify-content:space-between;padding:8px 0;font-size:13px;color:var(--text-2);border-top:1px solid var(--border); }
-.total-row { display:flex;justify-content:space-between;padding:8px 0;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:var(--accent); }
-.discount-row { display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:var(--success); }
+.sale-items { display: flex; flex-direction: column; gap: 8px; }
+
+.sale-item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.sale-item-row .form-group { margin-bottom: 0; }
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 20px;
+  padding: 8px;
+  line-height: 1;
+  transition: opacity 0.15s;
+}
+
+.remove-btn:hover { opacity: 0.7; }
+
+.add-line-btn {
+  width: 100%;
+  padding: 9px;
+  background: none;
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+  color: var(--text-3);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 6px;
+}
+
+.add-line-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+.totals-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-top: 14px;
+  display: none;
+}
+
+.total-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+}
+
+.total-line.final {
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+  padding-top: 10px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--blue);
+  font-family: 'Syne', sans-serif;
+}
+
+.discount-line { color: var(--green); font-size: 13px; }
+
+.loyalty-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link">Parts</a></li>
-    <li><a href="customers.html" class="nav-link">Customers</a></li>
-    <li><a href="sales.html" class="nav-link active">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link">Staff</a></li>
-  </ul>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div><p class="page-label">BILLING</p><h1 class="page-title">Sales Invoices</h1></div>
-      <button class="btn btn-primary" onclick="openModal('saleModal')">+ New Sale</button>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Billing</div>
+      <h1 class="page-title">Sales Invoices</h1>
     </div>
-  </header>
+    <button class="btn btn-primary" onclick="openModal('saleModal')">+ New Sale</button>
+  </div>
 
-  <div class="dash-card">
-    <div class="controls-bar">
-      <select class="select-input" id="statusFilter" onchange="filterSales()">
+  <div class="card">
+    <div class="controls">
+      <select class="select-filter" id="statusFilter" onchange="filterSales()">
         <option value="">All Statuses</option>
         <option>Paid</option><option>Credit</option><option>Cancelled</option>
       </select>
-      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
-        <span id="saleCount">—</span> invoices
-      </span>
+      <span class="muted" style="margin-left:auto"><span id="saleCount">—</span> invoices</span>
     </div>
     <div class="table-wrap">
-      <table class="data-table">
+      <table class="tbl">
         <thead>
-          <tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr>
+          <tr>
+            <th>Invoice #</th>
+            <th>Date</th>
+            <th>Subtotal</th>
+            <th>Discount</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
         </thead>
-        <tbody id="salesBody"><tr><td colspan="9" class="table-empty">Loading…</td></tr></tbody>
+        <tbody id="salesBody">
+          <tr><td colspan="8" class="tbl-empty">Loading...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
 </main>
 
-<!-- SALE DETAIL MODAL -->
+<!-- DETAIL MODAL -->
 <div class="modal-overlay" id="saleDetailModal">
-  <div class="modal" style="max-width:680px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <h2 class="modal-title" style="margin:0" id="saleDetailTitle">Invoice</h2>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('saleDetailModal')">✕ Close</button>
+  <div class="modal modal--wide">
+    <div class="modal-hd">
+      <div class="modal-title" id="saleDetailTitle">Invoice</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saleDetailModal')">Close</button>
     </div>
-    <div id="saleDetailContent">Loading…</div>
+    <div id="saleDetailContent">Loading...</div>
   </div>
 </div>
 
 <!-- NEW SALE MODAL -->
 <div class="modal-overlay" id="saleModal">
-  <div class="modal" style="max-width:600px">
-    <h2 class="modal-title">New Sale Invoice</h2>
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">New Sale Invoice</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('saleModal');resetSaleForm()">Close</button>
+    </div>
     <form id="saleForm" onsubmit="createSale(event)">
       <div class="form-group">
-        <label class="form-label">Customer *</label>
-        <select class="form-select" id="fSaleCustomer" required>
-          <option value="">Select customer…</option>
+        <label class="form-label">Customer</label>
+        <select class="input select" id="fSaleCust" required>
+          <option value="">Select customer...</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Payment Method *</label>
-        <select class="form-select" id="fSalePayment" required>
-          <option value="">Select…</option>
+        <label class="form-label">Payment Method</label>
+        <select class="input select" id="fSalePay" required>
+          <option value="">Select...</option>
           <option>Cash</option><option>Card</option><option>Credit</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Items *</label>
-        <div class="sale-items-list" id="saleItemsList"></div>
-        <button type="button" class="add-item-btn" onclick="addSaleItem()">+ Add Item</button>
+        <label class="form-label">Items</label>
+        <div class="sale-items" id="saleItemsList"></div>
+        <button type="button" class="add-line-btn" onclick="addSaleItem()">+ Add Item</button>
       </div>
-      <!-- Totals preview -->
-      <div id="saleTotals" style="display:none;margin-top:16px;padding:12px;background:var(--bg-3);border-radius:var(--radius)">
-        <div class="subtotal-row"><span>Subtotal</span><span id="tSubtotal">—</span></div>
-        <div class="discount-row" id="discountRow" style="display:none"><span>✓ Loyalty Discount (10%)</span><span id="tDiscount">—</span></div>
-        <div class="total-row"><span>Total</span><span id="tTotal">—</span></div>
+      <div class="totals-box" id="saleTotals">
+        <div class="total-line"><span>Subtotal</span><span id="tSub">—</span></div>
+        <div class="total-line discount-line" id="discountLine" style="display:none">
+          <span>Loyalty Discount (10%)</span><span id="tDiscount">—</span>
+        </div>
+        <div class="total-line final"><span>Total</span><span id="tTotal">—</span></div>
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeModal('saleModal');resetSaleForm()">Cancel</button>
@@ -115,9 +189,13 @@
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
+const user = requireRole('Admin', 'Staff');
+if (user) { buildNav(); init(); }
+
 let allSales = [], allParts = [], allCustomers = [];
+let itemIdx = 0;
 
 async function init() {
   try {
@@ -125,26 +203,30 @@ async function init() {
       API.get('/sales'), API.get('/parts'), API.get('/customers')
     ]);
     renderSales(allSales);
-    populateCustomerSelect();
+    allCustomers.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = `${c.firstName} ${c.lastName}`;
+      document.getElementById('fSaleCust').appendChild(o);
+    });
   } catch (e) {
-    document.getElementById('salesBody').innerHTML = '<tr><td colspan="9" class="table-empty error">Failed to load</td></tr>';
+    document.getElementById('salesBody').innerHTML = '<tr><td colspan="8" class="tbl-empty">Failed to load.</td></tr>';
   }
 }
 
 function renderSales(list) {
   document.getElementById('saleCount').textContent = list.length;
   const body = document.getElementById('salesBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="table-empty">No invoices yet</td></tr>'; return; }
+  if (!list.length) { body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No invoices yet</td></tr>'; return; }
   body.innerHTML = list.map(s => `
     <tr>
       <td><code>${s.invoiceNumber}</code></td>
-      <td style="font-size:12px">${fmtDate(s.invoiceDate)}</td>
-      <td style="color:var(--text-3);font-size:12px">Customer</td>
+      <td class="muted">${fmtDate(s.invoiceDate)}</td>
       <td class="amount">—</td>
-      <td>${s.loyaltyDiscountApplied ? '<span style="color:var(--success);font-size:11px">−10%</span>' : '—'}</td>
-      <td class="amount" style="color:var(--accent)">NPR ${fmt(s.totalAmount)}</td>
-      <td><span style="font-size:12px">${s.paymentMethod}</span></td>
-      <td><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></td>
+      <td>${s.loyaltyDiscountApplied ? '<span class="text-green" style="font-size:12px">-10%</span>' : '—'}</td>
+      <td class="amount text-blue">NPR ${fmt(s.totalAmount)}</td>
+      <td class="muted">${s.paymentMethod}</td>
+      <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="viewSale(${s.id})">View</button></td>
     </tr>`).join('');
 }
@@ -159,61 +241,57 @@ async function viewSale(id) {
     const s = await API.get(`/sales/${id}`);
     document.getElementById('saleDetailTitle').textContent = s.invoiceNumber;
     document.getElementById('saleDetailContent').innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-        <div><span class="form-label" style="display:block">Customer</span><p style="color:var(--text)">${s.customer.firstName} ${s.customer.lastName}</p></div>
-        <div><span class="form-label" style="display:block">Date</span><p>${fmtDateTime(s.invoiceDate)}</p></div>
-        <div><span class="form-label" style="display:block">Payment</span><p>${s.paymentMethod}</p></div>
-        <div><span class="form-label" style="display:block">Status</span><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></div>
+      <div class="grid-2" style="margin-bottom:20px;gap:12px">
+        <div><div class="form-label">Customer</div><div class="text-strong">${s.customer.firstName} ${s.customer.lastName}</div></div>
+        <div><div class="form-label">Date</div><div>${fmtDateTime(s.invoiceDate)}</div></div>
+        <div><div class="form-label">Payment</div><div>${s.paymentMethod}</div></div>
+        <div><div class="form-label">Status</div><span class="status status-${s.status.toLowerCase()}">${s.status}</span></div>
       </div>
-      <table class="data-table" style="margin-bottom:16px">
+      <table class="tbl" style="margin-bottom:16px">
         <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
         <tbody>${s.items.map(i => `<tr>
-          <td>${i.partName}</td><td><code>${i.partNumber}</code></td>
-          <td>${i.quantity}</td>
+          <td class="text-strong">${i.partName}</td>
+          <td><code>${i.partNumber}</code></td>
+          <td class="mono">${i.quantity}</td>
           <td class="amount">NPR ${fmt(i.unitPrice)}</td>
           <td class="amount">NPR ${fmt(i.lineTotal)}</td>
         </tr>`).join('')}</tbody>
       </table>
-      <div style="text-align:right;padding:12px;background:var(--bg-3);border-radius:var(--radius)">
-        <div class="subtotal-row" style="justify-content:flex-end;gap:40px"><span>Subtotal</span><span>NPR ${fmt(s.subTotal)}</span></div>
-        ${s.loyaltyDiscountApplied ? `<div class="discount-row" style="justify-content:flex-end;gap:40px"><span>Loyalty Discount (10%)</span><span>− NPR ${fmt(s.discountAmount)}</span></div>` : ''}
-        <div class="total-row" style="justify-content:flex-end;gap:40px;font-size:22px"><span>TOTAL</span><span>NPR ${fmt(s.totalAmount)}</span></div>
+      <div style="background:var(--bg);border-radius:var(--radius);padding:14px;text-align:right">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);padding:4px 0">
+          <span>Subtotal</span><span class="amount">NPR ${fmt(s.subTotal)}</span>
+        </div>
+        ${s.loyaltyDiscountApplied ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--green);padding:4px 0">
+          <span>Loyalty Discount (10%)</span><span>-NPR ${fmt(s.discountAmount)}</span>
+        </div>` : ''}
+        <div style="display:flex;justify-content:space-between;font-size:19px;font-weight:700;color:var(--blue);font-family:'Syne',sans-serif;border-top:1px solid var(--border);margin-top:8px;padding-top:10px">
+          <span>Total</span><span>NPR ${fmt(s.totalAmount)}</span>
+        </div>
       </div>`;
     openModal('saleDetailModal');
-  } catch (e) { notify('Failed to load invoice detail', 'error'); }
+  } catch (e) { notify('Failed to load invoice', 'error'); }
 }
 
-function populateCustomerSelect() {
-  const sel = document.getElementById('fSaleCustomer');
-  allCustomers.forEach(c => {
-    const o = document.createElement('option');
-    o.value = c.id;
-    o.textContent = `${c.firstName} ${c.lastName} (${c.email})`;
-    sel.appendChild(o);
-  });
-}
-
-let itemIdx = 0;
 function addSaleItem() {
   itemIdx++;
-  const idx = itemIdx;
+  const idx  = itemIdx;
   const list = document.getElementById('saleItemsList');
-  const row = document.createElement('div');
+  const row  = document.createElement('div');
   row.className = 'sale-item-row';
-  row.id = `saleItem${idx}`;
+  row.id = `sItem${idx}`;
   row.innerHTML = `
     <div class="form-group">
       <label class="form-label">Part</label>
-      <select class="form-select" id="iPart${idx}" onchange="calcTotals()" required>
-        <option value="">Select part…</option>
+      <select class="input select" id="iPart${idx}" onchange="calcTotals()" required>
+        <option value="">Select part...</option>
         ${allParts.map(p => `<option value="${p.id}" data-price="${p.sellingPrice}" data-stock="${p.stockQty}">${p.name} (Stock: ${p.stockQty})</option>`).join('')}
       </select>
     </div>
     <div class="form-group">
       <label class="form-label">Qty</label>
-      <input class="form-input" type="number" id="iQty${idx}" min="1" value="1" onchange="calcTotals()" required>
+      <input class="input" id="iQty${idx}" type="number" min="1" value="1" onchange="calcTotals()" required>
     </div>
-    <button type="button" class="remove-item" onclick="document.getElementById('saleItem${idx}').remove();calcTotals()">×</button>`;
+    <button type="button" class="remove-btn" onclick="document.getElementById('sItem${idx}').remove();calcTotals()">&times;</button>`;
   list.appendChild(row);
   calcTotals();
 }
@@ -221,26 +299,25 @@ function addSaleItem() {
 function calcTotals() {
   let sub = 0;
   let hasItems = false;
-  document.querySelectorAll('.sale-item-row').forEach((_, i) => {
-    const row = document.querySelector(`.sale-item-row:nth-child(${i+1})`);
-    if (!row) return;
-    const selEl = row.querySelector('select');
-    const qtyEl = row.querySelector('input');
-    if (!selEl || !qtyEl) return;
-    const opt = selEl.options[selEl.selectedIndex];
+  document.querySelectorAll('.sale-item-row').forEach(row => {
+    const sel = row.querySelector('select');
+    const qty = row.querySelector('input[type="number"]');
+    if (!sel || !qty) return;
+    const opt = sel.options[sel.selectedIndex];
     if (opt && opt.value) {
       hasItems = true;
-      sub += parseFloat(opt.dataset.price || 0) * (parseInt(qtyEl.value) || 0);
+      sub += parseFloat(opt.dataset.price || 0) * (parseInt(qty.value) || 0);
     }
   });
-  const loyaltyApplied = sub > 5000;
-  const discount = loyaltyApplied ? sub * 0.10 : 0;
-  const total = sub - discount;
-  document.getElementById('saleTotals').style.display = hasItems ? 'block' : 'none';
-  document.getElementById('tSubtotal').textContent = `NPR ${fmt(sub)}`;
-  document.getElementById('discountRow').style.display = loyaltyApplied ? 'flex' : 'none';
-  document.getElementById('tDiscount').textContent = `− NPR ${fmt(discount)}`;
-  document.getElementById('tTotal').textContent = `NPR ${fmt(total)}`;
+  const loyalty  = sub > 5000;
+  const discount = loyalty ? sub * 0.10 : 0;
+  const total    = sub - discount;
+  const box = document.getElementById('saleTotals');
+  box.style.display = hasItems ? 'block' : 'none';
+  document.getElementById('tSub').textContent      = `NPR ${fmt(sub)}`;
+  document.getElementById('discountLine').style.display = loyalty ? 'flex' : 'none';
+  document.getElementById('tDiscount').textContent = `-NPR ${fmt(discount)}`;
+  document.getElementById('tTotal').textContent    = `NPR ${fmt(total)}`;
 }
 
 async function createSale(e) {
@@ -248,14 +325,14 @@ async function createSale(e) {
   const items = [];
   document.querySelectorAll('.sale-item-row').forEach(row => {
     const sel = row.querySelector('select');
-    const qty = row.querySelector('input');
+    const qty = row.querySelector('input[type="number"]');
     if (sel && sel.value && qty) items.push({ partId: parseInt(sel.value), quantity: parseInt(qty.value) });
   });
   if (!items.length) { notify('Add at least one item', 'error'); return; }
   const body = {
-    customerId: parseInt(document.getElementById('fSaleCustomer').value),
-    paymentMethod: document.getElementById('fSalePayment').value,
-    items
+    customerId:    parseInt(document.getElementById('fSaleCust').value),
+    paymentMethod: document.getElementById('fSalePay').value,
+    items,
   };
   try {
     await API.post('/sales', body);
@@ -276,10 +353,8 @@ function resetSaleForm() {
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); } });
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
-
-init();
 </script>
 </body>
 </html>

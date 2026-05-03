@@ -5,165 +5,262 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Login</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 <style>
-:root {
-  --bg:#0a0b0d; --bg-2:#111318; --bg-3:#181c22; --bg-4:#1e232c;
-  --border:#252a35; --border-2:#2e3545;
-  --text:#e8eaf0; --text-2:#8b92a8; --text-3:#555e72;
-  --accent:#e8b84b; --accent-dim:rgba(232,184,75,0.12);
-  --accent-2:#4b9fe8; --accent-2-dim:rgba(75,159,232,0.12);
-  --danger:#e8574b; --danger-dim:rgba(232,87,75,0.12);
-  --success:#4be87a;
-  --radius:6px; --radius-lg:12px;
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 24px;
 }
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:15px}
-body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
 
-.login-wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:24px}
+.login-wrap {
+  width: 100%;
+  max-width: 400px;
+}
 
-.brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:40px}
-.brand-icon{font-size:28px;color:var(--accent);animation:spin 8s linear infinite;display:inline-block}
-@keyframes spin{to{transform:rotate(360deg)}}
-.brand-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:1px;text-transform:uppercase}
-.brand-accent{color:var(--accent)}
+.login-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
 
-.login-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
+.login-brand-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--blue);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  font-size: 22px;
+  color: #fff;
+}
 
-.login-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
-.login-sub{font-size:13px;color:var(--text-3);margin-bottom:28px;font-family:'JetBrains Mono',monospace}
+.login-brand-name {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
 
-/* Role tabs */
-.role-tabs{display:flex;gap:6px;margin-bottom:24px;background:var(--bg-3);padding:4px;border-radius:var(--radius)}
-.role-tab{flex:1;padding:8px;border:none;background:none;color:var(--text-3);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;border-radius:4px;cursor:pointer;transition:all 0.2s}
-.role-tab.active{background:var(--bg-4);color:var(--accent);border:1px solid var(--border-2)}
-.role-tab:hover:not(.active){color:var(--text-2)}
+.login-brand-name span { color: var(--blue); }
 
-.form-group{margin-bottom:16px}
-.form-label{display:block;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-bottom:6px}
-.form-input{width:100%;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);padding:11px 14px;font-size:14px;font-family:'Barlow',sans-serif;outline:none;transition:border-color 0.2s}
-.form-input:focus{border-color:var(--accent)}
-.form-input::placeholder{color:var(--text-3)}
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
 
-.btn-login{width:100%;padding:13px;background:var(--accent);color:#0a0b0d;border:none;border-radius:var(--radius);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background 0.2s;margin-top:8px}
-.btn-login:hover{background:#f0c95e}
-.btn-login:disabled{opacity:0.6;cursor:not-allowed}
+.login-title {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
 
-.divider{text-align:center;margin:20px 0;color:var(--text-3);font-size:12px;font-family:'JetBrains Mono',monospace;position:relative}
-.divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
-.divider::before{left:0} .divider::after{right:0}
+.login-sub {
+  font-size: 13.5px;
+  color: var(--text-3);
+  margin-bottom: 24px;
+}
 
-.self-register-btn{width:100%;padding:11px;background:transparent;color:var(--accent-2);border:1px solid var(--accent-2);border-radius:var(--radius);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
-.self-register-btn:hover{background:var(--accent-2-dim)}
+.role-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 22px;
+}
 
-.error-msg{background:var(--danger-dim);border:1px solid var(--danger);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--danger);margin-bottom:16px;display:none}
-.error-msg.show{display:block}
+.role-tab {
+  flex: 1;
+  padding: 7px;
+  border: none;
+  background: none;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.15s;
+}
 
-.demo-hint{margin-top:20px;padding:12px;background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace;line-height:1.8}
-.demo-hint strong{color:var(--text-2)}
+.role-tab.active {
+  background: var(--surface);
+  color: var(--blue);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
 
-/* Self-register modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;transform:translateY(16px);transition:transform 0.2s;box-shadow:0 8px 32px rgba(0,0,0,0.6)}
-.modal-overlay.open .modal{transform:translateY(0)}
-.modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--radius);font-size:13px;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all 0.2s}
-.btn-primary{background:var(--accent);color:#0a0b0d;border-color:var(--accent)}
-.btn-primary:hover{background:#f0c95e}
-.btn-outline{background:transparent;color:var(--text-2);border-color:var(--border)}
-.btn-outline:hover{border-color:var(--border-2);color:var(--text);background:var(--bg-3)}
+.error-msg {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 16px;
+  display: none;
+}
+
+.error-msg.show { display: block; }
+
+.btn-login {
+  width: 100%;
+  padding: 11px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 14.5px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-top: 6px;
+}
+
+.btn-login:hover { background: #1d46d4; }
+.btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.divider {
+  text-align: center;
+  margin: 18px 0;
+  color: var(--text-3);
+  font-size: 12px;
+  position: relative;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 44%;
+  height: 1px;
+  background: var(--border);
+}
+
+.divider::before { left: 0; }
+.divider::after  { right: 0; }
+
+.btn-register {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: var(--text-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-register:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+#selfRegSection { display: none; }
 </style>
 </head>
 <body>
 
 <div class="login-wrap">
-  <div class="brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
+  <div class="login-brand">
+    <div class="login-brand-icon">&#9881;</div>
+    <div class="login-brand-name">VehicleParts<span>Pro</span></div>
   </div>
 
   <div class="login-card">
-    <h1 class="login-title">Welcome Back</h1>
-    <p class="login-sub">Sign in to your account</p>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to your account to continue</div>
 
-    <!-- Role selector -->
     <div class="role-tabs">
-      <button class="role-tab active" onclick="setRole('Admin',this)">Admin</button>
-      <button class="role-tab" onclick="setRole('Staff',this)">Staff</button>
-      <button class="role-tab" onclick="setRole('Customer',this)">Customer</button>
+      <button class="role-tab active" onclick="setRole('Admin', this)">Admin</button>
+      <button class="role-tab" onclick="setRole('Staff', this)">Staff</button>
+      <button class="role-tab" onclick="setRole('Customer', this)">Customer</button>
     </div>
 
     <div class="error-msg" id="errorMsg"></div>
 
     <div class="form-group">
-      <label class="form-label">Email Address</label>
-      <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()">
+      <label class="form-label">Email</label>
+      <input class="input" id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
+
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-input" id="loginPassword" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="input" id="loginPassword" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
 
     <button class="btn-login" id="loginBtn" onclick="doLogin()">Sign In</button>
 
-    <!-- Customer-only: self register -->
-    <div id="selfRegSection" style="display:none">
+    <div id="selfRegSection">
       <div class="divider">or</div>
-      <button class="self-register-btn" onclick="openModal('regModal')">Create Customer Account</button>
-    </div>
-
-    <div class="demo-hint" id="demoHint">
-      <strong>Admin/Staff:</strong> use credentials created via Staff Management.<br>
-      <strong>Customer:</strong> use credentials from customer registration or self-register below.
+      <button class="btn-register" onclick="openModal('regModal')">Create a customer account</button>
     </div>
   </div>
 </div>
 
-<!-- SELF-REGISTER MODAL -->
 <div class="modal-overlay" id="regModal">
   <div class="modal">
-    <h2 class="modal-title">Create Account</h2>
+    <div class="modal-hd">
+      <div class="modal-title">Create Account</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('regModal')">Close</button>
+    </div>
     <div class="error-msg" id="regError"></div>
     <div class="form-row">
       <div class="form-group">
-        <label class="form-label">First Name *</label>
-        <input class="form-input" id="rFirstName" required>
+        <label class="form-label">First Name</label>
+        <input class="input" id="rFirstName" placeholder="First name">
       </div>
       <div class="form-group">
-        <label class="form-label">Last Name *</label>
-        <input class="form-input" id="rLastName" required>
+        <label class="form-label">Last Name</label>
+        <input class="input" id="rLastName" placeholder="Last name">
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Email *</label>
-      <input class="form-input" id="rEmail" type="email" required>
+      <label class="form-label">Email</label>
+      <input class="input" id="rEmail" type="email" placeholder="Email address">
     </div>
     <div class="form-group">
-      <label class="form-label">Phone *</label>
-      <input class="form-input" id="rPhone" required>
+      <label class="form-label">Phone</label>
+      <input class="input" id="rPhone" placeholder="Phone number">
     </div>
     <div class="form-group">
       <label class="form-label">Address</label>
-      <input class="form-input" id="rAddress">
+      <input class="input" id="rAddress" placeholder="Your address">
     </div>
     <div class="form-group">
-      <label class="form-label">Password *</label>
-      <input class="form-input" id="rPassword" type="password" placeholder="Min 6 characters">
+      <label class="form-label">Password</label>
+      <input class="input" id="rPassword" type="password" placeholder="Min 6 characters">
     </div>
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal('regModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="doRegister()">Register</button>
+      <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
     </div>
   </div>
 </div>
 
+<script src="auth.js"></script>
 <script>
-const BASE_URL = 'http://localhost:5033/api';
+const user = getUser();
+if (user) {
+  if (user.role === 'Customer') window.location.href = 'portal-profile.html';
+  else window.location.href = 'index.html';
+}
+
 let selectedRole = 'Admin';
 
 function setRole(role, el) {
@@ -183,11 +280,11 @@ function showError(msg) {
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
-  if (!email || !password) { showError('Please enter your email and password.'); return; }
+  if (!email || !password) { showError('Enter your email and password.'); return; }
 
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
-  btn.textContent = 'Signing in…';
+  btn.textContent = 'Signing in...';
   document.getElementById('errorMsg').classList.remove('show');
 
   try {
@@ -198,16 +295,9 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) { showError(data.message || 'Login failed.'); return; }
-
-    // Store session info
     sessionStorage.setItem('user', JSON.stringify(data));
-
-    // Redirect based on role
-    if (data.role === 'Admin' || data.role === 'Staff') {
-      window.location.href = 'index.html';
-    } else {
-      window.location.href = 'portal-profile.html';
-    }
+    if (data.role === 'Customer') window.location.href = 'portal-profile.html';
+    else window.location.href = 'index.html';
   } catch (e) {
     showError('Cannot connect to server. Is the backend running?');
   } finally {
@@ -219,44 +309,47 @@ async function doLogin() {
 async function doRegister() {
   const body = {
     firstName: document.getElementById('rFirstName').value.trim(),
-    lastName: document.getElementById('rLastName').value.trim(),
-    email: document.getElementById('rEmail').value.trim(),
-    phone: document.getElementById('rPhone').value.trim(),
-    address: document.getElementById('rAddress').value.trim(),
-    password: document.getElementById('rPassword').value,
+    lastName:  document.getElementById('rLastName').value.trim(),
+    email:     document.getElementById('rEmail').value.trim(),
+    phone:     document.getElementById('rPhone').value.trim(),
+    address:   document.getElementById('rAddress').value.trim(),
+    password:  document.getElementById('rPassword').value,
   };
   if (!body.firstName || !body.lastName || !body.email || !body.phone || !body.password) {
-    const el = document.getElementById('regError'); el.textContent = 'Please fill in all required fields.'; el.classList.add('show'); return;
+    const el = document.getElementById('regError');
+    el.textContent = 'Please fill in all required fields.';
+    el.classList.add('show');
+    return;
   }
   try {
     const res = await fetch(`${BASE_URL}/customers/self-register`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
     const data = await res.json();
-    if (!res.ok) { const el = document.getElementById('regError'); el.textContent = data.message || 'Registration failed.'; el.classList.add('show'); return; }
+    if (!res.ok) {
+      const el = document.getElementById('regError');
+      el.textContent = data.message || 'Registration failed.';
+      el.classList.add('show');
+      return;
+    }
     closeModal('regModal');
     document.getElementById('loginEmail').value = body.email;
-    selectedRole = 'Customer';
     document.querySelectorAll('.role-tab')[2].click();
-    showError(''); document.getElementById('errorMsg').classList.remove('show');
-    alert('Account created! Please sign in.');
-  } catch (e) { const el = document.getElementById('regError'); el.textContent = 'Server error.'; el.classList.add('show'); }
+    showError('');
+    document.getElementById('errorMsg').classList.remove('show');
+    alert('Account created. Please sign in.');
+  } catch (e) {
+    const el = document.getElementById('regError');
+    el.textContent = 'Server error.';
+    el.classList.add('show');
+  }
 }
-
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
 });
-
-// If already logged in, redirect
-const user = sessionStorage.getItem('user');
-if (user) {
-  const u = JSON.parse(user);
-  if (u.role === 'Customer') window.location.href = 'portal-profile.html';
-  else window.location.href = 'index.html';
-}
 </script>
 </body>
 </html>

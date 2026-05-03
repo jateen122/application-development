@@ -5,128 +5,130 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Customers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link">Parts</a></li>
-    <li><a href="customers.html" class="nav-link active">Customers</a></li>
-    <li><a href="sales.html" class="nav-link">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link">Staff</a></li>
-  </ul>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div><p class="page-label">REGISTRY</p><h1 class="page-title">Customers</h1></div>
-      <button class="btn btn-primary" onclick="openModal('custModal')">+ Register Customer</button>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Registry</div>
+      <h1 class="page-title">Customers</h1>
     </div>
-  </header>
+    <button class="btn btn-primary" onclick="openModal('custModal')">+ Register Customer</button>
+  </div>
 
-  <div class="dash-card">
-    <div class="controls-bar">
-      <input class="search-input" id="custSearch" placeholder="Search by name, email, or phone…" oninput="searchCustomers()">
-      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-3)">
-        <span id="custCount">—</span> customers
-      </span>
+  <div class="card">
+    <div class="controls">
+      <input class="search-input" id="custSearch" placeholder="Search by name, email, or phone..." oninput="searchCustomers()">
+      <span class="muted" style="margin-left:auto"><span id="custCount">—</span> customers</span>
     </div>
     <div class="table-wrap">
-      <table class="data-table">
+      <table class="tbl">
         <thead>
-          <tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Registered</th><th>Actions</th></tr>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Address</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
         </thead>
-        <tbody id="custsBody"><tr><td colspan="6" class="table-empty">Loading…</td></tr></tbody>
+        <tbody id="custsBody">
+          <tr><td colspan="6" class="tbl-empty">Loading...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
 </main>
 
-<!-- DETAIL PANEL (slide-in) -->
+<!-- DETAIL MODAL -->
 <div class="modal-overlay" id="detailModal">
-  <div class="modal" style="max-width:680px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
-      <h2 class="modal-title" style="margin:0" id="detailName">Customer</h2>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">✕ Close</button>
+  <div class="modal modal--wide">
+    <div class="modal-hd">
+      <div class="modal-title" id="detailName">Customer</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
     </div>
-    <div id="detailContent">Loading…</div>
+    <div id="detailContent">Loading...</div>
   </div>
 </div>
 
-<!-- ADD/EDIT CUSTOMER MODAL -->
+<!-- ADD / EDIT MODAL -->
 <div class="modal-overlay" id="custModal">
   <div class="modal">
-    <h2 class="modal-title" id="custModalTitle">Register Customer</h2>
+    <div class="modal-hd">
+      <div class="modal-title" id="custModalTitle">Register Customer</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('custModal');resetCustForm()">Close</button>
+    </div>
     <form id="custForm" onsubmit="saveCustomer(event)">
       <input type="hidden" id="custId">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">First Name *</label>
-          <input class="form-input" id="fFirstName" required>
+          <label class="form-label">First Name</label>
+          <input class="input" id="fFirst" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Last Name *</label>
-          <input class="form-input" id="fLastName" required>
+          <label class="form-label">Last Name</label>
+          <input class="input" id="fLast" required>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Email *</label>
-        <input class="form-input" id="fEmail" type="email" required>
+        <label class="form-label">Email</label>
+        <input class="input" id="fEmail" type="email" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Phone *</label>
-        <input class="form-input" id="fPhone" required>
+        <label class="form-label">Phone</label>
+        <input class="input" id="fPhone" required>
       </div>
       <div class="form-group">
         <label class="form-label">Address</label>
-        <input class="form-input" id="fAddress">
+        <input class="input" id="fAddress">
       </div>
-      <div class="form-group" id="passwordGroup">
-        <label class="form-label">Password *</label>
-        <input class="form-input" id="fPassword" type="password" placeholder="Min 6 characters">
+      <div id="pwdGroup" class="form-group">
+        <label class="form-label">Password</label>
+        <input class="input" id="fPassword" type="password" placeholder="Min 6 characters">
       </div>
-      <!-- Vehicle (only on create) -->
-      <div id="vehicleSection" style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px">
-        <p class="form-label" style="margin-bottom:12px">Vehicle (optional)</p>
+      <div id="vehicleSection" style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px">
+        <div class="form-label" style="margin-bottom:12px;color:var(--text-2)">Vehicle (optional)</div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Vehicle Number</label>
-            <input class="form-input" id="fVehNum" placeholder="e.g. BA1PA2222">
+            <input class="input" id="fVNum" placeholder="e.g. BA1PA2222">
           </div>
           <div class="form-group">
             <label class="form-label">Make</label>
-            <input class="form-input" id="fVehMake" placeholder="e.g. Toyota">
+            <input class="input" id="fVMake" placeholder="Toyota">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Model</label>
-            <input class="form-input" id="fVehModel" placeholder="e.g. Hilux">
+            <input class="input" id="fVModel" placeholder="Hilux">
           </div>
           <div class="form-group">
             <label class="form-label">Year</label>
-            <input class="form-input" id="fVehYear" type="number" placeholder="e.g. 2020">
+            <input class="input" id="fVYear" type="number" placeholder="2021">
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Color</label>
-            <input class="form-input" id="fVehColor">
+            <input class="input" id="fVColor">
           </div>
           <div class="form-group">
             <label class="form-label">Fuel Type</label>
-            <select class="form-select" id="fVehFuel">
-              <option value="">Select…</option>
+            <select class="input select" id="fVFuel">
+              <option value="">Select...</option>
               <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
             </select>
           </div>
@@ -140,8 +142,11 @@
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
+const user = requireRole('Admin', 'Staff');
+if (user) { buildNav(); loadCustomers(); }
+
 let allCustomers = [];
 
 async function loadCustomers() {
@@ -149,26 +154,26 @@ async function loadCustomers() {
     allCustomers = await API.get('/customers');
     renderCustomers(allCustomers);
   } catch (e) {
-    document.getElementById('custsBody').innerHTML = '<tr><td colspan="6" class="table-empty error">Failed to load</td></tr>';
+    document.getElementById('custsBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load.</td></tr>';
   }
 }
 
 function renderCustomers(list) {
   document.getElementById('custCount').textContent = list.length;
   const body = document.getElementById('custsBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="6" class="table-empty">No customers found</td></tr>'; return; }
+  if (!list.length) { body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No customers found</td></tr>'; return; }
   body.innerHTML = list.map(c => `
     <tr>
-      <td style="color:var(--text);font-weight:500">${c.firstName} ${c.lastName}</td>
-      <td style="font-size:12px">${c.email}</td>
-      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.phone}</td>
-      <td style="font-size:12px;color:var(--text-3)">${c.address || '—'}</td>
-      <td style="font-size:11px;color:var(--text-3)">${fmtDate(c.createdAt)}</td>
+      <td class="text-strong">${c.firstName} ${c.lastName}</td>
+      <td class="muted">${c.email}</td>
+      <td class="mono">${c.phone}</td>
+      <td class="muted">${c.address || '—'}</td>
+      <td class="muted">${fmtDate(c.createdAt)}</td>
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="viewCustomer(${c.id})">View</button>
           <button class="btn btn-outline btn-sm" onclick="editCustomer(${c.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id},'${c.firstName}')">Del</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id},'${c.firstName}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
@@ -189,88 +194,91 @@ async function searchCustomers() {
 }
 
 async function viewCustomer(id) {
-  const detail = await API.get(`/customers/${id}`);
-  document.getElementById('detailName').textContent = `${detail.firstName} ${detail.lastName}`;
-  document.getElementById('detailContent').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px">
-      <div class="info-item"><span class="form-label">Email</span><p>${detail.email}</p></div>
-      <div class="info-item"><span class="form-label">Phone</span><p style="font-family:'JetBrains Mono',monospace">${detail.phone}</p></div>
-      <div class="info-item"><span class="form-label">Address</span><p>${detail.address || '—'}</p></div>
-      <div class="info-item"><span class="form-label">Registered</span><p>${fmtDate(detail.createdAt)}</p></div>
-    </div>
-    <h3 class="card-title" style="font-size:13px;margin-bottom:12px">Vehicles (${detail.vehicles.length})</h3>
-    ${detail.vehicles.length ? `
-    <table class="data-table" style="margin-bottom:20px">
-      <thead><tr><th>Number</th><th>Make</th><th>Model</th><th>Year</th><th>Fuel</th></tr></thead>
-      <tbody>${detail.vehicles.map(v => `<tr>
-        <td><code>${v.vehicleNumber}</code></td><td>${v.make}</td><td>${v.model}</td>
-        <td>${v.year}</td><td>${v.fuelType}</td>
-      </tr>`).join('')}</tbody>
-    </table>` : '<p style="color:var(--text-3);font-size:12px;margin-bottom:20px">No vehicles registered</p>'}
-    <h3 class="card-title" style="font-size:13px;margin-bottom:12px">Recent Purchases (${detail.recentPurchases.length})</h3>
-    ${detail.recentPurchases.length ? `
-    <table class="data-table">
-      <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-      <tbody>${detail.recentPurchases.map(s => `<tr>
-        <td><code>${s.invoiceNumber}</code></td><td>${fmtDate(s.invoiceDate)}</td>
-        <td class="amount">NPR ${fmt(s.totalAmount)}</td>
-        <td><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></td>
-      </tr>`).join('')}</tbody>
-    </table>` : '<p style="color:var(--text-3);font-size:12px">No purchases yet</p>'}
-  `;
-  openModal('detailModal');
+  try {
+    const d = await API.get(`/customers/${id}`);
+    document.getElementById('detailName').textContent = `${d.firstName} ${d.lastName}`;
+    document.getElementById('detailContent').innerHTML = `
+      <div class="grid-2" style="margin-bottom:20px;gap:12px">
+        <div><div class="form-label">Email</div><div>${d.email}</div></div>
+        <div><div class="form-label">Phone</div><div class="mono">${d.phone}</div></div>
+        <div><div class="form-label">Address</div><div>${d.address || '—'}</div></div>
+        <div><div class="form-label">Registered</div><div class="muted">${fmtDate(d.createdAt)}</div></div>
+      </div>
+      <div class="form-label" style="margin-bottom:10px">Vehicles (${d.vehicles.length})</div>
+      ${d.vehicles.length ? `
+      <table class="tbl" style="margin-bottom:20px">
+        <thead><tr><th>Number</th><th>Make</th><th>Model</th><th>Year</th><th>Fuel</th></tr></thead>
+        <tbody>${d.vehicles.map(v => `<tr>
+          <td><code>${v.vehicleNumber}</code></td><td>${v.make}</td><td>${v.model}</td>
+          <td>${v.year}</td><td>${v.fuelType}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : '<p class="muted" style="margin-bottom:20px">No vehicles registered</p>'}
+      <div class="form-label" style="margin-bottom:10px">Recent Purchases (${d.recentPurchases.length})</div>
+      ${d.recentPurchases.length ? `
+      <table class="tbl">
+        <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>${d.recentPurchases.map(s => `<tr>
+          <td><code>${s.invoiceNumber}</code></td>
+          <td class="muted">${fmtDate(s.invoiceDate)}</td>
+          <td class="amount">NPR ${fmt(s.totalAmount)}</td>
+          <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>` : '<p class="muted">No purchases yet</p>'}
+    `;
+    openModal('detailModal');
+  } catch (e) { notify('Failed to load customer', 'error'); }
 }
 
 function editCustomer(id) {
   const c = allCustomers.find(x => x.id === id);
   if (!c) return;
   document.getElementById('custId').value = c.id;
-  document.getElementById('fFirstName').value = c.firstName;
-  document.getElementById('fLastName').value = c.lastName;
-  document.getElementById('fEmail').value = c.email;
-  document.getElementById('fPhone').value = c.phone;
+  document.getElementById('fFirst').value   = c.firstName;
+  document.getElementById('fLast').value    = c.lastName;
+  document.getElementById('fEmail').value   = c.email;
+  document.getElementById('fPhone').value   = c.phone;
   document.getElementById('fAddress').value = c.address || '';
-  document.getElementById('passwordGroup').style.display = 'none';
+  document.getElementById('pwdGroup').style.display       = 'none';
   document.getElementById('vehicleSection').style.display = 'none';
-  document.getElementById('custModalTitle').textContent = 'Edit Customer';
-  document.getElementById('custSubmitBtn').textContent = 'Update';
+  document.getElementById('custModalTitle').textContent   = 'Edit Customer';
+  document.getElementById('custSubmitBtn').textContent    = 'Update';
   openModal('custModal');
 }
 
 function resetCustForm() {
   document.getElementById('custId').value = '';
   document.getElementById('custForm').reset();
-  document.getElementById('passwordGroup').style.display = '';
+  document.getElementById('pwdGroup').style.display       = '';
   document.getElementById('vehicleSection').style.display = '';
-  document.getElementById('custModalTitle').textContent = 'Register Customer';
-  document.getElementById('custSubmitBtn').textContent = 'Register';
+  document.getElementById('custModalTitle').textContent   = 'Register Customer';
+  document.getElementById('custSubmitBtn').textContent    = 'Register';
 }
 
 async function saveCustomer(e) {
   e.preventDefault();
-  const id = document.getElementById('custId').value;
-  const baseBody = {
-    firstName: document.getElementById('fFirstName').value,
-    lastName: document.getElementById('fLastName').value,
-    email: document.getElementById('fEmail').value,
-    phone: document.getElementById('fPhone').value,
-    address: document.getElementById('fAddress').value,
+  const id   = document.getElementById('custId').value;
+  const base = {
+    firstName: document.getElementById('fFirst').value,
+    lastName:  document.getElementById('fLast').value,
+    email:     document.getElementById('fEmail').value,
+    phone:     document.getElementById('fPhone').value,
+    address:   document.getElementById('fAddress').value,
   };
   try {
     if (id) {
-      await API.put(`/customers/${id}`, baseBody);
+      await API.put(`/customers/${id}`, base);
       notify('Customer updated!', 'success');
     } else {
-      const vehNum = document.getElementById('fVehNum').value;
-      const body = { ...baseBody, password: document.getElementById('fPassword').value };
-      if (vehNum) {
+      const vNum = document.getElementById('fVNum').value;
+      const body = { ...base, password: document.getElementById('fPassword').value };
+      if (vNum) {
         body.vehicle = {
-          vehicleNumber: vehNum,
-          make: document.getElementById('fVehMake').value,
-          model: document.getElementById('fVehModel').value,
-          year: parseInt(document.getElementById('fVehYear').value) || 0,
-          color: document.getElementById('fVehColor').value,
-          fuelType: document.getElementById('fVehFuel').value
+          vehicleNumber: vNum,
+          make:      document.getElementById('fVMake').value,
+          model:     document.getElementById('fVModel').value,
+          year:      parseInt(document.getElementById('fVYear').value) || 0,
+          color:     document.getElementById('fVColor').value,
+          fuelType:  document.getElementById('fVFuel').value,
         };
       }
       await API.post('/customers/register', body);
@@ -292,14 +300,8 @@ async function deleteCustomer(id, name) {
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetCustForm(); }});
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetCustForm(); } });
 });
-
-loadCustomers();
 </script>
-<style>
-.info-item .form-label { display:block; margin-bottom:4px; }
-.info-item p { color:var(--text); font-size:14px; }
-</style>
 </body>
 </html>

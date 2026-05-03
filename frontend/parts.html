@@ -5,51 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Parts</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+.qty-warn   { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
+.qty-danger { color: var(--red);   font-weight: 600; font-family: 'Space Mono', monospace; }
+.qty-ok     { color: var(--green); font-family: 'Space Mono', monospace; }
+</style>
 </head>
 <body>
 
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link active">Parts</a></li>
-    <li><a href="customers.html" class="nav-link">Customers</a></li>
-    <li><a href="sales.html" class="nav-link">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link">Staff</a></li>
-  </ul>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<main class="main-content">
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <p class="page-label">INVENTORY</p>
-        <h1 class="page-title">Parts Management</h1>
-      </div>
-      <button class="btn btn-primary" onclick="openModal('partModal')">+ Add Part</button>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Inventory</div>
+      <h1 class="page-title">Parts Management</h1>
     </div>
-  </header>
+    <button class="btn btn-primary" onclick="openModal('partModal')">+ Add Part</button>
+  </div>
 
-  <div class="dash-card">
-    <div class="controls-bar">
-      <input class="search-input" type="text" id="searchInput" placeholder="Search by name or part number…" oninput="filterParts()">
-      <select class="select-input" id="categoryFilter" onchange="filterParts()">
+  <div class="card">
+    <div class="controls">
+      <input class="search-input" id="searchInput" placeholder="Search by name or part number..." oninput="filterParts()">
+      <select class="select-filter" id="categoryFilter" onchange="filterParts()">
         <option value="">All Categories</option>
       </select>
-      <span style="margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-3)">
-        <span id="partCount">—</span> parts
-      </span>
+      <span class="muted" style="margin-left:auto"><span id="partCount">—</span> parts</span>
     </div>
-
     <div class="table-wrap">
-      <table class="data-table">
+      <table class="tbl">
         <thead>
           <tr>
             <th>Part #</th>
@@ -63,61 +55,66 @@
           </tr>
         </thead>
         <tbody id="partsBody">
-          <tr><td colspan="8" class="table-empty">Loading parts…</td></tr>
+          <tr><td colspan="8" class="tbl-empty">Loading parts...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </main>
 
-<!-- ADD/EDIT PART MODAL -->
 <div class="modal-overlay" id="partModal">
   <div class="modal">
-    <h2 class="modal-title" id="partModalTitle">Add Part</h2>
+    <div class="modal-hd">
+      <div class="modal-title" id="partModalTitle">Add Part</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('partModal');resetForm()">Close</button>
+    </div>
     <form id="partForm" onsubmit="savePart(event)">
       <input type="hidden" id="partId">
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Part Name *</label>
-          <input class="form-input" id="fPartName" required placeholder="e.g. Brake Pad">
+          <label class="form-label">Part Name</label>
+          <input class="input" id="fName" required placeholder="e.g. Brake Pad">
         </div>
         <div class="form-group">
-          <label class="form-label">Part Number *</label>
-          <input class="form-input" id="fPartNumber" required placeholder="e.g. BP-001">
+          <label class="form-label">Part Number</label>
+          <input class="input" id="fNum" required placeholder="e.g. BP-001">
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Category *</label>
-        <input class="form-input" id="fPartCategory" required placeholder="e.g. Brakes">
+        <label class="form-label">Category</label>
+        <input class="input" id="fCat" required placeholder="e.g. Brakes">
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
-        <textarea class="form-textarea" id="fPartDesc" placeholder="Brief description…"></textarea>
+        <textarea class="input textarea" id="fDesc" placeholder="Brief description..."></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Cost Price (NPR) *</label>
-          <input class="form-input" id="fCostPrice" type="number" step="0.01" min="0" required>
+          <label class="form-label">Cost Price (NPR)</label>
+          <input class="input" id="fCost" type="number" step="0.01" min="0" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Selling Price (NPR) *</label>
-          <input class="form-input" id="fSellingPrice" type="number" step="0.01" min="0" required>
+          <label class="form-label">Selling Price (NPR)</label>
+          <input class="input" id="fSell" type="number" step="0.01" min="0" required>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Stock Quantity</label>
-        <input class="form-input" id="fStockQty" type="number" min="0" value="0">
+        <input class="input" id="fStock" type="number" min="0" value="0">
       </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-outline" onclick="closeModal('partModal')">Cancel</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('partModal');resetForm()">Cancel</button>
         <button type="submit" class="btn btn-primary" id="partSubmitBtn">Add Part</button>
       </div>
     </form>
   </div>
 </div>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
+const user = requireRole('Admin');
+if (user) { buildNav(); loadParts(); }
+
 let allParts = [];
 
 async function loadParts() {
@@ -126,121 +123,115 @@ async function loadParts() {
     renderParts(allParts);
     loadCategories();
   } catch (e) {
-    document.getElementById('partsBody').innerHTML = '<tr><td colspan="8" class="table-empty error">Failed to load parts. Is the backend running?</td></tr>';
+    document.getElementById('partsBody').innerHTML = '<tr><td colspan="8" class="tbl-empty">Failed to load parts.</td></tr>';
   }
 }
 
 function renderParts(parts) {
   document.getElementById('partCount').textContent = parts.length;
   const body = document.getElementById('partsBody');
-  if (!parts.length) {
-    body.innerHTML = '<tr><td colspan="8" class="table-empty">No parts found</td></tr>';
-    return;
-  }
+  if (!parts.length) { body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No parts found</td></tr>'; return; }
   body.innerHTML = parts.map(p => `
     <tr>
       <td><code>${p.partNumber}</code></td>
-      <td style="color:var(--text);font-weight:500">${p.name}</td>
-      <td><span class="badge" style="background:var(--accent-2-dim);color:var(--accent-2)">${p.category}</span></td>
+      <td class="text-strong">${p.name}</td>
+      <td><span class="badge badge-blue">${p.category}</span></td>
       <td class="amount">NPR ${fmt(p.costPrice)}</td>
       <td class="amount">NPR ${fmt(p.sellingPrice)}</td>
-      <td>${stockBadge(p.stockQty)}</td>
-      <td style="font-size:11px;color:var(--text-3)">${fmtDate(p.updatedAt)}</td>
+      <td>${stockCell(p.stockQty)}</td>
+      <td class="muted">${fmtDate(p.updatedAt)}</td>
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="editPart(${p.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deletePart(${p.id},'${p.name}')">Del</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePart(${p.id},'${p.name}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
 }
 
-function stockBadge(qty) {
-  if (qty === 0) return `<span class="qty-badge danger">0</span>`;
-  if (qty < 10) return `<span class="qty-badge warn">${qty}</span>`;
-  return `<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--success)">${qty}</span>`;
+function stockCell(qty) {
+  if (qty === 0)  return `<span class="qty-danger">0</span>`;
+  if (qty < 10)   return `<span class="qty-warn">${qty}</span>`;
+  return `<span class="qty-ok">${qty}</span>`;
 }
 
 async function loadCategories() {
   try {
     const cats = await API.get('/parts/categories');
     const sel = document.getElementById('categoryFilter');
-    cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    cats.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
   } catch (_) {}
 }
 
 function filterParts() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
+  const q   = document.getElementById('searchInput').value.toLowerCase();
   const cat = document.getElementById('categoryFilter').value;
-  const filtered = allParts.filter(p =>
+  renderParts(allParts.filter(p =>
     (!cat || p.category === cat) &&
     (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q))
-  );
-  renderParts(filtered);
+  ));
 }
 
 function editPart(id) {
   const p = allParts.find(x => x.id === id);
   if (!p) return;
-  document.getElementById('partId').value = p.id;
-  document.getElementById('fPartName').value = p.name;
-  document.getElementById('fPartNumber').value = p.partNumber;
-  document.getElementById('fPartCategory').value = p.category;
-  document.getElementById('fPartDesc').value = p.description;
-  document.getElementById('fCostPrice').value = p.costPrice;
-  document.getElementById('fSellingPrice').value = p.sellingPrice;
-  document.getElementById('fStockQty').value = p.stockQty;
-  document.getElementById('partModalTitle').textContent = 'Edit Part';
-  document.getElementById('partSubmitBtn').textContent = 'Update Part';
+  document.getElementById('partId').value  = p.id;
+  document.getElementById('fName').value   = p.name;
+  document.getElementById('fNum').value    = p.partNumber;
+  document.getElementById('fCat').value    = p.category;
+  document.getElementById('fDesc').value   = p.description;
+  document.getElementById('fCost').value   = p.costPrice;
+  document.getElementById('fSell').value   = p.sellingPrice;
+  document.getElementById('fStock').value  = p.stockQty;
+  document.getElementById('partModalTitle').textContent   = 'Edit Part';
+  document.getElementById('partSubmitBtn').textContent    = 'Update Part';
   openModal('partModal');
 }
 
-function resetPartForm() {
+function resetForm() {
   document.getElementById('partId').value = '';
   document.getElementById('partForm').reset();
-  document.getElementById('partModalTitle').textContent = 'Add Part';
-  document.getElementById('partSubmitBtn').textContent = 'Add Part';
+  document.getElementById('partModalTitle').textContent  = 'Add Part';
+  document.getElementById('partSubmitBtn').textContent   = 'Add Part';
 }
-
-document.querySelector('#partModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) { closeModal('partModal'); resetPartForm(); }
-});
 
 async function savePart(e) {
   e.preventDefault();
   const id = document.getElementById('partId').value;
   const body = {
-    name: document.getElementById('fPartName').value,
-    partNumber: document.getElementById('fPartNumber').value,
-    category: document.getElementById('fPartCategory').value,
-    description: document.getElementById('fPartDesc').value,
-    costPrice: parseFloat(document.getElementById('fCostPrice').value),
-    sellingPrice: parseFloat(document.getElementById('fSellingPrice').value),
-    stockQty: parseInt(document.getElementById('fStockQty').value) || 0
+    name:         document.getElementById('fName').value,
+    partNumber:   document.getElementById('fNum').value,
+    category:     document.getElementById('fCat').value,
+    description:  document.getElementById('fDesc').value,
+    costPrice:    parseFloat(document.getElementById('fCost').value),
+    sellingPrice: parseFloat(document.getElementById('fSell').value),
+    stockQty:     parseInt(document.getElementById('fStock').value) || 0
   };
   try {
     if (id) { await API.put(`/parts/${id}`, body); notify('Part updated!', 'success'); }
-    else { await API.post('/parts', body); notify('Part added!', 'success'); }
+    else    { await API.post('/parts', body);       notify('Part added!', 'success'); }
     closeModal('partModal');
-    resetPartForm();
+    resetForm();
     loadParts();
-  } catch (err) {
-    notify(err.message, 'error');
-  }
+  } catch (err) { notify(err.message, 'error'); }
 }
 
 async function deletePart(id, name) {
-  if (!confirm(`Delete part "${name}"? This cannot be undone.`)) return;
+  if (!confirm(`Delete part "${name}"?`)) return;
   try {
     await API.del(`/parts/${id}`);
     notify('Part deleted', 'success');
     loadParts();
-  } catch (err) {
-    notify(err.message, 'error');
-  }
+  } catch (err) { notify(err.message, 'error'); }
 }
 
-loadParts();
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } });
+});
 </script>
 </body>
 </html>

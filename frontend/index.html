@@ -5,127 +5,139 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px 15px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.action-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-dim);
+}
+
+.action-icon { font-size: 17px; }
+
+.qty-warn { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
+.qty-danger { color: var(--red); font-weight: 600; font-family: 'Space Mono', monospace; }
+.qty-ok { color: var(--green); font-family: 'Space Mono', monospace; }
+
+.loyalty-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
-  <div class="nav-brand">
-    <span class="brand-icon">⚙</span>
-    <span class="brand-name">VehicleParts<span class="brand-accent">Pro</span></span>
-  </div>
-  <ul class="nav-links">
-    <li><a href="index.html" class="nav-link active">Dashboard</a></li>
-    <li><a href="parts.html" class="nav-link">Parts</a></li>
-    <li><a href="customers.html" class="nav-link">Customers</a></li>
-    <li><a href="sales.html" class="nav-link">Sales</a></li>
-    <li><a href="purchases.html" class="nav-link">Purchases</a></li>
-    <li><a href="vendors.html" class="nav-link">Vendors</a></li>
-    <li><a href="staff.html" class="nav-link">Staff</a></li>
-  </ul>
-  <div class="nav-right">
-    <span class="status-dot"></span>
-  </div>
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
 </nav>
 
-<!-- MAIN CONTENT -->
-<main class="main-content">
-
-  <!-- Hero Header -->
-  <header class="page-header">
-    <div class="header-top">
-      <div>
-        <p class="page-label">OVERVIEW</p>
-        <h1 class="page-title">Dashboard</h1>
-      </div>
-      <div class="header-date" id="currentDate"></div>
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Overview</div>
+      <h1 class="page-title">Dashboard</h1>
     </div>
-  </header>
+    <span class="muted" id="todayDate"></span>
+  </div>
 
-  <!-- Summary Cards -->
-  <section class="stats-grid" id="statsGrid">
-    <div class="stat-card loading" data-key="todayRevenue">
+  <div class="stats-row" id="statsRow">
+    <div class="stat stat--blue">
       <div class="stat-label">Today's Revenue</div>
-      <div class="stat-value" id="todayRevenue">—</div>
+      <div class="stat-value" id="statToday">—</div>
       <div class="stat-sub">NPR</div>
     </div>
-    <div class="stat-card loading" data-key="monthRevenue">
+    <div class="stat stat--green">
       <div class="stat-label">This Month</div>
-      <div class="stat-value" id="monthRevenue">—</div>
+      <div class="stat-value" id="statMonth">—</div>
       <div class="stat-sub">NPR</div>
     </div>
-    <div class="stat-card loading accent" data-key="yearRevenue">
+    <div class="stat">
       <div class="stat-label">This Year</div>
-      <div class="stat-value" id="yearRevenue">—</div>
+      <div class="stat-value" id="statYear">—</div>
       <div class="stat-sub">NPR</div>
     </div>
-    <div class="stat-card loading" data-key="totalCustomers">
+    <div class="stat stat--amber">
+      <div class="stat-label">Low Stock</div>
+      <div class="stat-value" id="statLow">—</div>
+      <div class="stat-sub">Parts under 10 units</div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
       <div class="stat-label">Customers</div>
-      <div class="stat-value" id="totalCustomers">—</div>
+      <div class="stat-value" id="statCust">—</div>
       <div class="stat-sub">Registered</div>
     </div>
-    <div class="stat-card loading" data-key="totalParts">
+    <div class="stat">
       <div class="stat-label">Parts</div>
-      <div class="stat-value" id="totalParts">—</div>
-      <div class="stat-sub">In Catalogue</div>
+      <div class="stat-value" id="statParts">—</div>
+      <div class="stat-sub">In catalogue</div>
     </div>
-    <div class="stat-card loading warn" data-key="lowStock">
-      <div class="stat-label">Low Stock</div>
-      <div class="stat-value" id="lowStock">—</div>
-      <div class="stat-sub">Parts &lt; 10 units</div>
-    </div>
-    <div class="stat-card loading" data-key="totalVendors">
+    <div class="stat">
       <div class="stat-label">Vendors</div>
-      <div class="stat-value" id="totalVendors">—</div>
+      <div class="stat-value" id="statVendors">—</div>
       <div class="stat-sub">Active</div>
     </div>
-    <div class="stat-card loading warn" data-key="pendingCredits">
+    <div class="stat stat--red">
       <div class="stat-label">Credit Sales</div>
-      <div class="stat-value" id="pendingCredits">—</div>
+      <div class="stat-value" id="statCredit">—</div>
       <div class="stat-sub">Pending invoices</div>
     </div>
-  </section>
+  </div>
 
-  <!-- Quick Actions + Low Stock -->
   <div class="dash-grid">
-    <!-- Quick Actions -->
-    <section class="dash-card">
-      <h2 class="card-title">Quick Actions</h2>
-      <div class="quick-actions">
-        <a href="sales.html" class="action-btn primary">
-          <span class="action-icon">🧾</span>
-          <span>New Sale Invoice</span>
-        </a>
-        <a href="purchases.html" class="action-btn">
-          <span class="action-icon">📦</span>
-          <span>New Purchase</span>
-        </a>
-        <a href="customers.html" class="action-btn">
-          <span class="action-icon">👤</span>
-          <span>Add Customer</span>
-        </a>
-        <a href="parts.html" class="action-btn">
-          <span class="action-icon">🔩</span>
-          <span>Add Part</span>
-        </a>
-        <a href="vendors.html" class="action-btn">
-          <span class="action-icon">🏭</span>
-          <span>Add Vendor</span>
-        </a>
-        <a href="staff.html" class="action-btn">
-          <span class="action-icon">👷</span>
-          <span>Add Staff</span>
-        </a>
-      </div>
-    </section>
+    <div class="card" id="quickActionsCard">
+      <div class="card-title">Quick Actions</div>
+      <div class="quick-actions" id="quickActions"></div>
+    </div>
 
-    <!-- Low Stock Alert -->
-    <section class="dash-card">
-      <h2 class="card-title">Low Stock Alert <span class="badge warn" id="lowStockBadge">—</span></h2>
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">Low Stock Alert</span>
+        <span class="badge badge-amber" id="lowBadge">0</span>
+      </div>
       <div class="table-wrap">
-        <table class="data-table" id="lowStockTable">
+        <table class="tbl">
           <thead>
             <tr>
               <th>Part Name</th>
@@ -135,113 +147,118 @@
             </tr>
           </thead>
           <tbody id="lowStockBody">
-            <tr><td colspan="4" class="table-empty">Loading...</td></tr>
+            <tr><td colspan="4" class="tbl-empty">Loading...</td></tr>
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   </div>
 
-  <!-- Recent Sales -->
-  <section class="dash-card">
-    <div class="card-header-row">
-      <h2 class="card-title">Recent Sales</h2>
-      <a href="sales.html" class="view-all">View All →</a>
+  <div class="card" style="margin-top:16px">
+    <div class="card-hd">
+      <span class="card-title">Recent Sales</span>
+      <a href="sales.html" class="link">View all</a>
     </div>
     <div class="table-wrap">
-      <table class="data-table" id="recentSalesTable">
+      <table class="tbl">
         <thead>
           <tr>
             <th>Invoice #</th>
             <th>Date</th>
-            <th>Amount</th>
+            <th>Total</th>
             <th>Payment</th>
             <th>Status</th>
             <th>Loyalty</th>
           </tr>
         </thead>
         <tbody id="recentSalesBody">
-          <tr><td colspan="6" class="table-empty">Loading...</td></tr>
+          <tr><td colspan="6" class="tbl-empty">Loading...</td></tr>
         </tbody>
       </table>
     </div>
-  </section>
-
+  </div>
 </main>
 
-<script src="api.js"></script>
+<script src="auth.js"></script>
 <script>
-  // Date
-  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  });
+const user = requireRole('Admin', 'Staff');
+if (user) {
+  buildNav();
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  initQuickActions();
+  loadDashboard();
+}
 
-  async function loadDashboard() {
-    // Summary stats
-    try {
-      const summary = await API.get('/reports/summary');
-      document.getElementById('todayRevenue').textContent = fmt(summary.revenue.today);
-      document.getElementById('monthRevenue').textContent = fmt(summary.revenue.thisMonth);
-      document.getElementById('yearRevenue').textContent = fmt(summary.revenue.thisYear);
-      document.getElementById('totalCustomers').textContent = summary.counts.totalCustomers;
-      document.getElementById('totalParts').textContent = summary.counts.totalParts;
-      document.getElementById('lowStock').textContent = summary.counts.lowStockParts;
-      document.getElementById('totalVendors').textContent = summary.counts.totalVendors;
-      document.getElementById('pendingCredits').textContent = summary.counts.pendingCreditInvoices;
-      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('loading'));
-    } catch (e) {
-      document.querySelectorAll('.stat-card').forEach(c => {
-        c.classList.remove('loading');
-        c.querySelector('.stat-value').textContent = 'ERR';
-      });
-    }
+function initQuickActions() {
+  const isAdmin = user.role === 'Admin';
+  const actions = [
+    { href: 'sales.html',     label: 'New Sale',     icon: '&#128203;', always: true  },
+    { href: 'customers.html', label: 'Add Customer', icon: '&#128100;', always: true  },
+    { href: 'vehicles.html',  label: 'Add Vehicle',  icon: '&#128664;', always: true  },
+    { href: 'purchases.html', label: 'New Purchase', icon: '&#128230;', always: false },
+    { href: 'parts.html',     label: 'Add Part',     icon: '&#128297;', always: false },
+    { href: 'vendors.html',   label: 'Add Vendor',   icon: '&#127981;', always: false },
+  ];
 
-    // Low stock
-    try {
-      const ls = await API.get('/parts/low-stock');
-      document.getElementById('lowStockBadge').textContent = ls.totalLowStockParts;
-      const body = document.getElementById('lowStockBody');
-      if (!ls.parts.length) {
-        body.innerHTML = '<tr><td colspan="4" class="table-empty">All parts well stocked ✓</td></tr>';
-      } else {
-        body.innerHTML = ls.parts.slice(0, 8).map(p => `
-          <tr>
-            <td>${p.name}</td>
-            <td><code>${p.partNumber}</code></td>
-            <td>${p.category}</td>
-            <td><span class="qty-badge ${p.stockQty <= 3 ? 'danger' : 'warn'}">${p.stockQty}</span></td>
-          </tr>`).join('');
-      }
-    } catch (e) {
-      document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="table-empty error">Failed to load</td></tr>';
-    }
+  const qa = document.getElementById('quickActions');
+  qa.innerHTML = actions
+    .filter(a => a.always || isAdmin)
+    .map(a => `<a href="${a.href}" class="action-btn"><span class="action-icon">${a.icon}</span>${a.label}</a>`)
+    .join('');
+}
 
-    // Recent sales
-    try {
-      const sales = await API.get('/sales');
-      const body = document.getElementById('recentSalesBody');
-      if (!sales.length) {
-        body.innerHTML = '<tr><td colspan="6" class="table-empty">No sales yet</td></tr>';
-      } else {
-        body.innerHTML = sales.slice(0, 10).map(s => `
-          <tr>
-            <td><code>${s.invoiceNumber}</code></td>
-            <td>${fmtDate(s.invoiceDate)}</td>
-            <td class="amount">NPR ${fmt(s.totalAmount)}</td>
-            <td>${s.paymentMethod}</td>
-            <td><span class="status-badge ${s.status.toLowerCase()}">${s.status}</span></td>
-            <td>${s.loyaltyDiscountApplied ? '<span class="loyalty">✓ 10%</span>' : '—'}</td>
-          </tr>`).join('');
-      }
-    } catch (e) {
-      document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="table-empty error">Failed to load</td></tr>';
+async function loadDashboard() {
+  try {
+    const s = await API.get('/reports/summary');
+    document.getElementById('statToday').textContent  = fmt(s.revenue.today);
+    document.getElementById('statMonth').textContent  = fmt(s.revenue.thisMonth);
+    document.getElementById('statYear').textContent   = fmt(s.revenue.thisYear);
+    document.getElementById('statLow').textContent    = s.counts.lowStockParts;
+    document.getElementById('statCust').textContent   = s.counts.totalCustomers;
+    document.getElementById('statParts').textContent  = s.counts.totalParts;
+    document.getElementById('statVendors').textContent = s.counts.totalVendors;
+    document.getElementById('statCredit').textContent = s.counts.pendingCreditInvoices;
+  } catch (e) { /* silent */ }
+
+  try {
+    const ls = await API.get('/parts/low-stock');
+    document.getElementById('lowBadge').textContent = ls.totalLowStockParts;
+    const body = document.getElementById('lowStockBody');
+    if (!ls.parts.length) {
+      body.innerHTML = '<tr><td colspan="4" class="tbl-empty">All parts well stocked</td></tr>';
+    } else {
+      body.innerHTML = ls.parts.slice(0, 8).map(p => `
+        <tr>
+          <td class="text-strong">${p.name}</td>
+          <td><code>${p.partNumber}</code></td>
+          <td>${p.category}</td>
+          <td>${p.stockQty <= 3 ? `<span class="qty-danger">${p.stockQty}</span>` : `<span class="qty-warn">${p.stockQty}</span>`}</td>
+        </tr>`).join('');
     }
+  } catch (e) {
+    document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="tbl-empty">Failed to load</td></tr>';
   }
 
-  function fmt(n) { return Number(n).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
-  function fmtDate(d) { return new Date(d).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}); }
-
-  loadDashboard();
+  try {
+    const sales = await API.get('/sales');
+    const body = document.getElementById('recentSalesBody');
+    if (!sales.length) {
+      body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No sales yet</td></tr>';
+    } else {
+      body.innerHTML = sales.slice(0, 10).map(s => `
+        <tr>
+          <td><code>${s.invoiceNumber}</code></td>
+          <td class="muted">${fmtDate(s.invoiceDate)}</td>
+          <td class="amount">NPR ${fmt(s.totalAmount)}</td>
+          <td class="muted">${s.paymentMethod}</td>
+          <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
+          <td>${s.loyaltyDiscountApplied ? '<span class="loyalty-tag">10% off</span>' : '—'}</td>
+        </tr>`).join('');
+    }
+  } catch (e) {
+    document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load</td></tr>';
+  }
+}
 </script>
 </body>
 </html>
