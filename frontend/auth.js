@@ -1,49 +1,82 @@
-const BASE_URL = 'http://localhost:5033/api';
+const BASE_URL = 'http://127.0.0.1:5033/api';
 
 const API = {
   async get(path) {
-    const r = await fetch(`${BASE_URL}${path}`);
-    if (!r.ok) throw new Error(`GET ${path} ${r.status}`);
-    return r.json();
+    try {
+      const r = await fetch(`${BASE_URL}${path}`);
+      if (!r.ok) {
+        const data = await r.json().catch(() => null);
+        throw Object.assign(
+          new Error(data?.message || `Request failed: ${r.status} ${r.statusText}`),
+          { status: r.status, data }
+        );
+      }
+      return r.json();
+    } catch (err) {
+      if (err.name === 'TypeError') {
+        throw new Error('Cannot connect to server. Make sure the backend is running on port 5033.');
+      }
+      throw err;
+    }
   },
   async post(path, body) {
-    const r = await fetch(`${BASE_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await r.json().catch(() => null);
-    if (!r.ok) throw Object.assign(new Error(data?.message || `POST ${path} ${r.status}`), { status: r.status, data });
-    return data;
+    try {
+      const r = await fetch(`${BASE_URL}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw Object.assign(new Error(data?.message || `POST ${path} → ${r.status}`), { status: r.status, data });
+      return data;
+    } catch (err) {
+      if (err.name === 'TypeError') throw new Error('Cannot connect to server.');
+      throw err;
+    }
   },
   async put(path, body) {
-    const r = await fetch(`${BASE_URL}${path}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (r.status === 204) return null;
-    const data = await r.json().catch(() => null);
-    if (!r.ok) throw Object.assign(new Error(data?.message || `PUT ${path} ${r.status}`), { status: r.status, data });
-    return data;
+    try {
+      const r = await fetch(`${BASE_URL}${path}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (r.status === 204) return null;
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw Object.assign(new Error(data?.message || `PUT ${path} → ${r.status}`), { status: r.status, data });
+      return data;
+    } catch (err) {
+      if (err.name === 'TypeError') throw new Error('Cannot connect to server.');
+      throw err;
+    }
   },
   async patch(path, body) {
-    const r = await fetch(`${BASE_URL}${path}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    if (r.status === 204) return null;
-    const data = await r.json().catch(() => null);
-    if (!r.ok) throw Object.assign(new Error(data?.message || `PATCH ${path} ${r.status}`), { status: r.status, data });
-    return data;
+    try {
+      const r = await fetch(`${BASE_URL}${path}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (r.status === 204) return null;
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw Object.assign(new Error(data?.message || `PATCH ${path} → ${r.status}`), { status: r.status, data });
+      return data;
+    } catch (err) {
+      if (err.name === 'TypeError') throw new Error('Cannot connect to server.');
+      throw err;
+    }
   },
   async del(path) {
-    const r = await fetch(`${BASE_URL}${path}`, { method: 'DELETE' });
-    if (r.status === 204) return null;
-    const data = await r.json().catch(() => null);
-    if (!r.ok) throw Object.assign(new Error(data?.message || `DELETE ${path} ${r.status}`), { status: r.status, data });
-    return data;
+    try {
+      const r = await fetch(`${BASE_URL}${path}`, { method: 'DELETE' });
+      if (r.status === 204) return null;
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw Object.assign(new Error(data?.message || `DELETE ${path} → ${r.status}`), { status: r.status, data });
+      return data;
+    } catch (err) {
+      if (err.name === 'TypeError') throw new Error('Cannot connect to server.');
+      throw err;
+    }
   }
 };
 
@@ -73,11 +106,17 @@ function fmt(n) {
 }
 
 function fmtDate(d) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return '—';
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function fmtDateTime(d) {
-  return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt.getTime()) || dt.getFullYear() < 2000) return '—';
+  return dt.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function notify(msg, type = 'info') {
@@ -92,10 +131,10 @@ function notify(msg, type = 'info') {
   el.textContent = msg;
   el.classList.add('toast--show');
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('toast--show'), 3500);
+  el._t = setTimeout(() => el.classList.remove('toast--show'), 4500);
 }
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // Access map: page -> allowed roles

@@ -7,19 +7,94 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.staff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.staff-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; transition: all 0.2s; position: relative; overflow: hidden; }
-.staff-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.staff-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+  gap: 16px; 
+}
+
+.staff-card { 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius-lg); 
+  padding: 24px; 
+  transition: all 0.2s; 
+  position: relative; 
+  overflow: hidden; 
+}
+
+.staff-card::before { 
+  content: ''; 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 2px; 
+}
+
 .staff-card.admin::before { background: var(--blue); }
 .staff-card.staff-role::before { background: var(--amber); }
 .staff-card.inactive { opacity: 0.55; }
-.staff-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border-2); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 14px; }
+
+.staff-avatar { 
+  width: 52px; 
+  height: 52px; 
+  border-radius: 50%; 
+  background: var(--bg); 
+  border: 2px solid var(--border-2); 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-family: 'Syne', sans-serif; 
+  font-size: 20px; 
+  font-weight: 700; 
+  margin-bottom: 14px; 
+}
+
 .staff-avatar.admin { border-color: var(--blue); color: var(--blue); }
 .staff-avatar.staff-role { border-color: var(--amber); color: var(--amber); }
-.staff-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 2px; color: var(--text); }
-.staff-email { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
-.staff-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-.staff-actions { display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 16px; flex-wrap: wrap; }
+
+/* Typography Improvements */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;        /* Reduced weight - less fat */
+  margin: 0;
+}
+
+.staff-name { 
+  font-family: 'Syne', sans-serif; 
+  font-weight: 700;        /* Slightly reduced */
+  font-size: 20px; 
+  margin-bottom: 2px; 
+  color: var(--text); 
+}
+
+.staff-email { 
+  font-size: 13px; 
+  color: var(--text-3); 
+  margin-bottom: 14px; 
+}
+
+.staff-meta { 
+  display: flex; 
+  gap: 8px; 
+  flex-wrap: wrap; 
+  margin-bottom: 16px; 
+}
+
+.staff-actions { 
+  display: flex; 
+  gap: 6px; 
+  border-top: 1px solid var(--border); 
+  padding-top: 16px; 
+  flex-wrap: wrap; 
+}
+
+/* Better stat text */
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+}
 </style>
 </head>
 <body>
@@ -60,11 +135,13 @@
   <div class="controls" style="margin-bottom:20px">
     <select class="select-filter" id="roleFilter" onchange="filterStaff()">
       <option value="">All Roles</option>
-      <option>Admin</option><option>Staff</option>
+      <option>Admin</option>
+      <option>Staff</option>
     </select>
     <select class="select-filter" id="activeFilter" onchange="filterStaff()">
       <option value="">All Status</option>
-      <option value="true">Active</option><option value="false">Inactive</option>
+      <option value="true">Active</option>
+      <option value="false">Inactive</option>
     </select>
   </div>
 
@@ -120,21 +197,42 @@
 
 <script src="auth.js"></script>
 <script>
-const user = requireRole('Admin');
-if (user) { buildNav(); loadStaff(); }
+// ==================== FIXED CODE ====================
 
-let allStaff = [];
+let allStaff = [];   // ← MUST BE AT THE TOP
+
+const user = requireRole('Admin');
+if (user) {
+  buildNav();
+  loadStaff();
+}
 
 async function loadStaff() {
   try {
     allStaff = await API.get('/staff');
     renderStaff(allStaff);
-    const c = await API.get('/staff/count');
-    document.getElementById('sTotalStaff').textContent = c.totalStaff;
-    document.getElementById('sActiveStaff').textContent = c.activeStaff;
-    document.getElementById('sInactiveStaff').textContent = c.inactiveStaff;
+
+    try {
+      const c = await API.get('/staff/count');
+      document.getElementById('sTotalStaff').textContent = c.totalStaff || 0;
+      document.getElementById('sActiveStaff').textContent = c.activeStaff || 0;
+      document.getElementById('sInactiveStaff').textContent = c.inactiveStaff || 0;
+    } catch (countErr) {
+      console.warn("Staff count endpoint not available or failed:", countErr);
+      document.getElementById('sTotalStaff').textContent = allStaff.length;
+      document.getElementById('sActiveStaff').textContent = allStaff.filter(s => s.isActive).length;
+      document.getElementById('sInactiveStaff').textContent = allStaff.filter(s => !s.isActive).length;
+    }
+
   } catch (e) {
-    document.getElementById('staffGrid').innerHTML = '<div class="tbl-empty">Failed to load staff</div>';
+    console.error("STAFF LOAD ERROR:", e);
+    document.getElementById('staffGrid').innerHTML = `
+      <div style="color:#ff6b6b;padding:40px;text-align:center;border:1px solid #ff6b6b33;border-radius:12px">
+        <strong>Failed to load staff</strong><br><br>
+        ${e.message || 'Unknown error occurred'}
+        <br><br>
+        <small style="opacity:0.8">Check console (F12) for details</small>
+      </div>`;
   }
 }
 
@@ -144,9 +242,11 @@ function renderStaff(list) {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3)">No staff members found</div>';
     return;
   }
+
   grid.innerHTML = list.map(s => {
     const roleClass = s.role === 'Admin' ? 'admin' : 'staff-role';
-    const initials = `${s.firstName[0]}${s.lastName[0]}`;
+    const initials = `${(s.firstName || '')[0]}${(s.lastName || '')[0]}`.toUpperCase();
+
     return `
     <div class="staff-card ${roleClass} ${!s.isActive ? 'inactive' : ''}">
       <div class="staff-avatar ${roleClass}">${initials}</div>
@@ -156,7 +256,7 @@ function renderStaff(list) {
         <span class="badge ${s.role === 'Admin' ? 'badge-blue' : 'badge-amber'}">${s.role}</span>
         <span class="badge ${s.isActive ? 'badge-green' : 'badge-gray'}">${s.isActive ? 'Active' : 'Inactive'}</span>
       </div>
-      <div class="muted" style="margin-bottom:16px;font-family:'Space Mono',monospace;font-size:12px">${s.phone}</div>
+      <div class="muted" style="margin-bottom:16px;font-family:'Space Mono',monospace;font-size:12px">${s.phone || '—'}</div>
       <div class="staff-actions">
         <button class="btn btn-outline btn-sm" onclick="editStaff(${s.id})">Edit</button>
         <button class="btn btn-outline btn-sm" onclick="changeRole(${s.id},'${s.role}','${s.firstName}')">Role</button>
@@ -172,21 +272,28 @@ function renderStaff(list) {
 function filterStaff() {
   const r = document.getElementById('roleFilter').value;
   const a = document.getElementById('activeFilter').value;
-  renderStaff(allStaff.filter(s => (!r || s.role === r) && (a === '' || String(s.isActive) === a)));
+  const filtered = allStaff.filter(s => 
+    (!r || s.role === r) && 
+    (a === '' || String(s.isActive) === a)
+  );
+  renderStaff(filtered);
 }
 
 function editStaff(id) {
   const s = allStaff.find(x => x.id === id);
   if (!s) return;
+
   document.getElementById('staffId').value = s.id;
   document.getElementById('fSFirstName').value = s.firstName;
   document.getElementById('fSLastName').value = s.lastName;
   document.getElementById('fSEmail').value = s.email;
   document.getElementById('fSPhone').value = s.phone;
+
   document.getElementById('staffRoleGroup').style.display = 'none';
   document.getElementById('staffPasswordGroup').style.display = 'none';
   document.getElementById('staffModalTitle').textContent = 'Edit Staff';
   document.getElementById('staffSubmitBtn').textContent = 'Update';
+
   openModal('staffModal');
 }
 
@@ -197,7 +304,9 @@ async function changeRole(id, currentRole, name) {
     await API.patch(`/staff/${id}/role`, { role: newRole });
     notify(`Role changed to ${newRole}`, 'success');
     loadStaff();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) { 
+    notify(err.message || 'Failed to change role', 'error'); 
+  }
 }
 
 async function toggleStatus(id, isActive, name) {
@@ -207,7 +316,9 @@ async function toggleStatus(id, isActive, name) {
     await API.patch(`/staff/${id}/status`, { isActive: !isActive });
     notify(`Staff ${action}d`, 'success');
     loadStaff();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) { 
+    notify(err.message || 'Failed to update status', 'error'); 
+  }
 }
 
 async function deleteStaff(id, name) {
@@ -216,7 +327,9 @@ async function deleteStaff(id, name) {
     await API.del(`/staff/${id}`);
     notify('Staff deleted', 'success');
     loadStaff();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) { 
+    notify(err.message || 'Failed to delete staff', 'error'); 
+  }
 }
 
 function resetStaffForm() {
@@ -231,6 +344,7 @@ function resetStaffForm() {
 async function saveStaff(e) {
   e.preventDefault();
   const id = document.getElementById('staffId').value;
+
   try {
     if (id) {
       await API.put(`/staff/${id}`, {
@@ -254,11 +368,18 @@ async function saveStaff(e) {
     closeModal('staffModal');
     resetStaffForm();
     loadStaff();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) {
+    notify(err.message || 'Save failed', 'error');
+  }
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetStaffForm(); } });
+  m.addEventListener('click', e => {
+    if (e.target === m) {
+      closeModal(m.id);
+      resetStaffForm();
+    }
+  });
 });
 </script>
 </body>

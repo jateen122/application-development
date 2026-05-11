@@ -15,162 +15,27 @@ body {
   background: var(--bg);
   padding: 24px;
 }
-
-.login-wrap {
-  width: 100%;
-  max-width: 400px;
-}
-
-.login-brand {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.login-brand-icon {
-  width: 44px;
-  height: 44px;
-  background: var(--blue);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 12px;
-  font-size: 22px;
-  color: #fff;
-}
-
-.login-brand-name {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-
+.login-wrap { width: 100%; max-width: 400px; }
+.login-brand { text-align: center; margin-bottom: 32px; }
+.login-brand-icon { width: 44px; height: 44px; background: var(--blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 22px; color: #fff; }
+.login-brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--text); letter-spacing: -0.3px; }
 .login-brand-name span { color: var(--blue); }
-
-.login-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  box-shadow: var(--shadow);
-}
-
-.login-title {
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 22px;
-  color: var(--text);
-  margin-bottom: 4px;
-}
-
-.login-sub {
-  font-size: 13.5px;
-  color: var(--text-3);
-  margin-bottom: 24px;
-}
-
-.role-tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px;
-  margin-bottom: 22px;
-}
-
-.role-tab {
-  flex: 1;
-  padding: 7px;
-  border: none;
-  background: none;
-  border-radius: 5px;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-  color: var(--text-3);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.role-tab.active {
-  background: var(--surface);
-  color: var(--blue);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
-}
-
-.error-msg {
-  background: var(--red-dim);
-  border: 1px solid var(--red);
-  border-radius: var(--radius);
-  padding: 10px 14px;
-  font-size: 13px;
-  color: var(--red);
-  margin-bottom: 16px;
-  display: none;
-}
-
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow); }
+.login-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--text); margin-bottom: 4px; }
+.login-sub { font-size: 13.5px; color: var(--text-3); margin-bottom: 24px; }
+.role-tabs { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; margin-bottom: 22px; }
+.role-tab { flex: 1; padding: 7px; border: none; background: none; border-radius: 5px; font-size: 13px; font-weight: 600; font-family: 'DM Sans', sans-serif; color: var(--text-3); cursor: pointer; transition: all 0.15s; }
+.role-tab.active { background: var(--surface); color: var(--blue); box-shadow: 0 1px 4px rgba(0,0,0,0.10); }
+.error-msg { background: var(--red-dim); border: 1px solid var(--red); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--red); margin-bottom: 16px; display: none; }
 .error-msg.show { display: block; }
-
-.btn-login {
-  width: 100%;
-  padding: 11px;
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  font-size: 14.5px;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-  transition: background 0.15s;
-  margin-top: 6px;
-}
-
+.btn-login { width: 100%; padding: 11px; background: var(--blue); color: #fff; border: none; border-radius: var(--radius); font-size: 14.5px; font-weight: 700; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: background 0.15s; margin-top: 6px; }
 .btn-login:hover { background: #1d46d4; }
 .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.divider {
-  text-align: center;
-  margin: 18px 0;
-  color: var(--text-3);
-  font-size: 12px;
-  position: relative;
-}
-
-.divider::before, .divider::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  width: 44%;
-  height: 1px;
-  background: var(--border);
-}
-
-.divider::before { left: 0; }
-.divider::after  { right: 0; }
-
-.btn-register {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  color: var(--text-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 13.5px;
-  font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-register:hover {
-  border-color: var(--blue);
-  color: var(--blue);
-}
-
+.divider { text-align: center; margin: 18px 0; color: var(--text-3); font-size: 12px; position: relative; }
+.divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 44%; height: 1px; background: var(--border); }
+.divider::before { left: 0; } .divider::after { right: 0; }
+.btn-register { width: 100%; padding: 10px; background: transparent; color: var(--text-2); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13.5px; font-weight: 600; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s; }
+.btn-register:hover { border-color: var(--blue); color: var(--blue); }
 #selfRegSection { display: none; }
 </style>
 </head>
@@ -196,9 +61,8 @@ body {
 
     <div class="form-group">
       <label class="form-label">Email</label>
-      <input class="input" id="loginEmail" type="email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="input" id="loginEmail" type="email" placeholder="Enter your email" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-
     <div class="form-group">
       <label class="form-label">Password</label>
       <input class="input" id="loginPassword" type="password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
@@ -221,31 +85,13 @@ body {
     </div>
     <div class="error-msg" id="regError"></div>
     <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">First Name</label>
-        <input class="input" id="rFirstName" placeholder="First name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Last Name</label>
-        <input class="input" id="rLastName" placeholder="Last name">
-      </div>
+      <div class="form-group"><label class="form-label">First Name</label><input class="input" id="rFirstName" placeholder="First name"></div>
+      <div class="form-group"><label class="form-label">Last Name</label><input class="input" id="rLastName" placeholder="Last name"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input class="input" id="rEmail" type="email" placeholder="Email address">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Phone</label>
-      <input class="input" id="rPhone" placeholder="Phone number">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Address</label>
-      <input class="input" id="rAddress" placeholder="Your address">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Password</label>
-      <input class="input" id="rPassword" type="password" placeholder="Min 6 characters">
-    </div>
+    <div class="form-group"><label class="form-label">Email</label><input class="input" id="rEmail" type="email" placeholder="Email address"></div>
+    <div class="form-group"><label class="form-label">Phone</label><input class="input" id="rPhone" placeholder="Phone number"></div>
+    <div class="form-group"><label class="form-label">Address</label><input class="input" id="rAddress" placeholder="Your address"></div>
+    <div class="form-group"><label class="form-label">Password</label><input class="input" id="rPassword" type="password" placeholder="Min 6 characters"></div>
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal('regModal')">Cancel</button>
       <button class="btn btn-primary" onclick="doRegister()">Create Account</button>
@@ -255,9 +101,10 @@ body {
 
 <script src="auth.js"></script>
 <script>
-const user = getUser();
-if (user) {
-  if (user.role === 'Customer') window.location.href = 'portal-profile.html';
+// Redirect if already logged in
+const _u = getUser();
+if (_u) {
+  if (_u.role === 'Customer') window.location.href = 'portal-profile.html';
   else window.location.href = 'index.html';
 }
 
@@ -278,7 +125,7 @@ function showError(msg) {
 }
 
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim();
+  const email    = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
   if (!email || !password) { showError('Enter your email and password.'); return; }
 
@@ -288,18 +135,12 @@ async function doLogin() {
   document.getElementById('errorMsg').classList.remove('show');
 
   try {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role: selectedRole })
-    });
-    const data = await res.json();
-    if (!res.ok) { showError(data.message || 'Login failed.'); return; }
+    const data = await API.post('/auth/login', { email, password, role: selectedRole });
     sessionStorage.setItem('user', JSON.stringify(data));
     if (data.role === 'Customer') window.location.href = 'portal-profile.html';
     else window.location.href = 'index.html';
   } catch (e) {
-    showError('Cannot connect to server. Is the backend running?');
+    showError(e.message || 'Login failed.');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Sign In';
@@ -322,27 +163,14 @@ async function doRegister() {
     return;
   }
   try {
-    const res = await fetch(`${BASE_URL}/customers/self-register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      const el = document.getElementById('regError');
-      el.textContent = data.message || 'Registration failed.';
-      el.classList.add('show');
-      return;
-    }
+    await API.post('/customers/self-register', body);
     closeModal('regModal');
     document.getElementById('loginEmail').value = body.email;
     document.querySelectorAll('.role-tab')[2].click();
-    showError('');
-    document.getElementById('errorMsg').classList.remove('show');
     alert('Account created. Please sign in.');
   } catch (e) {
     const el = document.getElementById('regError');
-    el.textContent = 'Server error.';
+    el.textContent = e.message || 'Registration failed.';
     el.classList.add('show');
   }
 }

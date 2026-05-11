@@ -23,14 +23,13 @@
 .action-btn {
   display: flex;
   align-items: center;
-  gap: 10px;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 13px 15px;
+  padding: 14px 16px;
   color: var(--text-2);
   text-decoration: none;
-  font-size: 13.5px;
+  font-size: 14.2px;
   font-weight: 500;
   transition: all 0.15s;
 }
@@ -41,22 +40,32 @@
   background: var(--blue-dim);
 }
 
-.action-icon { font-size: 17px; }
-
-.qty-warn { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
-.qty-danger { color: var(--red); font-weight: 600; font-family: 'Space Mono', monospace; }
-.qty-ok { color: var(--green); font-family: 'Space Mono', monospace; }
-
-.loyalty-tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  background: var(--blue-dim);
-  color: var(--blue);
-  padding: 2px 7px;
-  border-radius: 20px;
+/* Text Improvements */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;     /* Reduced from 800+ */
+  margin: 0;
 }
 
-@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+.stat-value {
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.stat-label {
+  font-size: 13.8px;
+  font-weight: 500;
+}
+
+.card-title {
+  font-size: 16.5px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) { 
+  .dash-grid { grid-template-columns: 1fr; } 
+}
 </style>
 </head>
 <body>
@@ -184,7 +193,9 @@
 const user = requireRole('Admin', 'Staff');
 if (user) {
   buildNav();
-  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { 
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+  });
   initQuickActions();
   loadDashboard();
 }
@@ -192,18 +203,22 @@ if (user) {
 function initQuickActions() {
   const isAdmin = user.role === 'Admin';
   const actions = [
-    { href: 'sales.html',     label: 'New Sale',     icon: '&#128203;', always: true  },
-    { href: 'customers.html', label: 'Add Customer', icon: '&#128100;', always: true  },
-    { href: 'vehicles.html',  label: 'Add Vehicle',  icon: '&#128664;', always: true  },
-    { href: 'purchases.html', label: 'New Purchase', icon: '&#128230;', always: false },
-    { href: 'parts.html',     label: 'Add Part',     icon: '&#128297;', always: false },
-    { href: 'vendors.html',   label: 'Add Vendor',   icon: '&#127981;', always: false },
+    { href: 'sales.html',     label: 'New Sale' },
+    { href: 'customers.html', label: 'Add Customer' },
+    { href: 'vehicles.html',  label: 'Add Vehicle' },
+    { href: 'purchases.html', label: 'New Purchase' },
+    { href: 'parts.html',     label: 'Add Part' },
+    { href: 'vendors.html',   label: 'Add Vendor' },
   ];
 
   const qa = document.getElementById('quickActions');
   qa.innerHTML = actions
     .filter(a => a.always || isAdmin)
-    .map(a => `<a href="${a.href}" class="action-btn"><span class="action-icon">${a.icon}</span>${a.label}</a>`)
+    .map(a => `
+      <a href="${a.href}" class="action-btn">
+        ${a.label}
+      </a>
+    `)
     .join('');
 }
 
@@ -218,13 +233,13 @@ async function loadDashboard() {
     document.getElementById('statParts').textContent  = s.counts.totalParts;
     document.getElementById('statVendors').textContent = s.counts.totalVendors;
     document.getElementById('statCredit').textContent = s.counts.pendingCreditInvoices;
-  } catch (e) { /* silent */ }
+  } catch (e) { console.warn("Dashboard summary failed", e); }
 
   try {
     const ls = await API.get('/parts/low-stock');
-    document.getElementById('lowBadge').textContent = ls.totalLowStockParts;
+    document.getElementById('lowBadge').textContent = ls.totalLowStockParts || 0;
     const body = document.getElementById('lowStockBody');
-    if (!ls.parts.length) {
+    if (!ls.parts?.length) {
       body.innerHTML = '<tr><td colspan="4" class="tbl-empty">All parts well stocked</td></tr>';
     } else {
       body.innerHTML = ls.parts.slice(0, 8).map(p => `
@@ -236,13 +251,13 @@ async function loadDashboard() {
         </tr>`).join('');
     }
   } catch (e) {
-    document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="tbl-empty">Failed to load</td></tr>';
+    document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="tbl-empty">Failed to load low stock</td></tr>';
   }
 
   try {
     const sales = await API.get('/sales');
     const body = document.getElementById('recentSalesBody');
-    if (!sales.length) {
+    if (!sales?.length) {
       body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No sales yet</td></tr>';
     } else {
       body.innerHTML = sales.slice(0, 10).map(s => `
@@ -256,7 +271,7 @@ async function loadDashboard() {
         </tr>`).join('');
     }
   } catch (e) {
-    document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load</td></tr>';
+    document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load recent sales</td></tr>';
   }
 }
 </script>

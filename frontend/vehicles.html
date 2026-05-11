@@ -7,38 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.cust-dropdown {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-top: 4px;
-  max-height: 180px;
-  overflow-y: auto;
-  display: none;
-}
-
-.cust-option {
-  padding: 10px 13px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.12s;
-}
-
+.cust-dropdown { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-top: 4px; max-height: 180px; overflow-y: auto; display: none; }
+.cust-option { padding: 10px 13px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.12s; }
 .cust-option:last-child { border-bottom: none; }
 .cust-option:hover { background: var(--bg); }
 .cust-option-name { font-weight: 600; font-size: 13.5px; color: var(--text); }
 .cust-option-sub  { font-size: 11.5px; color: var(--text-3); font-family: 'Space Mono', monospace; }
-
-.selected-cust {
-  display: none;
-  margin-top: 8px;
-  padding: 8px 12px;
-  background: var(--blue-dim);
-  border: 1px solid var(--blue);
-  border-radius: var(--radius);
-  font-size: 13px;
-  color: var(--blue);
-}
+.selected-cust { display: none; margin-top: 8px; padding: 8px 12px; background: var(--blue-dim); border: 1px solid var(--blue); border-radius: var(--radius); font-size: 13px; color: var(--blue); }
 </style>
 </head>
 <body>
@@ -73,16 +48,7 @@
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr>
-            <th>Vehicle #</th>
-            <th>Make / Model</th>
-            <th>Year</th>
-            <th>Color</th>
-            <th>Fuel</th>
-            <th>Owner</th>
-            <th>Registered</th>
-            <th>Actions</th>
-          </tr>
+          <tr><th>Vehicle #</th><th>Make / Model</th><th>Year</th><th>Color</th><th>Fuel</th><th>Owner</th><th>Registered</th><th>Actions</th></tr>
         </thead>
         <tbody id="vehBody">
           <tr><td colspan="8" class="tbl-empty">Loading vehicles...</td></tr>
@@ -101,39 +67,22 @@
     <form id="vehForm" onsubmit="saveVehicle(event)">
       <input type="hidden" id="vehId">
       <input type="hidden" id="vehCustomerId">
-
       <div class="form-group" id="custSearchGroup">
         <label class="form-label">Customer</label>
         <input class="input" id="custSearchInput" placeholder="Type name or email to search..." oninput="searchCustomer()">
         <div class="cust-dropdown" id="custDropdown"></div>
         <div class="selected-cust" id="selectedCust"></div>
       </div>
-
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Vehicle Number</label>
-          <input class="input" id="fVNum" required placeholder="BA 1 PA 2222">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Make</label>
-          <input class="input" id="fVMake" required placeholder="Toyota">
-        </div>
+        <div class="form-group"><label class="form-label">Vehicle Number</label><input class="input" id="fVNum" required placeholder="BA 1 PA 2222"></div>
+        <div class="form-group"><label class="form-label">Make</label><input class="input" id="fVMake" required placeholder="Toyota"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Model</label>
-          <input class="input" id="fVModel" required placeholder="Hilux">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Year</label>
-          <input class="input" id="fVYear" type="number" min="1980" max="2030" required placeholder="2021">
-        </div>
+        <div class="form-group"><label class="form-label">Model</label><input class="input" id="fVModel" required placeholder="Hilux"></div>
+        <div class="form-group"><label class="form-label">Year</label><input class="input" id="fVYear" type="number" min="1980" max="2030" required placeholder="2021"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Color</label>
-          <input class="input" id="fVColor" placeholder="White">
-        </div>
+        <div class="form-group"><label class="form-label">Color</label><input class="input" id="fVColor" placeholder="White"></div>
         <div class="form-group">
           <label class="form-label">Fuel Type</label>
           <select class="input select" id="fVFuel" required>
@@ -152,15 +101,19 @@
 
 <script src="auth.js"></script>
 <script>
+let allVehicles = [], allCustomers = [];
+
 const user = requireRole('Admin', 'Staff');
 if (user) { buildNav(); loadAll(); }
 
-let allVehicles = [], allCustomers = [];
-
 async function loadAll() {
+  const body = document.getElementById('vehBody');
   try {
+    // Load customers first
     allCustomers = await API.get('/customers');
-    const arrays = await Promise.all(
+
+    // Load each customer's vehicles in parallel, skip failures
+    const results = await Promise.allSettled(
       allCustomers.map(c =>
         API.get(`/customers/${c.id}/vehicles`).then(vs =>
           vs.map(v => ({
@@ -171,10 +124,15 @@ async function loadAll() {
         )
       )
     );
-    allVehicles = arrays.flat();
+
+    allVehicles = results
+      .filter(r => r.status === 'fulfilled')
+      .flatMap(r => r.value);
+
     renderVehicles(allVehicles);
   } catch (e) {
-    document.getElementById('vehBody').innerHTML = '<tr><td colspan="8" class="tbl-empty">Failed to load vehicles.</td></tr>';
+    console.error('loadAll error:', e);
+    body.innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
@@ -193,7 +151,7 @@ function renderVehicles(list) {
         <div class="text-strong" style="font-size:13px">${v.customerName}</div>
         <div class="muted">${v.customerEmail}</div>
       </td>
-      <td class="muted">${fmtDate(v.registeredAt)}</td>
+      <td class="muted">${v.registeredAt ? fmtDate(v.registeredAt) : '—'}</td>
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id},${v.customerId})">Edit</button>
@@ -211,8 +169,8 @@ function filterVehicles() {
     (!q || v.vehicleNumber.toLowerCase().includes(q) ||
            v.make.toLowerCase().includes(q) ||
            v.model.toLowerCase().includes(q) ||
-           v.customerName.toLowerCase().includes(q) ||
-           v.customerEmail.toLowerCase().includes(q))
+           (v.customerName  || '').toLowerCase().includes(q) ||
+           (v.customerEmail || '').toLowerCase().includes(q))
   ));
 }
 
@@ -248,7 +206,7 @@ function selectCustomer(id, name, email) {
 function editVehicle(id, customerId) {
   const v = allVehicles.find(x => x.id === id);
   if (!v) return;
-  document.getElementById('vehId').value       = id;
+  document.getElementById('vehId').value         = id;
   document.getElementById('vehCustomerId').value = customerId;
   document.getElementById('fVNum').value   = v.vehicleNumber;
   document.getElementById('fVMake').value  = v.make;
@@ -266,8 +224,8 @@ function resetVehForm() {
   document.getElementById('vehId').value         = '';
   document.getElementById('vehCustomerId').value = '';
   document.getElementById('vehForm').reset();
-  document.getElementById('custDropdown').style.display  = 'none';
-  document.getElementById('selectedCust').style.display  = 'none';
+  document.getElementById('custDropdown').style.display   = 'none';
+  document.getElementById('selectedCust').style.display   = 'none';
   document.getElementById('custSearchGroup').style.display = 'block';
   document.getElementById('vehModalTitle').textContent = 'Add Vehicle';
   document.getElementById('vehSubmitBtn').textContent  = 'Add Vehicle';
@@ -280,15 +238,15 @@ async function saveVehicle(e) {
   if (!id && !customerId) { notify('Please select a customer first.', 'error'); return; }
   const body = {
     vehicleNumber: document.getElementById('fVNum').value.trim(),
-    make:    document.getElementById('fVMake').value.trim(),
-    model:   document.getElementById('fVModel').value.trim(),
-    year:    parseInt(document.getElementById('fVYear').value),
-    color:   document.getElementById('fVColor').value.trim(),
+    make:     document.getElementById('fVMake').value.trim(),
+    model:    document.getElementById('fVModel').value.trim(),
+    year:     parseInt(document.getElementById('fVYear').value),
+    color:    document.getElementById('fVColor').value.trim(),
     fuelType: document.getElementById('fVFuel').value,
   };
   try {
     if (id) { await API.put(`/customers/${customerId}/vehicles/${id}`, body); notify('Vehicle updated!', 'success'); }
-    else    { await API.post(`/customers/${customerId}/vehicles`, body);       notify('Vehicle added!', 'success'); }
+    else    { await API.post(`/customers/${customerId}/vehicles`, body);       notify('Vehicle added!',   'success'); }
     closeModal('vehModal');
     resetVehForm();
     loadAll();

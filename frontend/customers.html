@@ -35,14 +35,7 @@
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Address</th>
-            <th>Registered</th>
-            <th>Actions</th>
-          </tr>
+          <tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Registered</th><th>Actions</th></tr>
         </thead>
         <tbody id="custsBody">
           <tr><td colspan="6" class="tbl-empty">Loading...</td></tr>
@@ -73,27 +66,12 @@
     <form id="custForm" onsubmit="saveCustomer(event)">
       <input type="hidden" id="custId">
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">First Name</label>
-          <input class="input" id="fFirst" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Last Name</label>
-          <input class="input" id="fLast" required>
-        </div>
+        <div class="form-group"><label class="form-label">First Name</label><input class="input" id="fFirst" required></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input class="input" id="fLast" required></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="input" id="fEmail" type="email" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone</label>
-        <input class="input" id="fPhone" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Address</label>
-        <input class="input" id="fAddress">
-      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="input" id="fEmail" type="email" required></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="input" id="fPhone" required></div>
+      <div class="form-group"><label class="form-label">Address</label><input class="input" id="fAddress"></div>
       <div id="pwdGroup" class="form-group">
         <label class="form-label">Password</label>
         <input class="input" id="fPassword" type="password" placeholder="Min 6 characters">
@@ -101,30 +79,15 @@
       <div id="vehicleSection" style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px">
         <div class="form-label" style="margin-bottom:12px;color:var(--text-2)">Vehicle (optional)</div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Vehicle Number</label>
-            <input class="input" id="fVNum" placeholder="e.g. BA1PA2222">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Make</label>
-            <input class="input" id="fVMake" placeholder="Toyota">
-          </div>
+          <div class="form-group"><label class="form-label">Vehicle Number</label><input class="input" id="fVNum" placeholder="e.g. BA1PA2222"></div>
+          <div class="form-group"><label class="form-label">Make</label><input class="input" id="fVMake" placeholder="Toyota"></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Model</label>
-            <input class="input" id="fVModel" placeholder="Hilux">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Year</label>
-            <input class="input" id="fVYear" type="number" placeholder="2021">
-          </div>
+          <div class="form-group"><label class="form-label">Model</label><input class="input" id="fVModel" placeholder="Hilux"></div>
+          <div class="form-group"><label class="form-label">Year</label><input class="input" id="fVYear" type="number" placeholder="2021"></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Color</label>
-            <input class="input" id="fVColor">
-          </div>
+          <div class="form-group"><label class="form-label">Color</label><input class="input" id="fVColor"></div>
           <div class="form-group">
             <label class="form-label">Fuel Type</label>
             <select class="input select" id="fVFuel">
@@ -144,17 +107,18 @@
 
 <script src="auth.js"></script>
 <script>
+let allCustomers = [];
+
 const user = requireRole('Admin', 'Staff');
 if (user) { buildNav(); loadCustomers(); }
-
-let allCustomers = [];
 
 async function loadCustomers() {
   try {
     allCustomers = await API.get('/customers');
     renderCustomers(allCustomers);
   } catch (e) {
-    document.getElementById('custsBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load.</td></tr>';
+    console.error('loadCustomers error:', e);
+    document.getElementById('custsBody').innerHTML = `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
@@ -206,38 +170,37 @@ async function viewCustomer(id) {
       </div>
       <div class="form-label" style="margin-bottom:10px">Vehicles (${d.vehicles.length})</div>
       ${d.vehicles.length ? `
-      <table class="tbl" style="margin-bottom:20px">
-        <thead><tr><th>Number</th><th>Make</th><th>Model</th><th>Year</th><th>Fuel</th></tr></thead>
-        <tbody>${d.vehicles.map(v => `<tr>
-          <td><code>${v.vehicleNumber}</code></td><td>${v.make}</td><td>${v.model}</td>
-          <td>${v.year}</td><td>${v.fuelType}</td>
-        </tr>`).join('')}</tbody>
-      </table>` : '<p class="muted" style="margin-bottom:20px">No vehicles registered</p>'}
+        <table class="tbl" style="margin-bottom:20px">
+          <thead><tr><th>Number</th><th>Make</th><th>Model</th><th>Year</th><th>Fuel</th></tr></thead>
+          <tbody>${d.vehicles.map(v => `<tr>
+            <td><code>${v.vehicleNumber}</code></td><td>${v.make}</td><td>${v.model}</td>
+            <td>${v.year}</td><td>${v.fuelType}</td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<p class="muted" style="margin-bottom:20px">No vehicles registered</p>'}
       <div class="form-label" style="margin-bottom:10px">Recent Purchases (${d.recentPurchases.length})</div>
       ${d.recentPurchases.length ? `
-      <table class="tbl">
-        <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-        <tbody>${d.recentPurchases.map(s => `<tr>
-          <td><code>${s.invoiceNumber}</code></td>
-          <td class="muted">${fmtDate(s.invoiceDate)}</td>
-          <td class="amount">NPR ${fmt(s.totalAmount)}</td>
-          <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
-        </tr>`).join('')}</tbody>
-      </table>` : '<p class="muted">No purchases yet</p>'}
-    `;
+        <table class="tbl">
+          <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>${d.recentPurchases.map(s => `<tr>
+            <td><code>${s.invoiceNumber}</code></td>
+            <td class="muted">${fmtDate(s.invoiceDate)}</td>
+            <td class="amount">NPR ${fmt(s.totalAmount)}</td>
+            <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<p class="muted">No purchases yet</p>'}`;
     openModal('detailModal');
-  } catch (e) { notify('Failed to load customer', 'error'); }
+  } catch (e) { notify(e.message, 'error'); }
 }
 
 function editCustomer(id) {
   const c = allCustomers.find(x => x.id === id);
   if (!c) return;
-  document.getElementById('custId').value = c.id;
-  document.getElementById('fFirst').value   = c.firstName;
-  document.getElementById('fLast').value    = c.lastName;
-  document.getElementById('fEmail').value   = c.email;
-  document.getElementById('fPhone').value   = c.phone;
-  document.getElementById('fAddress').value = c.address || '';
+  document.getElementById('custId').value    = c.id;
+  document.getElementById('fFirst').value    = c.firstName;
+  document.getElementById('fLast').value     = c.lastName;
+  document.getElementById('fEmail').value    = c.email;
+  document.getElementById('fPhone').value    = c.phone;
+  document.getElementById('fAddress').value  = c.address || '';
   document.getElementById('pwdGroup').style.display       = 'none';
   document.getElementById('vehicleSection').style.display = 'none';
   document.getElementById('custModalTitle').textContent   = 'Edit Customer';
@@ -274,11 +237,11 @@ async function saveCustomer(e) {
       if (vNum) {
         body.vehicle = {
           vehicleNumber: vNum,
-          make:      document.getElementById('fVMake').value,
-          model:     document.getElementById('fVModel').value,
-          year:      parseInt(document.getElementById('fVYear').value) || 0,
-          color:     document.getElementById('fVColor').value,
-          fuelType:  document.getElementById('fVFuel').value,
+          make:     document.getElementById('fVMake').value,
+          model:    document.getElementById('fVModel').value,
+          year:     parseInt(document.getElementById('fVYear').value) || 0,
+          color:    document.getElementById('fVColor').value,
+          fuelType: document.getElementById('fVFuel').value,
         };
       }
       await API.post('/customers/register', body);

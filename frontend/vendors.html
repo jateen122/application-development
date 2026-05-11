@@ -7,17 +7,100 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.vendors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
-.vendor-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; transition: border-color 0.2s, transform 0.2s; position: relative; overflow: hidden; }
-.vendor-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--blue); }
-.vendor-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
-.vendor-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 4px; color: var(--text); }
-.vendor-contact { font-size: 12px; color: var(--text-3); margin-bottom: 16px; font-family: 'Space Mono', monospace; }
-.vendor-info { display: flex; flex-direction: column; gap: 6px; margin-bottom: 20px; }
-.vendor-info-row { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--text-2); }
-.vendor-info-icon { color: var(--text-3); width: 16px; text-align: center; font-size: 12px; }
-.vendor-actions { display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 16px; }
-.vendor-since { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-3); margin-left: auto; }
+.vendors-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); 
+  gap: 16px; 
+}
+
+.vendor-card { 
+  background: var(--surface); 
+  border: 1px solid var(--border); 
+  border-radius: var(--radius-lg); 
+  padding: 24px; 
+  transition: border-color 0.2s, transform 0.2s; 
+  position: relative; 
+  overflow: hidden; 
+}
+
+.vendor-card::before { 
+  content: ''; 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  right: 0; 
+  height: 2px; 
+  background: var(--blue); 
+}
+
+.vendor-card:hover { 
+  border-color: var(--border-2); 
+  transform: translateY(-2px); 
+}
+
+/* Typography Improvements */
+.page-title {
+  font-size: 28px;
+  font-weight: 700;        /* Reduced - less fat */
+  margin: 0;
+}
+
+.vendor-name { 
+  font-family: 'Syne', sans-serif; 
+  font-weight: 700;        /* Reduced from 800 */
+  font-size: 20px; 
+  margin-bottom: 4px; 
+  color: var(--text); 
+}
+
+.vendor-contact { 
+  font-size: 13px; 
+  color: var(--text-3); 
+  margin-bottom: 16px; 
+  font-family: 'Space Mono', monospace; 
+}
+
+.vendor-info { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px; 
+  margin-bottom: 20px; 
+}
+
+.vendor-info-row { 
+  display: flex; 
+  gap: 8px; 
+  align-items: center; 
+  font-size: 13.5px; 
+  color: var(--text-2); 
+}
+
+.vendor-info-icon { 
+  color: var(--text-3); 
+  width: 16px; 
+  text-align: center; 
+  font-size: 13px; 
+}
+
+.vendor-actions { 
+  display: flex; 
+  gap: 8px; 
+  border-top: 1px solid var(--border); 
+  padding-top: 16px; 
+}
+
+.vendor-since { 
+  font-family: 'Space Mono', monospace; 
+  font-size: 10px; 
+  color: var(--text-3); 
+  margin-left: auto; 
+}
+
+/* Stats / General */
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+}
 </style>
 </head>
 <body>
@@ -41,7 +124,7 @@
   </div>
 
   <div class="vendors-grid" id="vendorsGrid">
-    <div class="tbl-empty" style="padding:48px;text-align:center">Loading vendors...</div>
+    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading vendors...</div>
   </div>
 </main>
 
@@ -85,17 +168,22 @@
 
 <script src="auth.js"></script>
 <script>
-const user = requireRole('Admin');
-if (user) { buildNav(); loadVendors(); }
-
 let allVendors = [];
 
+const user = requireRole('Admin');
+if (user) { 
+  buildNav(); 
+  loadVendors(); 
+}
+
 async function loadVendors() {
+  const grid = document.getElementById('vendorsGrid');
   try {
     allVendors = await API.get('/vendors');
     renderVendors();
   } catch (e) {
-    document.getElementById('vendorsGrid').innerHTML = '<div class="tbl-empty">Failed to load vendors</div>';
+    console.error('loadVendors error:', e);
+    grid.innerHTML = `<div style="padding:48px;text-align:center;color:var(--red)">${e.message}</div>`;
   }
 }
 
@@ -118,7 +206,7 @@ function renderVendors() {
         <button class="btn btn-outline btn-sm" onclick="viewInvoices(${v.id},'${v.name}')">Invoices</button>
         <button class="btn btn-outline btn-sm" onclick="editVendor(${v.id})">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteVendor(${v.id},'${v.name}')">Delete</button>
-        <span class="vendor-since">Since ${fmtDate(v.createdAt)}</span>
+        <span class="vendor-since">Since ${v.createdAt ? fmtDate(v.createdAt) : '—'}</span>
       </div>
     </div>`).join('');
 }
@@ -126,62 +214,82 @@ function renderVendors() {
 function editVendor(id) {
   const v = allVendors.find(x => x.id === id);
   if (!v) return;
-  document.getElementById('vendorId').value = v.id;
-  document.getElementById('fVName').value = v.name;
-  document.getElementById('fVContact').value = v.contactPerson;
-  document.getElementById('fVEmail').value = v.email;
-  document.getElementById('fVPhone').value = v.phone;
-  document.getElementById('fVAddress').value = v.address || '';
-  document.getElementById('vendorModalTitle').textContent = 'Edit Vendor';
-  document.getElementById('vendorSubmitBtn').textContent = 'Update';
+  document.getElementById('vendorId').value    = v.id;
+  document.getElementById('fVName').value      = v.name;
+  document.getElementById('fVContact').value   = v.contactPerson;
+  document.getElementById('fVEmail').value     = v.email;
+  document.getElementById('fVPhone').value     = v.phone;
+  document.getElementById('fVAddress').value   = v.address || '';
+  document.getElementById('vendorModalTitle').textContent  = 'Edit Vendor';
+  document.getElementById('vendorSubmitBtn').textContent   = 'Update';
   openModal('vendorModal');
 }
 
 async function viewInvoices(id, name) {
   try {
     const invs = await API.get(`/vendors/${id}/invoices`);
-    if (!invs.length) { notify(`No invoices for ${name}`, 'info'); return; }
+    if (!invs.length) { 
+      notify(`No invoices for ${name}`, 'info'); 
+      return; 
+    }
     alert(`${name} — ${invs.length} invoice(s)\n` + invs.map(i => `${i.invoiceNumber} | NPR ${fmt(i.totalAmount)} | ${i.status}`).join('\n'));
-  } catch (e) { notify('Failed to load invoices', 'error'); }
+  } catch (e) { 
+    notify(e.message, 'error'); 
+  }
 }
 
 function resetVendorForm() {
   document.getElementById('vendorId').value = '';
   document.getElementById('vendorForm').reset();
   document.getElementById('vendorModalTitle').textContent = 'Add Vendor';
-  document.getElementById('vendorSubmitBtn').textContent = 'Add Vendor';
+  document.getElementById('vendorSubmitBtn').textContent  = 'Add Vendor';
 }
 
 async function saveVendor(e) {
   e.preventDefault();
-  const id = document.getElementById('vendorId').value;
+  const id   = document.getElementById('vendorId').value;
   const body = {
-    name: document.getElementById('fVName').value,
+    name:          document.getElementById('fVName').value,
     contactPerson: document.getElementById('fVContact').value,
-    email: document.getElementById('fVEmail').value,
-    phone: document.getElementById('fVPhone').value,
-    address: document.getElementById('fVAddress').value,
+    email:         document.getElementById('fVEmail').value,
+    phone:         document.getElementById('fVPhone').value,
+    address:       document.getElementById('fVAddress').value,
   };
   try {
-    if (id) { await API.put(`/vendors/${id}`, body); notify('Vendor updated', 'success'); }
-    else { await API.post('/vendors', body); notify('Vendor added', 'success'); }
+    if (id) { 
+      await API.put(`/vendors/${id}`, body);  
+      notify('Vendor updated', 'success'); 
+    }
+    else { 
+      await API.post('/vendors', body);         
+      notify('Vendor added',   'success'); 
+    }
     closeModal('vendorModal');
     resetVendorForm();
     loadVendors();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) { 
+    notify(err.message, 'error'); 
+  }
 }
 
 async function deleteVendor(id, name) {
-  if (!confirm(`Delete vendor "${name}"? Cannot delete if purchase invoices exist.`)) return;
+  if (!confirm(`Delete vendor "${name}"?`)) return;
   try {
     await API.del(`/vendors/${id}`);
     notify('Vendor deleted', 'success');
     loadVendors();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) { 
+    notify(err.message, 'error'); 
+  }
 }
 
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetVendorForm(); } });
+  m.addEventListener('click', e => { 
+    if (e.target === m) { 
+      closeModal(m.id); 
+      resetVendorForm(); 
+    } 
+  });
 });
 </script>
 </body>

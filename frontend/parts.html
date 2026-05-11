@@ -44,14 +44,8 @@
       <table class="tbl">
         <thead>
           <tr>
-            <th>Part #</th>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Cost</th>
-            <th>Selling</th>
-            <th>Stock</th>
-            <th>Updated</th>
-            <th>Actions</th>
+            <th>Part #</th><th>Name</th><th>Category</th><th>Cost</th>
+            <th>Selling</th><th>Stock</th><th>Updated</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="partsBody">
@@ -71,37 +65,16 @@
     <form id="partForm" onsubmit="savePart(event)">
       <input type="hidden" id="partId">
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Part Name</label>
-          <input class="input" id="fName" required placeholder="e.g. Brake Pad">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Part Number</label>
-          <input class="input" id="fNum" required placeholder="e.g. BP-001">
-        </div>
+        <div class="form-group"><label class="form-label">Part Name</label><input class="input" id="fName" required placeholder="e.g. Brake Pad"></div>
+        <div class="form-group"><label class="form-label">Part Number</label><input class="input" id="fNum" required placeholder="e.g. BP-001"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <input class="input" id="fCat" required placeholder="e.g. Brakes">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea class="input textarea" id="fDesc" placeholder="Brief description..."></textarea>
-      </div>
+      <div class="form-group"><label class="form-label">Category</label><input class="input" id="fCat" required placeholder="e.g. Brakes"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="input textarea" id="fDesc" placeholder="Brief description..."></textarea></div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Cost Price (NPR)</label>
-          <input class="input" id="fCost" type="number" step="0.01" min="0" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Selling Price (NPR)</label>
-          <input class="input" id="fSell" type="number" step="0.01" min="0" required>
-        </div>
+        <div class="form-group"><label class="form-label">Cost Price (NPR)</label><input class="input" id="fCost" type="number" step="0.01" min="0" required></div>
+        <div class="form-group"><label class="form-label">Selling Price (NPR)</label><input class="input" id="fSell" type="number" step="0.01" min="0" required></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Stock Quantity</label>
-        <input class="input" id="fStock" type="number" min="0" value="0">
-      </div>
+      <div class="form-group"><label class="form-label">Stock Quantity</label><input class="input" id="fStock" type="number" min="0" value="0"></div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeModal('partModal');resetForm()">Cancel</button>
         <button type="submit" class="btn btn-primary" id="partSubmitBtn">Add Part</button>
@@ -112,10 +85,10 @@
 
 <script src="auth.js"></script>
 <script>
+let allParts = [];
+
 const user = requireRole('Admin');
 if (user) { buildNav(); loadParts(); }
-
-let allParts = [];
 
 async function loadParts() {
   try {
@@ -123,7 +96,8 @@ async function loadParts() {
     renderParts(allParts);
     loadCategories();
   } catch (e) {
-    document.getElementById('partsBody').innerHTML = '<tr><td colspan="8" class="tbl-empty">Failed to load parts.</td></tr>';
+    console.error('loadParts error:', e);
+    document.getElementById('partsBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
@@ -150,15 +124,15 @@ function renderParts(parts) {
 }
 
 function stockCell(qty) {
-  if (qty === 0)  return `<span class="qty-danger">0</span>`;
-  if (qty < 10)   return `<span class="qty-warn">${qty}</span>`;
+  if (qty === 0) return `<span class="qty-danger">0</span>`;
+  if (qty < 10)  return `<span class="qty-warn">${qty}</span>`;
   return `<span class="qty-ok">${qty}</span>`;
 }
 
 async function loadCategories() {
   try {
     const cats = await API.get('/parts/categories');
-    const sel = document.getElementById('categoryFilter');
+    const sel  = document.getElementById('categoryFilter');
     cats.forEach(c => {
       const o = document.createElement('option');
       o.value = c; o.textContent = c;
@@ -187,21 +161,21 @@ function editPart(id) {
   document.getElementById('fCost').value   = p.costPrice;
   document.getElementById('fSell').value   = p.sellingPrice;
   document.getElementById('fStock').value  = p.stockQty;
-  document.getElementById('partModalTitle').textContent   = 'Edit Part';
-  document.getElementById('partSubmitBtn').textContent    = 'Update Part';
+  document.getElementById('partModalTitle').textContent = 'Edit Part';
+  document.getElementById('partSubmitBtn').textContent  = 'Update Part';
   openModal('partModal');
 }
 
 function resetForm() {
   document.getElementById('partId').value = '';
   document.getElementById('partForm').reset();
-  document.getElementById('partModalTitle').textContent  = 'Add Part';
-  document.getElementById('partSubmitBtn').textContent   = 'Add Part';
+  document.getElementById('partModalTitle').textContent = 'Add Part';
+  document.getElementById('partSubmitBtn').textContent  = 'Add Part';
 }
 
 async function savePart(e) {
   e.preventDefault();
-  const id = document.getElementById('partId').value;
+  const id   = document.getElementById('partId').value;
   const body = {
     name:         document.getElementById('fName').value,
     partNumber:   document.getElementById('fNum').value,
@@ -213,7 +187,7 @@ async function savePart(e) {
   };
   try {
     if (id) { await API.put(`/parts/${id}`, body); notify('Part updated!', 'success'); }
-    else    { await API.post('/parts', body);       notify('Part added!', 'success'); }
+    else    { await API.post('/parts', body);       notify('Part added!',   'success'); }
     closeModal('partModal');
     resetForm();
     loadParts();
