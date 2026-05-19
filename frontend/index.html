@@ -13,63 +13,23 @@
   gap: 16px;
   margin-top: 16px;
 }
-
-.quick-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
+.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .action-btn {
-  display: flex;
-  align-items: center;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  color: var(--text-2);
-  text-decoration: none;
-  font-size: 14.2px;
-  font-weight: 500;
-  transition: all 0.15s;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 13px 15px;
+  color: var(--text-2); text-decoration: none;
+  font-size: 13.5px; font-weight: 500; transition: all 0.15s;
 }
-
-.action-btn:hover {
-  border-color: var(--blue);
-  color: var(--blue);
-  background: var(--blue-dim);
-}
-
-/* Text Improvements */
-.page-title {
-  font-size: 28px;
-  font-weight: 700;     /* Reduced from 800+ */
-  margin: 0;
-}
-
-.stat-value {
-  font-size: 27px;
-  font-weight: 700;
-  line-height: 1.05;
-}
-
-.stat-label {
-  font-size: 13.8px;
-  font-weight: 500;
-}
-
-.card-title {
-  font-size: 16.5px;
-  font-weight: 600;
-}
-
-@media (max-width: 900px) { 
-  .dash-grid { grid-template-columns: 1fr; } 
-}
+.action-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+.action-icon { font-size: 17px; }
+.qty-warn   { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
+.qty-danger { color: var(--red);   font-weight: 600; font-family: 'Space Mono', monospace; }
+.loyalty-tag { font-family:'Space Mono',monospace;font-size:10px;background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:20px; }
+@media(max-width:900px){ .dash-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
@@ -88,7 +48,7 @@
     <span class="muted" id="todayDate"></span>
   </div>
 
-  <div class="stats-row" id="statsRow">
+  <div class="stats-row">
     <div class="stat stat--blue">
       <div class="stat-label">Today's Revenue</div>
       <div class="stat-value" id="statToday">—</div>
@@ -135,11 +95,10 @@
   </div>
 
   <div class="dash-grid">
-    <div class="card" id="quickActionsCard">
+    <div class="card">
       <div class="card-title">Quick Actions</div>
       <div class="quick-actions" id="quickActions"></div>
     </div>
-
     <div class="card">
       <div class="card-hd">
         <span class="card-title">Low Stock Alert</span>
@@ -147,17 +106,8 @@
       </div>
       <div class="table-wrap">
         <table class="tbl">
-          <thead>
-            <tr>
-              <th>Part Name</th>
-              <th>Part #</th>
-              <th>Category</th>
-              <th>Qty</th>
-            </tr>
-          </thead>
-          <tbody id="lowStockBody">
-            <tr><td colspan="4" class="tbl-empty">Loading...</td></tr>
-          </tbody>
+          <thead><tr><th>Part Name</th><th>Part #</th><th>Category</th><th>Qty</th></tr></thead>
+          <tbody id="lowStockBody"><tr><td colspan="4" class="tbl-empty">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -171,18 +121,9 @@
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Date</th>
-            <th>Total</th>
-            <th>Payment</th>
-            <th>Status</th>
-            <th>Loyalty</th>
-          </tr>
+          <tr><th>Invoice #</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Loyalty</th></tr>
         </thead>
-        <tbody id="recentSalesBody">
-          <tr><td colspan="6" class="tbl-empty">Loading...</td></tr>
-        </tbody>
+        <tbody id="recentSalesBody"><tr><td colspan="6" class="tbl-empty">Loading...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -193,9 +134,8 @@
 const user = requireRole('Admin', 'Staff');
 if (user) {
   buildNav();
-  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-  });
+  document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-US',
+    { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   initQuickActions();
   loadDashboard();
 }
@@ -203,75 +143,67 @@ if (user) {
 function initQuickActions() {
   const isAdmin = user.role === 'Admin';
   const actions = [
-    { href: 'sales.html',     label: 'New Sale' },
-    { href: 'customers.html', label: 'Add Customer' },
-    { href: 'vehicles.html',  label: 'Add Vehicle' },
-    { href: 'purchases.html', label: 'New Purchase' },
-    { href: 'parts.html',     label: 'Add Part' },
-    { href: 'vendors.html',   label: 'Add Vendor' },
+    { href:'sales.html',            label:'New Sale',        icon:'&#128203;', always:true  },
+    { href:'customers.html',        label:'Add Customer',    icon:'&#128100;', always:true  },
+    { href:'vehicles.html',         label:'Add Vehicle',     icon:'&#128664;', always:true  },
+    { href:'service-requests.html', label:'Services',        icon:'&#128295;', always:true  },
+    { href:'purchases.html',        label:'New Purchase',    icon:'&#128230;', always:false },
+    { href:'parts.html',            label:'Add Part',        icon:'&#128297;', always:false },
+    { href:'vendors.html',          label:'Add Vendor',      icon:'&#127981;', always:false },
+    { href:'reports.html',          label:'Reports',         icon:'&#128202;', always:false },
   ];
-
-  const qa = document.getElementById('quickActions');
-  qa.innerHTML = actions
+  document.getElementById('quickActions').innerHTML = actions
     .filter(a => a.always || isAdmin)
-    .map(a => `
-      <a href="${a.href}" class="action-btn">
-        ${a.label}
-      </a>
-    `)
+    .map(a => `<a href="${a.href}" class="action-btn"><span class="action-icon">${a.icon}</span>${a.label}</a>`)
     .join('');
 }
 
 async function loadDashboard() {
   try {
     const s = await API.get('/reports/summary');
-    document.getElementById('statToday').textContent  = fmt(s.revenue.today);
-    document.getElementById('statMonth').textContent  = fmt(s.revenue.thisMonth);
-    document.getElementById('statYear').textContent   = fmt(s.revenue.thisYear);
-    document.getElementById('statLow').textContent    = s.counts.lowStockParts;
-    document.getElementById('statCust').textContent   = s.counts.totalCustomers;
-    document.getElementById('statParts').textContent  = s.counts.totalParts;
+    document.getElementById('statToday').textContent   = fmt(s.revenue.today);
+    document.getElementById('statMonth').textContent   = fmt(s.revenue.thisMonth);
+    document.getElementById('statYear').textContent    = fmt(s.revenue.thisYear);
+    document.getElementById('statLow').textContent     = s.counts.lowStockParts;
+    document.getElementById('statCust').textContent    = s.counts.totalCustomers;
+    document.getElementById('statParts').textContent   = s.counts.totalParts;
     document.getElementById('statVendors').textContent = s.counts.totalVendors;
-    document.getElementById('statCredit').textContent = s.counts.pendingCreditInvoices;
-  } catch (e) { console.warn("Dashboard summary failed", e); }
+    document.getElementById('statCredit').textContent  = s.counts.pendingCreditInvoices;
+  } catch(e) {}
 
   try {
     const ls = await API.get('/parts/low-stock');
-    document.getElementById('lowBadge').textContent = ls.totalLowStockParts || 0;
+    document.getElementById('lowBadge').textContent = ls.totalLowStockParts;
     const body = document.getElementById('lowStockBody');
-    if (!ls.parts?.length) {
-      body.innerHTML = '<tr><td colspan="4" class="tbl-empty">All parts well stocked</td></tr>';
-    } else {
-      body.innerHTML = ls.parts.slice(0, 8).map(p => `
-        <tr>
+    body.innerHTML = ls.parts.length
+      ? ls.parts.slice(0,8).map(p => `<tr>
           <td class="text-strong">${p.name}</td>
           <td><code>${p.partNumber}</code></td>
           <td>${p.category}</td>
-          <td>${p.stockQty <= 3 ? `<span class="qty-danger">${p.stockQty}</span>` : `<span class="qty-warn">${p.stockQty}</span>`}</td>
-        </tr>`).join('');
-    }
-  } catch (e) {
-    document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="tbl-empty">Failed to load low stock</td></tr>';
+          <td>${p.stockQty <= 3
+            ? `<span class="qty-danger">${p.stockQty}</span>`
+            : `<span class="qty-warn">${p.stockQty}</span>`}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" class="tbl-empty">All parts well stocked ✓</td></tr>';
+  } catch(e) {
+    document.getElementById('lowStockBody').innerHTML = '<tr><td colspan="4" class="tbl-empty">Failed to load</td></tr>';
   }
 
   try {
     const sales = await API.get('/sales');
     const body = document.getElementById('recentSalesBody');
-    if (!sales?.length) {
-      body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No sales yet</td></tr>';
-    } else {
-      body.innerHTML = sales.slice(0, 10).map(s => `
-        <tr>
+    body.innerHTML = sales.length
+      ? sales.slice(0,10).map(s => `<tr>
           <td><code>${s.invoiceNumber}</code></td>
           <td class="muted">${fmtDate(s.invoiceDate)}</td>
           <td class="amount">NPR ${fmt(s.totalAmount)}</td>
           <td class="muted">${s.paymentMethod}</td>
           <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
           <td>${s.loyaltyDiscountApplied ? '<span class="loyalty-tag">10% off</span>' : '—'}</td>
-        </tr>`).join('');
-    }
-  } catch (e) {
-    document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load recent sales</td></tr>';
+        </tr>`).join('')
+      : '<tr><td colspan="6" class="tbl-empty">No sales yet</td></tr>';
+  } catch(e) {
+    document.getElementById('recentSalesBody').innerHTML = '<tr><td colspan="6" class="tbl-empty">Failed to load</td></tr>';
   }
 }
 </script>

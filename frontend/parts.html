@@ -7,13 +7,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.qty-warn   { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
-.qty-danger { color: var(--red);   font-weight: 600; font-family: 'Space Mono', monospace; }
-.qty-ok     { color: var(--green); font-family: 'Space Mono', monospace; }
+.qty-warn   { color:var(--amber); font-weight:600; font-family:'Space Mono',monospace; }
+.qty-danger { color:var(--red);   font-weight:600; font-family:'Space Mono',monospace; }
+.qty-ok     { color:var(--green); font-family:'Space Mono',monospace; }
 </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
@@ -34,7 +33,7 @@
 
   <div class="card">
     <div class="controls">
-      <input class="search-input" id="searchInput" placeholder="Search by name or part number..." oninput="filterParts()">
+      <input class="search-input" id="searchInput" placeholder="Search by name or part number…" oninput="filterParts()">
       <select class="select-filter" id="categoryFilter" onchange="filterParts()">
         <option value="">All Categories</option>
       </select>
@@ -43,19 +42,15 @@
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr>
-            <th>Part #</th><th>Name</th><th>Category</th><th>Cost</th>
-            <th>Selling</th><th>Stock</th><th>Updated</th><th>Actions</th>
-          </tr>
+          <tr><th>Part #</th><th>Name</th><th>Category</th><th>Cost</th><th>Selling</th><th>Stock</th><th>Updated</th><th>Actions</th></tr>
         </thead>
-        <tbody id="partsBody">
-          <tr><td colspan="8" class="tbl-empty">Loading parts...</td></tr>
-        </tbody>
+        <tbody id="partsBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<!-- ADD / EDIT MODAL -->
 <div class="modal-overlay" id="partModal">
   <div class="modal">
     <div class="modal-hd">
@@ -65,16 +60,18 @@
     <form id="partForm" onsubmit="savePart(event)">
       <input type="hidden" id="partId">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Part Name</label><input class="input" id="fName" required placeholder="e.g. Brake Pad"></div>
-        <div class="form-group"><label class="form-label">Part Number</label><input class="input" id="fNum" required placeholder="e.g. BP-001"></div>
+        <div class="form-group"><label class="form-label">Part Name *</label><input class="input" id="fName" required placeholder="e.g. Brake Pad"></div>
+        <div class="form-group"><label class="form-label">Part Number *</label><input class="input" id="fNum" required placeholder="e.g. BP-001"></div>
       </div>
-      <div class="form-group"><label class="form-label">Category</label><input class="input" id="fCat" required placeholder="e.g. Brakes"></div>
-      <div class="form-group"><label class="form-label">Description</label><textarea class="input textarea" id="fDesc" placeholder="Brief description..."></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Cost Price (NPR)</label><input class="input" id="fCost" type="number" step="0.01" min="0" required></div>
-        <div class="form-group"><label class="form-label">Selling Price (NPR)</label><input class="input" id="fSell" type="number" step="0.01" min="0" required></div>
+        <div class="form-group"><label class="form-label">Category *</label><input class="input" id="fCat" required placeholder="e.g. Brakes"></div>
+        <div class="form-group"><label class="form-label">Stock Quantity</label><input class="input" id="fStock" type="number" min="0" value="0"></div>
       </div>
-      <div class="form-group"><label class="form-label">Stock Quantity</label><input class="input" id="fStock" type="number" min="0" value="0"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="input textarea" id="fDesc" placeholder="Brief description…"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Cost Price (NPR) *</label><input class="input" id="fCost" type="number" step="0.01" min="0" required></div>
+        <div class="form-group"><label class="form-label">Selling Price (NPR) *</label><input class="input" id="fSell" type="number" step="0.01" min="0" required></div>
+      </div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeModal('partModal');resetForm()">Cancel</button>
         <button type="submit" class="btn btn-primary" id="partSubmitBtn">Add Part</button>
@@ -85,26 +82,31 @@
 
 <script src="auth.js"></script>
 <script>
+// ── declare all variables FIRST ────────────────────────────
 let allParts = [];
 
 const user = requireRole('Admin');
 if (user) { buildNav(); loadParts(); }
 
+// ── functions ──────────────────────────────────────────────
 async function loadParts() {
   try {
     allParts = await API.get('/parts');
     renderParts(allParts);
     loadCategories();
-  } catch (e) {
-    console.error('loadParts error:', e);
-    document.getElementById('partsBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  } catch(e) {
+    document.getElementById('partsBody').innerHTML =
+      `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
 function renderParts(parts) {
   document.getElementById('partCount').textContent = parts.length;
   const body = document.getElementById('partsBody');
-  if (!parts.length) { body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No parts found</td></tr>'; return; }
+  if (!parts.length) {
+    body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No parts found</td></tr>';
+    return;
+  }
   body.innerHTML = parts.map(p => `
     <tr>
       <td><code>${p.partNumber}</code></td>
@@ -133,12 +135,14 @@ async function loadCategories() {
   try {
     const cats = await API.get('/parts/categories');
     const sel  = document.getElementById('categoryFilter');
+    // remove old options except first
+    while (sel.options.length > 1) sel.remove(1);
     cats.forEach(c => {
       const o = document.createElement('option');
       o.value = c; o.textContent = c;
       sel.appendChild(o);
     });
-  } catch (_) {}
+  } catch(_) {}
 }
 
 function filterParts() {
@@ -183,15 +187,13 @@ async function savePart(e) {
     description:  document.getElementById('fDesc').value,
     costPrice:    parseFloat(document.getElementById('fCost').value),
     sellingPrice: parseFloat(document.getElementById('fSell').value),
-    stockQty:     parseInt(document.getElementById('fStock').value) || 0
+    stockQty:     parseInt(document.getElementById('fStock').value) || 0,
   };
   try {
     if (id) { await API.put(`/parts/${id}`, body); notify('Part updated!', 'success'); }
     else    { await API.post('/parts', body);       notify('Part added!',   'success'); }
-    closeModal('partModal');
-    resetForm();
-    loadParts();
-  } catch (err) { notify(err.message, 'error'); }
+    closeModal('partModal'); resetForm(); loadParts();
+  } catch(err) { notify(err.message, 'error'); }
 }
 
 async function deletePart(id, name) {
@@ -200,12 +202,12 @@ async function deletePart(id, name) {
     await API.del(`/parts/${id}`);
     notify('Part deleted', 'success');
     loadParts();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch(err) { notify(err.message, 'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } });
-});
+document.querySelectorAll('.modal-overlay').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } })
+);
 </script>
 </body>
 </html>

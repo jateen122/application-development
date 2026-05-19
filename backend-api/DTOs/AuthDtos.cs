@@ -1,6 +1,6 @@
 namespace VehiclePartsAPI.DTOs;
 
-// ── Request ──────────────────────────────────────────────────
+// Request 
 
 public class LoginDto
 {
@@ -14,7 +14,6 @@ public class LoginDto
     public string Role { get; set; } = string.Empty;
 }
 
-// ── Response ─────────────────────────────────────────────────
 
 public class LoginResponseDto
 {

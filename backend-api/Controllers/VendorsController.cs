@@ -54,7 +54,7 @@ public class VendorsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateVendorDto dto)
     {
-        // Prevent duplicate email
+
         var emailExists = await _context.Vendors.AnyAsync(v => v.Email == dto.Email);
         if (emailExists)
             return Conflict(new { message = "A vendor with this email already exists." });
@@ -145,7 +145,6 @@ public class VendorsController : ControllerBase
         return Ok(invoices);
     }
 
-    // ── Helpers ───────────────────────────────────────────────
     private static VendorDto MapToDto(Vendor v) => new()
     {
         Id = v.Id,

@@ -26,7 +26,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(dto.Email) || string.IsNullOrWhiteSpace(dto.Password))
             return BadRequest(new { message = "Email and password are required." });
 
-        // ── Staff / Admin login ─────────────────────────────
+        // Staff / Admin login 
         if (dto.Role == "Admin" || dto.Role == "Staff")
         {
             var staff = await _context.Staff
@@ -55,7 +55,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        // ── Customer login ───────────────────────────────────
+        //Customer login 
         if (dto.Role == "Customer")
         {
             var customer = await _context.Customers

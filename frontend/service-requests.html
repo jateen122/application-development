@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Service Requests</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="styles.css">
+<style>
+.svc-tabs{display:flex;gap:6px;margin-bottom:24px;background:var(--surface-2);padding:6px;border-radius:var(--radius-lg);border:1px solid var(--border)}
+.svctab{flex:1;padding:9px;border:none;background:none;color:var(--text-3);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
+.svctab.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,0.10)}
+.review-stars{color:#f59e0b;font-size:15px}
+</style>
+</head>
+<body>
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
+</nav>
+
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Customer Services</div>
+      <h1 class="page-title">Service Requests</h1>
+    </div>
+  </div>
+
+  <div class="svc-tabs">
+    <button class="svctab active" onclick="switchTab('appointments',this)">📅 Appointments</button>
+    <button class="svctab" onclick="switchTab('parts',this)">🔧 Part Requests</button>
+    <button class="svctab" onclick="switchTab('reviews',this)">⭐ Reviews</button>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="tab-appointments">
+    <div class="card">
+      <div class="controls">
+        <select class="select-filter" id="apptStatusFilter" onchange="filterAppts()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Confirmed</option><option>Completed</option><option>Cancelled</option>
+        </select>
+        <span class="muted" style="margin-left:auto"><span id="apptCount">—</span> appointments</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Customer</th><th>Service</th><th>Date & Time</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="apptBody"><tr><td colspan="6" class="tbl-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART REQUESTS -->
+  <div id="tab-parts" style="display:none">
+    <div class="card">
+      <div class="controls">
+        <select class="select-filter" id="reqStatusFilter" onchange="filterReqs()">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Fulfilled</option><option>Rejected</option>
+        </select>
+        <span class="muted" style="margin-left:auto"><span id="reqCount">—</span> requests</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Customer</th><th>Part Name</th><th>Part #</th><th>Qty</th><th>Notes</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="reqBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div id="tab-reviews" style="display:none">
+    <div class="card">
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="reviewBody"><tr><td colspan="5" class="tbl-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="auth.js"></script>
+<script>
+// ── declare all variables FIRST ────────────────────────────
+let allAppts = [];
+let allReqs  = [];
+
+const user = requireRole('Admin', 'Staff');
+if (user) { buildNav(); loadAppointments(); }
+
+// ── Tab switching ──────────────────────────────────────────
+function switchTab(tab, el) {
+  ['appointments','parts','reviews'].forEach(t =>
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none'
+  );
+  document.querySelectorAll('.svctab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if (tab === 'appointments') loadAppointments();
+  if (tab === 'parts')        loadPartRequests();
+  if (tab === 'reviews')      loadReviews();
+}
+
+// ── Appointments ───────────────────────────────────────────
+async function loadAppointments() {
+  try {
+    allAppts = await API.get('/appointments');
+    renderAppts(allAppts);
+  } catch(e) {
+    document.getElementById('apptBody').innerHTML =
+      `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+function renderAppts(list) {
+  document.getElementById('apptCount').textContent = list.length;
+  const body = document.getElementById('apptBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No appointments yet</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(a => `
+    <tr>
+      <td>
+        <a href="customer-detail.html?id=${a.customerId}" class="link">${a.customerName}</a>
+        <div class="muted" style="font-size:11px">${a.customerPhone}</div>
+      </td>
+      <td class="text-strong">${a.serviceType}</td>
+      <td class="muted">${fmtDateTime(a.appointmentDate)}</td>
+      <td class="muted" style="max-width:160px;white-space:normal;font-size:12px">${a.notes || '—'}</td>
+      <td><span class="status status-${a.status.toLowerCase()}">${a.status}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${a.status === 'Pending'   ? `<button class="btn btn-outline btn-sm" onclick="setApptStatus(${a.id},'Confirmed')">Confirm</button>` : ''}
+          ${a.status === 'Confirmed' ? `<button class="btn btn-primary btn-sm" onclick="setApptStatus(${a.id},'Completed')">Complete</button>` : ''}
+          ${a.status !== 'Cancelled' && a.status !== 'Completed'
+            ? `<button class="btn btn-danger btn-sm" onclick="setApptStatus(${a.id},'Cancelled')">Cancel</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterAppts() {
+  const s = document.getElementById('apptStatusFilter').value;
+  renderAppts(s ? allAppts.filter(a => a.status === s) : allAppts);
+}
+
+async function setApptStatus(id, status) {
+  try {
+    await API.patch(`/appointments/${id}/status`, { status });
+    notify(`Appointment ${status.toLowerCase()}`, 'success');
+    loadAppointments();
+  } catch(err) { notify(err.message, 'error'); }
+}
+
+// ── Part Requests ──────────────────────────────────────────
+async function loadPartRequests() {
+  try {
+    allReqs = await API.get('/part-requests');
+    renderReqs(allReqs);
+  } catch(e) {
+    document.getElementById('reqBody').innerHTML =
+      `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+function renderReqs(list) {
+  document.getElementById('reqCount').textContent = list.length;
+  const body = document.getElementById('reqBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No part requests</td></tr>';
+    return;
+  }
+  body.innerHTML = list.map(r => `
+    <tr>
+      <td><a href="customer-detail.html?id=${r.customerId}" class="link">${r.customerName}</a></td>
+      <td class="text-strong">${r.partName}</td>
+      <td><code>${r.partNumber || '—'}</code></td>
+      <td class="mono">${r.quantity}</td>
+      <td class="muted" style="max-width:140px;white-space:normal;font-size:12px">${r.notes || '—'}</td>
+      <td class="muted">${fmtDate(r.createdAt)}</td>
+      <td><span class="status status-${r.status.toLowerCase()}">${r.status}</span></td>
+      <td>
+        ${r.status === 'Pending' ? `
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="setReqStatus(${r.id},'Fulfilled')">Fulfill</button>
+            <button class="btn btn-danger btn-sm" onclick="setReqStatus(${r.id},'Rejected')">Reject</button>
+          </div>` : '—'}
+      </td>
+    </tr>`).join('');
+}
+
+function filterReqs() {
+  const s = document.getElementById('reqStatusFilter').value;
+  renderReqs(s ? allReqs.filter(r => r.status === s) : allReqs);
+}
+
+async function setReqStatus(id, status) {
+  try {
+    await API.patch(`/part-requests/${id}/status`, { status });
+    notify(`Request ${status.toLowerCase()}`, 'success');
+    loadPartRequests();
+  } catch(err) { notify(err.message, 'error'); }
+}
+
+// ── Reviews ────────────────────────────────────────────────
+async function loadReviews() {
+  try {
+    const reviews = await API.get('/reviews');
+    const body    = document.getElementById('reviewBody');
+    if (!reviews.length) {
+      body.innerHTML = '<tr><td colspan="5" class="tbl-empty">No reviews yet</td></tr>';
+      return;
+    }
+    body.innerHTML = reviews.map(r => `
+      <tr>
+        <td><a href="customer-detail.html?id=${r.customerId}" class="link">${r.customerName}</a></td>
+        <td><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></td>
+        <td style="max-width:300px;white-space:normal;color:var(--text-2);font-size:13px">${r.comment}</td>
+        <td class="muted">${fmtDate(r.createdAt)}</td>
+        <td>${user.role === 'Admin'
+          ? `<button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id})">Delete</button>` : '—'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    document.getElementById('reviewBody').innerHTML =
+      `<tr><td colspan="5" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  }
+}
+
+async function deleteReview(id) {
+  if (!confirm('Delete this review?')) return;
+  try {
+    await API.del(`/reviews/${id}`);
+    notify('Review deleted', 'success');
+    loadReviews();
+  } catch(err) { notify(err.message, 'error'); }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="styles.css">
+<style>
+/* Portal nav */
+.portal-nav{display:flex;align-items:center;gap:4px;flex:1;overflow-x:auto}
+.portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
+.portal-link:hover{color:var(--text);background:var(--surface-2)}
+.portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+
+/* Parts grid */
+.parts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.part-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column;transition:all 0.2s;position:relative}
+.part-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:var(--shadow)}
+.part-cat{font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--blue);margin-bottom:6px}
+.part-name{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--text);margin-bottom:4px}
+.part-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--text-3);margin-bottom:8px}
+.part-desc{font-size:12px;color:var(--text-2);line-height:1.5;flex:1;margin-bottom:12px}
+.part-price{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--blue);margin-bottom:4px}
+.part-stock{font-size:11px;font-family:'Space Mono',monospace;margin-bottom:14px}
+.part-stock.ok{color:var(--green)} .part-stock.low{color:var(--amber)} .part-stock.out{color:var(--red)}
+
+/* Cart */
+.cart-panel{position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:200;transform:translateX(100%);transition:transform 0.3s;box-shadow:var(--shadow-lg)}
+.cart-panel.open{transform:translateX(0)}
+.cart-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.cart-title{font-family:'Syne',sans-serif;font-weight:800;font-size:20px}
+.cart-body{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-empty{text-align:center;padding:48px 0;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px}
+.cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:start}
+.cart-item:last-child{border-bottom:none}
+.cart-item-info{flex:1}
+.cart-item-name{font-weight:600;font-size:13px;color:var(--text);margin-bottom:2px}
+.cart-item-price{font-size:12px;color:var(--text-3);font-family:'Space Mono',monospace}
+.cart-qty{display:flex;align-items:center;gap:6px;margin-top:6px}
+.qty-btn{width:24px;height:24px;border:1px solid var(--border);border-radius:4px;background:var(--surface-2);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.qty-btn:hover{border-color:var(--blue);color:var(--blue)}
+.qty-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:600;min-width:24px;text-align:center}
+.cart-item-total{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--blue);white-space:nowrap}
+.remove-btn{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:16px;padding:2px;transition:color 0.15s}
+.remove-btn:hover{color:var(--red)}
+.cart-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.cart-summary-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text-2);padding:3px 0}
+.cart-total-row{display:flex;justify-content:space-between;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--blue);padding:10px 0 0;border-top:1px solid var(--border);margin-top:6px}
+.loyalty-note{font-size:11px;color:var(--green);font-family:'Space Mono',monospace;margin-bottom:10px}
+
+/* Cart toggle button */
+.cart-fab{position:fixed;bottom:28px;right:28px;background:var(--blue);color:#fff;border:none;border-radius:50px;padding:14px 22px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transition:all 0.2s;z-index:100}
+.cart-fab:hover{background:#1d46d4;transform:translateY(-2px)}
+.cart-badge{background:#fff;color:var(--blue);border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+
+/* Payment modal */
+.khalti-btn{width:100%;padding:13px;background:#5C2D91;color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-top:8px}
+.khalti-btn:hover{background:#4a2475}
+.khalti-btn:disabled{opacity:0.6;cursor:not-allowed}
+.khalti-logo{font-size:18px}
+
+/* Payment status banner */
+.pay-banner{padding:14px 20px;border-radius:var(--radius-lg);margin-bottom:20px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px}
+.pay-banner.success{background:var(--green-dim);color:var(--green);border:1px solid var(--green);display:flex}
+.pay-banner.error{background:var(--red-dim);color:var(--red);border:1px solid var(--red);display:flex}
+.pay-banner.cancelled{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);display:flex}
+
+@media(max-width:600px){
+  .cart-panel{width:100%}
+  .parts-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="portal-profile.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div class="portal-nav">
+    <a href="portal-profile.html"  class="portal-link">My Profile</a>
+    <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
+    <a href="portal-history.html"  class="portal-link">Purchase History</a>
+    <a href="portal-services.html" class="portal-link">Services</a>
+    <a href="portal-shop.html"     class="portal-link active">🛒 Shop</a>
+  </div>
+  <div id="nav-user"></div>
+</nav>
+
+<main class="main" style="padding-right:20px">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Customer Portal</div>
+      <h1 class="page-title">Parts Shop</h1>
+    </div>
+  </div>
+
+  <!-- Payment result banners (shown after Khalti redirect) -->
+  <div class="pay-banner success" id="bannerSuccess">
+    ✅ <span id="bannerSuccessMsg">Payment successful! Your order has been placed.</span>
+  </div>
+  <div class="pay-banner error" id="bannerError">
+    ❌ Payment failed. Please try again.
+  </div>
+  <div class="pay-banner cancelled" id="bannerCancelled">
+    ⚠ Payment cancelled. Your cart items are still available.
+  </div>
+
+  <!-- Filters -->
+  <div class="controls" style="margin-bottom:20px">
+    <input class="search-input" id="partSearch" placeholder="Search parts…" oninput="filterParts()">
+    <select class="select-filter" id="catFilter" onchange="filterParts()">
+      <option value="">All Categories</option>
+    </select>
+    <span class="muted" style="margin-left:auto"><span id="partCount">—</span> parts available</span>
+  </div>
+
+  <!-- Parts grid -->
+  <div class="parts-grid" id="partsGrid">
+    <div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">Loading parts…</div>
+  </div>
+</main>
+
+<!-- CART FAB -->
+<button class="cart-fab" onclick="toggleCart()" id="cartFab" style="display:none">
+  🛒 Cart <span class="cart-badge" id="cartBadge">0</span>
+</button>
+
+<!-- CART PANEL -->
+<div class="cart-panel" id="cartPanel">
+  <div class="cart-header">
+    <div class="cart-title">🛒 Your Cart</div>
+    <button class="btn btn-outline btn-sm" onclick="toggleCart()">✕ Close</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <div class="cart-empty">Your cart is empty.<br>Add parts from the shop.</div>
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none">
+    <div class="cart-summary-row"><span>Subtotal</span><span id="cSubtotal">NPR 0.00</span></div>
+    <div class="cart-summary-row" id="cDiscountRow" style="display:none;color:var(--green)">
+      <span>Loyalty Discount (10%)</span><span id="cDiscount">— NPR 0.00</span>
+    </div>
+    <div class="cart-total-row"><span>Total</span><span id="cTotal">NPR 0.00</span></div>
+    <div class="loyalty-note" id="loyaltyNote" style="display:none">★ Loyalty discount applied (subtotal > NPR 5,000)</div>
+    <button class="khalti-btn" onclick="payWithKhalti()" id="khaltiBtn">
+      <span class="khalti-logo">💜</span> Pay with Khalti
+    </button>
+    <p style="font-size:10px;color:var(--text-3);text-align:center;margin-top:8px;font-family:'Space Mono',monospace">
+      Sandbox mode — use test phone 9800000001, MPIN 1111, OTP 987654
+    </p>
+  </div>
+</div>
+
+<!-- Overlay when cart is open -->
+<div id="cartOverlay" onclick="toggleCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:199"></div>
+
+<script src="auth.js"></script>
+<script>
+// ── All variables declared FIRST ───────────────────────────
+let allParts  = [];
+let cart      = {};   // { partId: { part, quantity } }
+
+const user = requireRole('Customer');
+if (user) {
+  buildPortalNav();
+  checkPaymentResult();
+  loadParts();
+}
+
+// ── Payment result from Khalti redirect ────────────────────
+function checkPaymentResult() {
+  const params = new URLSearchParams(location.search);
+  const payment = params.get('payment');
+  const invoice = params.get('invoice');
+
+  if (payment === 'success') {
+    const el = document.getElementById('bannerSuccess');
+    document.getElementById('bannerSuccessMsg').textContent =
+      `✅ Payment successful! Invoice ${invoice || ''} has been created. Check your Purchase History.`;
+    el.style.display = 'flex';
+    cart = {}; renderCart();
+    // Clean URL
+    history.replaceState({}, '', 'portal-shop.html');
+  } else if (payment === 'failed') {
+    document.getElementById('bannerError').style.display = 'flex';
+    history.replaceState({}, '', 'portal-shop.html');
+  } else if (payment === 'cancelled') {
+    document.getElementById('bannerCancelled').style.display = 'flex';
+    history.replaceState({}, '', 'portal-shop.html');
+  }
+}
+
+// ── Load parts catalogue ───────────────────────────────────
+async function loadParts() {
+  try {
+    allParts = await API.get('/payment/parts');
+    renderParts(allParts);
+    loadCategories();
+  } catch(e) {
+    document.getElementById('partsGrid').innerHTML =
+      `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;
+  }
+}
+
+function renderParts(parts) {
+  document.getElementById('partCount').textContent = parts.length;
+  const grid = document.getElementById('partsGrid');
+  if (!parts.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:12px">No parts found</div>';
+    return;
+  }
+  grid.innerHTML = parts.map(p => {
+    const stockCls  = p.stockQty === 0 ? 'out' : p.stockQty < 10 ? 'low' : 'ok';
+    const stockText = p.stockQty === 0 ? 'Out of stock' : p.stockQty < 10 ? `Only ${p.stockQty} left` : `${p.stockQty} in stock`;
+    const inCart    = cart[p.id] ? cart[p.id].quantity : 0;
+    return `
+    <div class="part-card">
+      <div class="part-cat">${p.category}</div>
+      <div class="part-name">${p.name}</div>
+      <div class="part-num">${p.partNumber}</div>
+      <div class="part-desc">${p.description || 'No description available.'}</div>
+      <div class="part-price">NPR ${fmt(p.sellingPrice)}</div>
+      <div class="part-stock ${stockCls}">${stockText}</div>
+      ${p.stockQty > 0
+        ? inCart > 0
+          ? `<button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})" style="width:100%">
+              ✓ In Cart (${inCart}) — Add More
+            </button>`
+          : `<button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})" style="width:100%">
+              + Add to Cart
+            </button>`
+        : `<button class="btn btn-outline btn-sm" disabled style="width:100%;opacity:0.5">Out of Stock</button>`
+      }
+    </div>`;
+  }).join('');
+}
+
+function loadCategories() {
+  const cats = [...new Set(allParts.map(p => p.category))].sort();
+  const sel  = document.getElementById('catFilter');
+  while (sel.options.length > 1) sel.remove(1);
+  cats.forEach(c => { const o = new Option(c, c); sel.add(o); });
+}
+
+function filterParts() {
+  const q   = document.getElementById('partSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  renderParts(allParts.filter(p =>
+    (!cat || p.category === cat) &&
+    (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q))
+  ));
+}
+
+// ── Cart logic ─────────────────────────────────────────────
+function addToCart(partId) {
+  const part = allParts.find(p => p.id === partId);
+  if (!part || part.stockQty === 0) return;
+
+  if (cart[partId]) {
+    if (cart[partId].quantity >= part.stockQty) {
+      notify(`Max stock for "${part.name}" is ${part.stockQty}`, 'error'); return;
+    }
+    cart[partId].quantity++;
+  } else {
+    cart[partId] = { part, quantity: 1 };
+  }
+  renderCart();
+  renderParts(allParts.filter(p => {
+    const q   = document.getElementById('partSearch').value.toLowerCase();
+    const cat = document.getElementById('catFilter').value;
+    return (!cat || p.category === cat) && (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q));
+  }));
+  notify(`"${part.name}" added to cart`, 'success');
+  if (!document.getElementById('cartPanel').classList.contains('open')) {
+    document.getElementById('cartFab').style.display = 'flex';
+  }
+}
+
+function removeFromCart(partId) {
+  delete cart[partId];
+  renderCart();
+  filterParts();
+}
+
+function updateQty(partId, delta) {
+  if (!cart[partId]) return;
+  const maxStock = cart[partId].part.stockQty;
+  const newQty   = cart[partId].quantity + delta;
+  if (newQty <= 0) { removeFromCart(partId); return; }
+  if (newQty > maxStock) { notify(`Max stock is ${maxStock}`, 'error'); return; }
+  cart[partId].quantity = newQty;
+  renderCart();
+}
+
+function renderCart() {
+  const items    = Object.values(cart);
+  const badge    = document.getElementById('cartBadge');
+  const body     = document.getElementById('cartBody');
+  const footer   = document.getElementById('cartFooter');
+  const fab      = document.getElementById('cartFab');
+  const totalQty = items.reduce((s, i) => s + i.quantity, 0);
+
+  badge.textContent = totalQty;
+  fab.style.display = totalQty > 0 ? 'flex' : 'none';
+
+  if (!items.length) {
+    body.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add parts from the shop.</div>';
+    footer.style.display = 'none';
+    return;
+  }
+
+  body.innerHTML = items.map(({ part, quantity }) => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${part.name}</div>
+        <div class="cart-item-price">NPR ${fmt(part.sellingPrice)} each</div>
+        <div class="cart-qty">
+          <button class="qty-btn" onclick="updateQty(${part.id},-1)">−</button>
+          <span class="qty-val">${quantity}</span>
+          <button class="qty-btn" onclick="updateQty(${part.id},1)">+</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="cart-item-total">NPR ${fmt(part.sellingPrice * quantity)}</div>
+        <button class="remove-btn" onclick="removeFromCart(${part.id})" title="Remove">✕</button>
+      </div>
+    </div>`).join('');
+
+  // Totals
+  const subtotal  = items.reduce((s, i) => s + (i.part.sellingPrice * i.quantity), 0);
+  const loyalty   = subtotal > 5000;
+  const discount  = loyalty ? subtotal * 0.10 : 0;
+  const total     = subtotal - discount;
+
+  document.getElementById('cSubtotal').textContent    = `NPR ${fmt(subtotal)}`;
+  document.getElementById('cDiscountRow').style.display = loyalty ? 'flex' : 'none';
+  document.getElementById('cDiscount').textContent    = `− NPR ${fmt(discount)}`;
+  document.getElementById('cTotal').textContent       = `NPR ${fmt(total)}`;
+  document.getElementById('loyaltyNote').style.display = loyalty ? 'block' : 'none';
+  footer.style.display = 'block';
+}
+
+function toggleCart() {
+  const panel   = document.getElementById('cartPanel');
+  const overlay = document.getElementById('cartOverlay');
+  const open    = panel.classList.toggle('open');
+  overlay.style.display = open ? 'block' : 'none';
+}
+
+// ── Khalti Payment ─────────────────────────────────────────
+async function payWithKhalti() {
+  const items = Object.values(cart);
+  if (!items.length) { notify('Your cart is empty', 'error'); return; }
+
+  const btn = document.getElementById('khaltiBtn');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Initiating payment…';
+
+  try {
+    const payload = {
+      customerId: user.id,
+      websiteUrl: window.location.origin,
+      items: items.map(({ part, quantity }) => ({
+        partId:   part.id,
+        quantity: quantity
+      }))
+    };
+
+    const res = await API.post('/payment/initiate', payload);
+
+    // Redirect to Khalti payment page
+    notify('Redirecting to Khalti…', 'info');
+    setTimeout(() => {
+      window.location.href = res.paymentUrl;
+    }, 800);
+
+  } catch(err) {
+    notify(err.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<span class="khalti-logo">💜</span> Pay with Khalti';
+  }
+}
+
+// Close cart if click outside on mobile
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('cartPanel').classList.contains('open')) {
+    toggleCart();
+  }
+});
+</script>
+</body>
+</html>

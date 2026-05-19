@@ -11,15 +11,20 @@ namespace VehiclePartsAPI.Data
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         // ── DbSets ────────────────────────────────────────────────
-        public DbSet<Vendor> Vendors { get; set; }
-        public DbSet<Part> Parts { get; set; }
-        public DbSet<PurchaseInvoice> PurchaseInvoices { get; set; }
+        public DbSet<Vendor>              Vendors              { get; set; }
+        public DbSet<Part>                Parts                { get; set; }
+        public DbSet<PurchaseInvoice>     PurchaseInvoices     { get; set; }
         public DbSet<PurchaseInvoiceItem> PurchaseInvoiceItems { get; set; }
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<Vehicle> Vehicles { get; set; }
-        public DbSet<SaleInvoice> SaleInvoices { get; set; }
-        public DbSet<SaleInvoiceItem> SaleInvoiceItems { get; set; }
-        public DbSet<Staff> Staff { get; set; }
+        public DbSet<Customer>            Customers            { get; set; }
+        public DbSet<Vehicle>             Vehicles             { get; set; }
+        public DbSet<SaleInvoice>         SaleInvoices         { get; set; }
+        public DbSet<SaleInvoiceItem>     SaleInvoiceItems     { get; set; }
+        public DbSet<Staff>               Staff                { get; set; }
+
+        // ── Feature 13 ────────────────────────────────────────────
+        public DbSet<Appointment>   Appointments   { get; set; }
+        public DbSet<PartRequest>   PartRequests   { get; set; }
+        public DbSet<ServiceReview> ServiceReviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -38,7 +43,7 @@ namespace VehiclePartsAPI.Data
                 b.Property(p => p.SellingPrice).HasColumnType("numeric(18,2)");
             });
 
-            // ── PurchaseInvoice → Vendor (M-to-1) ───────────────────
+            // ── PurchaseInvoice → Vendor ─────────────────────────────
             modelBuilder.Entity<PurchaseInvoice>(b =>
             {
                 b.HasOne(pi => pi.Vendor)
@@ -50,7 +55,7 @@ namespace VehiclePartsAPI.Data
                 b.Property(pi => pi.TotalAmount).HasColumnType("numeric(18,2)");
             });
 
-            // ── PurchaseInvoiceItem → PurchaseInvoice and Part ──────
+            // ── PurchaseInvoiceItem ──────────────────────────────────
             modelBuilder.Entity<PurchaseInvoiceItem>(b =>
             {
                 b.HasOne(i => i.PurchaseInvoice)
@@ -66,14 +71,14 @@ namespace VehiclePartsAPI.Data
                 b.Property(i => i.UnitCost).HasColumnType("numeric(18,2)");
             });
 
-            // ── Customer ────────────────────────────────────────────
+            // ── Customer ─────────────────────────────────────────────
             modelBuilder.Entity<Customer>(b =>
             {
                 b.HasIndex(c => c.Email).IsUnique();
                 b.Property(c => c.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
-            // ── Vehicle → Customer (M-to-1) ─────────────────────────
+            // ── Vehicle → Customer ───────────────────────────────────
             modelBuilder.Entity<Vehicle>(b =>
             {
                 b.HasIndex(v => v.VehicleNumber).IsUnique();
@@ -84,7 +89,7 @@ namespace VehiclePartsAPI.Data
                  .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // ── SaleInvoice → Customer (M-to-1) ─────────────────────
+            // ── SaleInvoice → Customer ───────────────────────────────
             modelBuilder.Entity<SaleInvoice>(b =>
             {
                 b.HasOne(si => si.Customer)
@@ -98,7 +103,7 @@ namespace VehiclePartsAPI.Data
                 b.Property(si => si.TotalAmount).HasColumnType("numeric(18,2)");
             });
 
-            // ── SaleInvoiceItem → SaleInvoice and Part ──────────────
+            // ── SaleInvoiceItem ──────────────────────────────────────
             modelBuilder.Entity<SaleInvoiceItem>(b =>
             {
                 b.HasOne(i => i.SaleInvoice)
@@ -114,11 +119,44 @@ namespace VehiclePartsAPI.Data
                 b.Property(i => i.UnitPrice).HasColumnType("numeric(18,2)");
             });
 
-            // ── Staff ───────────────────────────────────────────────
+            // ── Staff ────────────────────────────────────────────────
             modelBuilder.Entity<Staff>(b =>
             {
                 b.HasIndex(s => s.Email).IsUnique();
                 b.Property(s => s.CreatedAt).HasDefaultValueSql("NOW()");
+            });
+
+            // ── Appointment → Customer ───────────────────────────────
+            modelBuilder.Entity<Appointment>(b =>
+            {
+                b.HasOne(a => a.Customer)
+                 .WithMany()
+                 .HasForeignKey(a => a.CustomerId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                b.Property(a => a.CreatedAt).HasDefaultValueSql("NOW()");
+            });
+
+            // ── PartRequest → Customer ───────────────────────────────
+            modelBuilder.Entity<PartRequest>(b =>
+            {
+                b.HasOne(r => r.Customer)
+                 .WithMany()
+                 .HasForeignKey(r => r.CustomerId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                b.Property(r => r.CreatedAt).HasDefaultValueSql("NOW()");
+            });
+
+            // ── ServiceReview → Customer ─────────────────────────────
+            modelBuilder.Entity<ServiceReview>(b =>
+            {
+                b.HasOne(r => r.Customer)
+                 .WithMany()
+                 .HasForeignKey(r => r.CustomerId)
+                 .OnDelete(DeleteBehavior.Cascade);
+
+                b.Property(r => r.CreatedAt).HasDefaultValueSql("NOW()");
             });
         }
     }

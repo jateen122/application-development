@@ -8,7 +8,6 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
@@ -29,7 +28,7 @@
 
   <div class="card">
     <div class="controls">
-      <input class="search-input" id="custSearch" placeholder="Search by name, email, or phone..." oninput="searchCustomers()">
+      <input class="search-input" id="custSearch" placeholder="Search by name, email, phone, or vehicle number…" oninput="searchCustomers()">
       <span class="muted" style="margin-left:auto"><span id="custCount">—</span> customers</span>
     </div>
     <div class="table-wrap">
@@ -37,24 +36,11 @@
         <thead>
           <tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th>Registered</th><th>Actions</th></tr>
         </thead>
-        <tbody id="custsBody">
-          <tr><td colspan="6" class="tbl-empty">Loading...</td></tr>
-        </tbody>
+        <tbody id="custsBody"><tr><td colspan="6" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
-
-<!-- DETAIL MODAL -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal modal--wide">
-    <div class="modal-hd">
-      <div class="modal-title" id="detailName">Customer</div>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
-    </div>
-    <div id="detailContent">Loading...</div>
-  </div>
-</div>
 
 <!-- ADD / EDIT MODAL -->
 <div class="modal-overlay" id="custModal">
@@ -66,20 +52,20 @@
     <form id="custForm" onsubmit="saveCustomer(event)">
       <input type="hidden" id="custId">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">First Name</label><input class="input" id="fFirst" required></div>
-        <div class="form-group"><label class="form-label">Last Name</label><input class="input" id="fLast" required></div>
+        <div class="form-group"><label class="form-label">First Name *</label><input class="input" id="fFirst" required></div>
+        <div class="form-group"><label class="form-label">Last Name *</label><input class="input" id="fLast" required></div>
       </div>
-      <div class="form-group"><label class="form-label">Email</label><input class="input" id="fEmail" type="email" required></div>
-      <div class="form-group"><label class="form-label">Phone</label><input class="input" id="fPhone" required></div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="input" id="fEmail" type="email" required></div>
+      <div class="form-group"><label class="form-label">Phone *</label><input class="input" id="fPhone" required></div>
       <div class="form-group"><label class="form-label">Address</label><input class="input" id="fAddress"></div>
       <div id="pwdGroup" class="form-group">
-        <label class="form-label">Password</label>
+        <label class="form-label">Password *</label>
         <input class="input" id="fPassword" type="password" placeholder="Min 6 characters">
       </div>
       <div id="vehicleSection" style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px">
         <div class="form-label" style="margin-bottom:12px;color:var(--text-2)">Vehicle (optional)</div>
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Vehicle Number</label><input class="input" id="fVNum" placeholder="e.g. BA1PA2222"></div>
+          <div class="form-group"><label class="form-label">Vehicle Number</label><input class="input" id="fVNum" placeholder="BA 1 PA 2222"></div>
           <div class="form-group"><label class="form-label">Make</label><input class="input" id="fVMake" placeholder="Toyota"></div>
         </div>
         <div class="form-row">
@@ -91,7 +77,7 @@
           <div class="form-group">
             <label class="form-label">Fuel Type</label>
             <select class="input select" id="fVFuel">
-              <option value="">Select...</option>
+              <option value="">Select…</option>
               <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
             </select>
           </div>
@@ -107,25 +93,30 @@
 
 <script src="auth.js"></script>
 <script>
+// ── declare all variables FIRST before any function calls ──
 let allCustomers = [];
 
 const user = requireRole('Admin', 'Staff');
 if (user) { buildNav(); loadCustomers(); }
 
+// ── functions ──────────────────────────────────────────────
 async function loadCustomers() {
   try {
     allCustomers = await API.get('/customers');
     renderCustomers(allCustomers);
-  } catch (e) {
-    console.error('loadCustomers error:', e);
-    document.getElementById('custsBody').innerHTML = `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  } catch(e) {
+    document.getElementById('custsBody').innerHTML =
+      `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
 function renderCustomers(list) {
   document.getElementById('custCount').textContent = list.length;
   const body = document.getElementById('custsBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No customers found</td></tr>'; return; }
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No customers found</td></tr>';
+    return;
+  }
   body.innerHTML = list.map(c => `
     <tr>
       <td class="text-strong">${c.firstName} ${c.lastName}</td>
@@ -135,72 +126,42 @@ function renderCustomers(list) {
       <td class="muted">${fmtDate(c.createdAt)}</td>
       <td>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-outline btn-sm" onclick="viewCustomer(${c.id})">View</button>
+          <a href="customer-detail.html?id=${c.id}" class="btn btn-outline btn-sm">View</a>
           <button class="btn btn-outline btn-sm" onclick="editCustomer(${c.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id},'${c.firstName}')">Delete</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id},'${c.firstName} ${c.lastName}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
 }
 
+let searchTimer = null;
 async function searchCustomers() {
-  const q = document.getElementById('custSearch').value.trim();
-  if (!q) { renderCustomers(allCustomers); return; }
-  try {
-    const res = await API.get(`/customers/search?q=${encodeURIComponent(q)}`);
-    renderCustomers(res);
-  } catch (_) {
-    const lq = q.toLowerCase();
-    renderCustomers(allCustomers.filter(c =>
-      `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(lq)
-    ));
-  }
-}
-
-async function viewCustomer(id) {
-  try {
-    const d = await API.get(`/customers/${id}`);
-    document.getElementById('detailName').textContent = `${d.firstName} ${d.lastName}`;
-    document.getElementById('detailContent').innerHTML = `
-      <div class="grid-2" style="margin-bottom:20px;gap:12px">
-        <div><div class="form-label">Email</div><div>${d.email}</div></div>
-        <div><div class="form-label">Phone</div><div class="mono">${d.phone}</div></div>
-        <div><div class="form-label">Address</div><div>${d.address || '—'}</div></div>
-        <div><div class="form-label">Registered</div><div class="muted">${fmtDate(d.createdAt)}</div></div>
-      </div>
-      <div class="form-label" style="margin-bottom:10px">Vehicles (${d.vehicles.length})</div>
-      ${d.vehicles.length ? `
-        <table class="tbl" style="margin-bottom:20px">
-          <thead><tr><th>Number</th><th>Make</th><th>Model</th><th>Year</th><th>Fuel</th></tr></thead>
-          <tbody>${d.vehicles.map(v => `<tr>
-            <td><code>${v.vehicleNumber}</code></td><td>${v.make}</td><td>${v.model}</td>
-            <td>${v.year}</td><td>${v.fuelType}</td>
-          </tr>`).join('')}</tbody>
-        </table>` : '<p class="muted" style="margin-bottom:20px">No vehicles registered</p>'}
-      <div class="form-label" style="margin-bottom:10px">Recent Purchases (${d.recentPurchases.length})</div>
-      ${d.recentPurchases.length ? `
-        <table class="tbl">
-          <thead><tr><th>Invoice</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody>${d.recentPurchases.map(s => `<tr>
-            <td><code>${s.invoiceNumber}</code></td>
-            <td class="muted">${fmtDate(s.invoiceDate)}</td>
-            <td class="amount">NPR ${fmt(s.totalAmount)}</td>
-            <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
-          </tr>`).join('')}</tbody>
-        </table>` : '<p class="muted">No purchases yet</p>'}`;
-    openModal('detailModal');
-  } catch (e) { notify(e.message, 'error'); }
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    const q = document.getElementById('custSearch').value.trim();
+    if (!q) { renderCustomers(allCustomers); return; }
+    try {
+      // Universal search — also finds by vehicle number
+      const res = await API.get(`/customer-reports/search?q=${encodeURIComponent(q)}`);
+      renderCustomers(res);
+    } catch(_) {
+      const lq = q.toLowerCase();
+      renderCustomers(allCustomers.filter(c =>
+        `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(lq)
+      ));
+    }
+  }, 300);
 }
 
 function editCustomer(id) {
   const c = allCustomers.find(x => x.id === id);
   if (!c) return;
-  document.getElementById('custId').value    = c.id;
-  document.getElementById('fFirst').value    = c.firstName;
-  document.getElementById('fLast').value     = c.lastName;
-  document.getElementById('fEmail').value    = c.email;
-  document.getElementById('fPhone').value    = c.phone;
-  document.getElementById('fAddress').value  = c.address || '';
+  document.getElementById('custId').value   = c.id;
+  document.getElementById('fFirst').value   = c.firstName;
+  document.getElementById('fLast').value    = c.lastName;
+  document.getElementById('fEmail').value   = c.email;
+  document.getElementById('fPhone').value   = c.phone;
+  document.getElementById('fAddress').value = c.address || '';
   document.getElementById('pwdGroup').style.display       = 'none';
   document.getElementById('vehicleSection').style.display = 'none';
   document.getElementById('custModalTitle').textContent   = 'Edit Customer';
@@ -232,8 +193,8 @@ async function saveCustomer(e) {
       await API.put(`/customers/${id}`, base);
       notify('Customer updated!', 'success');
     } else {
-      const vNum = document.getElementById('fVNum').value;
       const body = { ...base, password: document.getElementById('fPassword').value };
+      const vNum = document.getElementById('fVNum').value.trim();
       if (vNum) {
         body.vehicle = {
           vehicleNumber: vNum,
@@ -250,21 +211,21 @@ async function saveCustomer(e) {
     closeModal('custModal');
     resetCustForm();
     loadCustomers();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch(err) { notify(err.message, 'error'); }
 }
 
 async function deleteCustomer(id, name) {
-  if (!confirm(`Delete customer "${name}"?`)) return;
+  if (!confirm(`Delete customer "${name}"? This cannot be undone.`)) return;
   try {
     await API.del(`/customers/${id}`);
     notify('Customer deleted', 'success');
     loadCustomers();
-  } catch (err) { notify(err.message, 'error'); }
+  } catch(err) { notify(err.message, 'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetCustForm(); } });
-});
+document.querySelectorAll('.modal-overlay').forEach(m =>
+  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetCustForm(); } })
+);
 </script>
 </body>
 </html>

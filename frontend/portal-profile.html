@@ -7,27 +7,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.portal-nav { display: flex; gap: 2px; flex: 1; }
-.portal-link { color: var(--text-2); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 11px; border-radius: var(--radius-sm); white-space: nowrap; transition: color 0.15s, background 0.15s; }
-.portal-link:hover { color: var(--text); background: var(--surface-2); }
-.portal-link.active { color: var(--blue); background: var(--blue-dim); font-weight: 600; }
-.avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--bg); border: 3px solid var(--blue); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 30px; font-weight: 800; color: var(--blue); margin: 0 auto 16px; }
-.profile-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; margin-bottom: 4px; text-align: center; }
-.profile-role { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--blue); background: var(--blue-dim); padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 20px; }
-.profile-meta { font-size: 13px; color: var(--text-3); line-height: 1.8; text-align: center; }
+.portal-nav{display:flex;align-items:center;gap:4px;flex:1}
+.portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
+.portal-link:hover{color:var(--text);background:var(--surface-2)}
+.portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+.avatar{width:72px;height:72px;border-radius:50%;background:var(--blue-dim);border:3px solid var(--blue);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--blue);margin:0 auto 14px}
+.profile-grid{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+.info-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.info-row:last-child{border-bottom:none}
+.info-lbl{color:var(--text-3);font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+@media(max-width:900px){.profile-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
     <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
   </a>
   <div class="portal-nav">
-    <a href="portal-profile.html" class="portal-link active">My Profile</a>
+    <a href="portal-profile.html"  class="portal-link active">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
-    <a href="portal-history.html" class="portal-link">Purchase History</a>
+    <a href="portal-history.html"  class="portal-link">Purchase History</a>
+    <a href="portal-services.html" class="portal-link">Services</a>
+    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -40,82 +43,57 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start">
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat stat--blue"><div class="stat-label">Total Spent</div><div class="stat-value" id="statSpend">—</div><div class="stat-sub">NPR (lifetime)</div></div>
+    <div class="stat"><div class="stat-label">Purchases</div><div class="stat-value" id="statPurchases">—</div><div class="stat-sub">Invoices</div></div>
+    <div class="stat"><div class="stat-label">Vehicles</div><div class="stat-value" id="statVehicles">—</div><div class="stat-sub">Registered</div></div>
+    <div class="stat stat--red"><div class="stat-label">Credit Pending</div><div class="stat-value" id="statCredit">—</div><div class="stat-sub">Unpaid invoices</div></div>
+  </div>
+
+  <div class="profile-grid">
     <div class="card" style="text-align:center">
-      <div class="avatar" id="avatarEl">—</div>
-      <div class="profile-name" id="profileName">Loading...</div>
-      <div style="display:flex;justify-content:center"><div class="profile-role">Customer</div></div>
-      <div class="profile-meta" id="profileMeta">—</div>
-      <div style="margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <div class="avatar" id="avatarEl">?</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--text);margin-bottom:6px" id="profileName">Loading…</div>
+      <span class="badge badge-blue" style="margin-bottom:16px;display:inline-block">Customer</span>
+      <div style="text-align:left;margin-top:10px">
+        <div class="info-row"><span class="info-lbl">Email</span><span id="iEmail" class="muted">—</span></div>
+        <div class="info-row"><span class="info-lbl">Phone</span><span id="iPhone" class="mono">—</span></div>
+        <div class="info-row"><span class="info-lbl">Address</span><span id="iAddress" class="muted">—</span></div>
+        <div class="info-row"><span class="info-lbl">Member since</span><span id="iSince" class="muted">—</span></div>
+      </div>
+      <div style="margin-top:18px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick="openModal('editModal')">Edit Profile</button>
         <button class="btn btn-outline btn-sm" onclick="openModal('pwdModal')">Change Password</button>
       </div>
     </div>
 
-    <div>
-      <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
-        <div class="stat stat--blue">
-          <div class="stat-label">Total Spent</div>
-          <div class="stat-value" id="statSpend">—</div>
-          <div class="stat-sub">NPR (lifetime)</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Purchases</div>
-          <div class="stat-value" id="statPurchases">—</div>
-          <div class="stat-sub">Invoices</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Vehicles</div>
-          <div class="stat-value" id="statVehicles">—</div>
-          <div class="stat-sub">Registered</div>
-        </div>
+    <div class="card">
+      <div class="card-hd">
+        <span class="card-title">Recent Purchases</span>
+        <a href="portal-history.html" class="link">View all →</a>
       </div>
-
-      <div class="card">
-        <div class="card-hd">
-          <span class="card-title">Recent Purchases</span>
-          <a href="portal-history.html" class="link">View All</a>
-        </div>
-        <div class="table-wrap">
-          <table class="tbl">
-            <thead><tr><th>Invoice #</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
-            <tbody id="recentPurchases"><tr><td colspan="4" class="tbl-empty">Loading...</td></tr></tbody>
-          </table>
-        </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Invoice #</th><th>Date</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead>
+          <tbody id="recentBody"><tr><td colspan="5" class="tbl-empty">Loading…</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
 </main>
 
+<!-- EDIT MODAL -->
 <div class="modal-overlay" id="editModal">
   <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-title">Edit Profile</div>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('editModal')">Close</button>
-    </div>
+    <div class="modal-hd"><div class="modal-title">Edit Profile</div><button class="btn btn-outline btn-sm" onclick="closeModal('editModal')">Close</button></div>
     <form id="editForm" onsubmit="saveProfile(event)">
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">First Name</label>
-          <input class="input" id="eFirstName" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Last Name</label>
-          <input class="input" id="eLastName" required>
-        </div>
+        <div class="form-group"><label class="form-label">First Name *</label><input class="input" id="eFirst" required></div>
+        <div class="form-group"><label class="form-label">Last Name *</label><input class="input" id="eLast" required></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="input" id="eEmail" type="email" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone</label>
-        <input class="input" id="ePhone" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Address</label>
-        <input class="input" id="eAddress">
-      </div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="input" id="eEmail" type="email" required></div>
+      <div class="form-group"><label class="form-label">Phone *</label><input class="input" id="ePhone" required></div>
+      <div class="form-group"><label class="form-label">Address</label><input class="input" id="eAddress"></div>
       <div class="form-actions">
         <button type="button" class="btn btn-outline" onclick="closeModal('editModal')">Cancel</button>
         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -124,20 +102,12 @@
   </div>
 </div>
 
+<!-- PASSWORD MODAL -->
 <div class="modal-overlay" id="pwdModal">
   <div class="modal" style="max-width:400px">
-    <div class="modal-hd">
-      <div class="modal-title">Change Password</div>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('pwdModal')">Close</button>
-    </div>
-    <div class="form-group">
-      <label class="form-label">New Password</label>
-      <input class="input" id="newPwd" type="password" placeholder="Min 6 characters">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Confirm Password</label>
-      <input class="input" id="confirmPwd" type="password" placeholder="Repeat password">
-    </div>
+    <div class="modal-hd"><div class="modal-title">Change Password</div><button class="btn btn-outline btn-sm" onclick="closeModal('pwdModal')">Close</button></div>
+    <div class="form-group"><label class="form-label">New Password *</label><input class="input" id="newPwd" type="password" placeholder="Min 6 characters"></div>
+    <div class="form-group"><label class="form-label">Confirm Password *</label><input class="input" id="confirmPwd" type="password"></div>
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeModal('pwdModal')">Cancel</button>
       <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
@@ -148,63 +118,55 @@
 <script src="auth.js"></script>
 <script>
 const user = requireRole('Customer');
-if (user) {
-  const navUser = document.getElementById('nav-user');
-  navUser.innerHTML = `
-    <span class="nav-username">${user.firstName} ${user.lastName}</span>
-    <span class="nav-role">Customer</span>
-    <button class="nav-logout" onclick="logout()">Logout</button>
-  `;
-  loadProfile();
-}
+if (user) { buildPortalNav(); loadProfile(); }
 
 async function loadProfile() {
   try {
-    const detail = await API.get(`/customers/${user.id}`);
-    document.getElementById('avatarEl').textContent = `${detail.firstName[0]}${detail.lastName[0]}`;
-    document.getElementById('profileName').textContent = `${detail.firstName} ${detail.lastName}`;
-    document.getElementById('profileMeta').innerHTML = `${detail.email}<br>${detail.phone}<br>${detail.address || 'No address set'}`;
-    document.getElementById('eFirstName').value = detail.firstName;
-    document.getElementById('eLastName').value = detail.lastName;
-    document.getElementById('eEmail').value = detail.email;
-    document.getElementById('ePhone').value = detail.phone;
-    document.getElementById('eAddress').value = detail.address || '';
-    const allInvoices = await API.get(`/sales/customer/${user.id}`);
-    const totalSpend = allInvoices.reduce((s, i) => s + (i.status !== 'Cancelled' ? i.totalAmount : 0), 0);
-    document.getElementById('statSpend').textContent = fmt(totalSpend);
-    document.getElementById('statPurchases').textContent = allInvoices.filter(i => i.status !== 'Cancelled').length;
-    document.getElementById('statVehicles').textContent = detail.vehicles.length;
-    const body = document.getElementById('recentPurchases');
-    const recent = allInvoices.slice(0, 5);
-    body.innerHTML = recent.length
-      ? recent.map(i => `<tr>
+    const d = await API.get(`/customers/${user.id}`);
+    document.getElementById('avatarEl').textContent    = `${d.firstName[0]}${d.lastName[0]}`;
+    document.getElementById('profileName').textContent = `${d.firstName} ${d.lastName}`;
+    document.getElementById('iEmail').textContent   = d.email;
+    document.getElementById('iPhone').textContent   = d.phone;
+    document.getElementById('iAddress').textContent = d.address || 'Not set';
+    document.getElementById('iSince').textContent   = fmtDate(d.createdAt);
+    document.getElementById('eFirst').value   = d.firstName;
+    document.getElementById('eLast').value    = d.lastName;
+    document.getElementById('eEmail').value   = d.email;
+    document.getElementById('ePhone').value   = d.phone;
+    document.getElementById('eAddress').value = d.address || '';
+
+    const invs   = await API.get(`/sales/customer/${user.id}`);
+    const active = invs.filter(i => i.status !== 'Cancelled');
+    document.getElementById('statsRow').style.display  = '';
+    document.getElementById('statSpend').textContent      = fmt(active.reduce((s,i)=>s+i.totalAmount,0));
+    document.getElementById('statPurchases').textContent  = active.length;
+    document.getElementById('statVehicles').textContent   = d.vehicles.length;
+    document.getElementById('statCredit').textContent     = invs.filter(i=>i.status==='Credit').length;
+
+    document.getElementById('recentBody').innerHTML = invs.length
+      ? invs.slice(0,5).map(i=>`<tr>
           <td><code>${i.invoiceNumber}</code></td>
           <td class="muted">${fmtDate(i.invoiceDate)}</td>
           <td class="amount">NPR ${fmt(i.totalAmount)}</td>
+          <td class="muted">${i.paymentMethod}</td>
           <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
         </tr>`).join('')
-      : '<tr><td colspan="4" class="tbl-empty">No purchases yet</td></tr>';
-  } catch (e) { notify('Failed to load profile', 'error'); }
+      : '<tr><td colspan="5" class="tbl-empty">No purchases yet</td></tr>';
+  } catch(e) {
+    notify(e.message, 'error');
+    document.getElementById('recentBody').innerHTML = `<tr><td colspan="5" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+  }
 }
 
 async function saveProfile(e) {
   e.preventDefault();
-  const body = {
-    firstName: document.getElementById('eFirstName').value,
-    lastName: document.getElementById('eLastName').value,
-    email: document.getElementById('eEmail').value,
-    phone: document.getElementById('ePhone').value,
-    address: document.getElementById('eAddress').value,
-  };
+  const body = { firstName:document.getElementById('eFirst').value, lastName:document.getElementById('eLast').value, email:document.getElementById('eEmail').value, phone:document.getElementById('ePhone').value, address:document.getElementById('eAddress').value };
   try {
     await API.put(`/customers/${user.id}`, body);
-    user.firstName = body.firstName;
-    user.lastName = body.lastName;
+    user.firstName = body.firstName; user.lastName = body.lastName;
     sessionStorage.setItem('user', JSON.stringify(user));
-    notify('Profile updated', 'success');
-    closeModal('editModal');
-    loadProfile();
-  } catch (err) { notify(err.message, 'error'); }
+    notify('Profile updated!', 'success'); closeModal('editModal'); loadProfile();
+  } catch(err) { notify(err.message, 'error'); }
 }
 
 async function changePassword() {
@@ -212,13 +174,14 @@ async function changePassword() {
   const cp = document.getElementById('confirmPwd').value;
   if (!np || np.length < 6) { notify('Password must be at least 6 characters', 'error'); return; }
   if (np !== cp) { notify('Passwords do not match', 'error'); return; }
-  notify('Password change requires a dedicated endpoint', 'info');
-  closeModal('pwdModal');
+  try {
+    await API.patch(`/customers/${user.id}/password`, { password: np });
+    notify('Password updated!', 'success'); closeModal('pwdModal');
+    document.getElementById('newPwd').value = ''; document.getElementById('confirmPwd').value = '';
+  } catch(err) { notify(err.message, 'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
-});
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
 </script>
 </body>
 </html>

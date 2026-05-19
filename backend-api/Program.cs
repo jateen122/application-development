@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.Data;
 using VehiclePartsAPI.Models;
+using VehiclePartsAPI.Services;
+using VehiclePartsAPI.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,21 +10,33 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS — allow all for development
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
         policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
+// External services config (SMTP, Khalti key, etc.)
 builder.Services.Configure<ExternalServicesOptions>(
     builder.Configuration.GetSection("ExternalServices"));
 
+// Email service
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+// HttpClient for Khalti API calls
+builder.Services.AddHttpClient();
+
+// Background notification service (low stock + overdue credits)
+builder.Services.AddHostedService<NotificationBackgroundService>();
+
 var app = builder.Build();
 
-// ── Database: migrate + seed ──────────────────────────────────
+// ── Database migrate + optional seed ─────────────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -34,26 +48,12 @@ using (var scope = app.Services.CreateScope())
             db.Database.Migrate();
             Console.WriteLine("✅ Migrations applied.");
 
-            // Seed first Admin if none exist
-            if (!await db.Staff.AnyAsync())
-            {
-                db.Staff.Add(new Staff
-                {
-                    FirstName    = "Super",
-                    LastName     = "Admin",
-                    Email        = "admin@vehicleparts.com",
-                    Phone        = "9800000000",
-                    Role         = "Admin",
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
-                    IsActive     = true
-                });
-                await db.SaveChangesAsync();
-                Console.WriteLine("✅ Default admin seeded → admin@vehicleparts.com / admin123");
-            }
+            if (args.Contains("--seed"))
+                await DatabaseSeeder.SeedAdminAsync(db);
         }
         else
         {
-            Console.WriteLine("❌ Database connection failed!");
+            Console.WriteLine("❌ Database connection failed! Check appsettings.json → ConnectionStrings.");
         }
     }
     catch (Exception ex)
@@ -62,7 +62,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ── Middleware ────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

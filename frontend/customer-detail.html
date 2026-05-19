@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VehicleParts Pro — Customer Detail</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="styles.css">
+<style>
+.detail-grid { display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start; }
+.profile-card { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;text-align:center; }
+.avatar-lg { width:72px;height:72px;border-radius:50%;background:var(--blue-dim);border:3px solid var(--blue);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--blue);margin:0 auto 16px; }
+.cust-name { font-family:'Syne',sans-serif;font-weight:800;font-size:24px;color:var(--text);margin-bottom:4px; }
+.cust-since { font-family:'Space Mono',monospace;font-size:10px;color:var(--text-3);margin-bottom:20px; }
+.info-row { display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px; }
+.info-row:last-child { border-bottom:none; }
+.info-label { color:var(--text-3);font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px; }
+.info-val { color:var(--text);font-weight:500; }
+
+.veh-chip { display:inline-flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;font-size:13px;margin:4px; }
+.veh-chip code { font-size:11px;color:var(--blue); }
+
+.spend-badge { font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--blue); }
+
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-brand-icon">&#9881;</div>
+    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+  </a>
+  <div id="nav-links"></div>
+  <div id="nav-user"></div>
+</nav>
+
+<main class="main">
+  <div class="page-hd">
+    <div class="page-hd-left">
+      <div class="page-eyebrow">Customer Detail</div>
+      <h1 class="page-title" id="pageTitle">Loading…</h1>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" onclick="history.back()">← Back</button>
+      <button class="btn btn-primary" onclick="openModal('saleModal')" id="newSaleBtn" style="display:none">+ New Sale</button>
+    </div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat stat--blue">
+      <div class="stat-label">Total Spent</div>
+      <div class="stat-value spend-badge" id="statSpend">—</div>
+      <div class="stat-sub">NPR</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Purchases</div>
+      <div class="stat-value" id="statCount">—</div>
+      <div class="stat-sub">Invoices</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Loyalty Uses</div>
+      <div class="stat-value" id="statLoyalty">—</div>
+      <div class="stat-sub">Discounts applied</div>
+    </div>
+    <div class="stat stat--red">
+      <div class="stat-label">Credit Pending</div>
+      <div class="stat-value" id="statCredit">—</div>
+      <div class="stat-sub">Unpaid invoices</div>
+    </div>
+  </div>
+
+  <div class="detail-grid" id="detailGrid" style="display:none">
+
+    <!-- Left: Profile + Vehicles -->
+    <div>
+      <div class="profile-card" id="profileCard">Loading…</div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd">
+          <span class="card-title">Registered Vehicles</span>
+          <span class="badge badge-blue" id="vehCount">0</span>
+        </div>
+        <div id="vehicleList" style="padding:4px 0"></div>
+      </div>
+    </div>
+
+    <!-- Right: Purchase history + Appointments -->
+    <div>
+      <div class="card">
+        <div class="card-hd">
+          <span class="card-title">Purchase History</span>
+          <a href="#" class="link" id="fullHistoryLink">View full →</a>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Invoice #</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="purchaseBody">
+              <tr><td colspan="6" class="tbl-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd">
+          <span class="card-title">Appointments</span>
+        </div>
+        <div id="apptList">
+          <div class="tbl-empty" style="padding:24px;text-align:center">Loading…</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd">
+          <span class="card-title">Part Requests</span>
+        </div>
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr><th>Part</th><th>Qty</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="reqBody">
+              <tr><td colspan="4" class="tbl-empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- INVOICE DETAIL MODAL -->
+<div class="modal-overlay" id="invModal">
+  <div class="modal modal--wide">
+    <div class="modal-hd">
+      <div class="modal-title" id="invModalTitle">Invoice</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-outline btn-sm" id="emailBtn" onclick="sendEmail()">📧 Email Invoice</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('invModal')">Close</button>
+      </div>
+    </div>
+    <div id="invContent">Loading…</div>
+    <div style="margin-top:16px;display:flex;gap:10px" id="invActions"></div>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+const user = requireRole('Admin', 'Staff');
+if (user) { buildNav(); }
+
+const params = new URLSearchParams(location.search);
+const customerId = parseInt(params.get('id'));
+if (!customerId) { window.location.href = 'customers.html'; }
+
+let customer = null;
+let allInvoices = [];
+let currentInvId = null;
+
+async function load() {
+  try {
+    // Customer detail
+    customer = await API.get(`/customers/${customerId}`);
+    document.getElementById('pageTitle').textContent = `${customer.firstName} ${customer.lastName}`;
+    document.getElementById('fullHistoryLink').href = `customer-detail.html?id=${customerId}`;
+    document.getElementById('newSaleBtn').style.display = '';
+    document.getElementById('statsRow').style.display = '';
+    document.getElementById('detailGrid').style.display = '';
+
+    // Profile card
+    const initials = `${customer.firstName[0]}${customer.lastName[0]}`;
+    document.getElementById('profileCard').innerHTML = `
+      <div class="avatar-lg">${initials}</div>
+      <div class="cust-name">${customer.firstName} ${customer.lastName}</div>
+      <div class="cust-since">Customer since ${fmtDate(customer.createdAt)}</div>
+      <div style="text-align:left;margin-top:12px">
+        <div class="info-row"><span class="info-label">Email</span><span class="info-val">${customer.email}</span></div>
+        <div class="info-row"><span class="info-label">Phone</span><span class="info-val mono">${customer.phone}</span></div>
+        <div class="info-row"><span class="info-label">Address</span><span class="info-val">${customer.address || '—'}</span></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" onclick="openEditModal()">Edit Profile</button>
+      </div>`;
+
+    // Vehicles
+    document.getElementById('vehCount').textContent = customer.vehicles.length;
+    document.getElementById('vehicleList').innerHTML = customer.vehicles.length
+      ? customer.vehicles.map(v => `
+          <div class="veh-chip">
+            <span>${v.make} ${v.model} ${v.year}</span>
+            <code>${v.vehicleNumber}</code>
+            <span class="badge badge-blue" style="font-size:9px">${v.fuelType}</span>
+          </div>`).join('')
+      : '<div class="muted" style="padding:12px">No vehicles registered</div>';
+
+    // Full sales history
+    allInvoices = await API.get(`/sales/customer/${customerId}`);
+    const totalSpend  = allInvoices.filter(i => i.status !== 'Cancelled').reduce((s, i) => s + i.totalAmount, 0);
+    const loyaltyUses = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
+    const creditCount = allInvoices.filter(i => i.status === 'Credit').length;
+
+    document.getElementById('statSpend').textContent   = fmt(totalSpend);
+    document.getElementById('statCount').textContent   = allInvoices.filter(i => i.status !== 'Cancelled').length;
+    document.getElementById('statLoyalty').textContent = loyaltyUses;
+    document.getElementById('statCredit').textContent  = creditCount;
+
+    renderPurchases(allInvoices);
+
+    // Appointments
+    const appts = await API.get(`/appointments/customer/${customerId}`);
+    const aEl = document.getElementById('apptList');
+    aEl.innerHTML = appts.length
+      ? appts.slice(0, 5).map(a => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+            <div>
+              <div style="font-weight:600;color:var(--text)">${a.serviceType}</div>
+              <div class="muted">${fmtDateTime(a.appointmentDate)}</div>
+            </div>
+            <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
+          </div>`).join('')
+      : '<div class="tbl-empty" style="padding:20px;text-align:center">No appointments</div>';
+
+    // Part requests
+    const reqs = await API.get(`/part-requests/customer/${customerId}`);
+    document.getElementById('reqBody').innerHTML = reqs.length
+      ? reqs.map(r => `<tr>
+          <td>${r.partName} ${r.partNumber ? `<code>${r.partNumber}</code>` : ''}</td>
+          <td class="mono">${r.quantity}</td>
+          <td class="muted">${fmtDate(r.createdAt)}</td>
+          <td>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span class="status status-${r.status.toLowerCase()}">${r.status}</span>
+              ${r.status === 'Pending' ? `
+                <button class="btn btn-outline btn-sm" onclick="updateReqStatus(${r.id},'Fulfilled')">Fulfill</button>
+                <button class="btn btn-danger btn-sm" onclick="updateReqStatus(${r.id},'Rejected')">Reject</button>` : ''}
+            </div>
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" class="tbl-empty">No part requests</td></tr>';
+
+  } catch (e) {
+    notify('Failed to load customer data', 'error');
+  }
+}
+
+function renderPurchases(list) {
+  const body = document.getElementById('purchaseBody');
+  body.innerHTML = list.length
+    ? list.map(s => `<tr>
+        <td><code>${s.invoiceNumber}</code></td>
+        <td class="muted">${fmtDate(s.invoiceDate)}</td>
+        <td class="amount">NPR ${fmt(s.totalAmount)}</td>
+        <td class="muted">${s.paymentMethod}</td>
+        <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-outline btn-sm" onclick="viewInvoice(${s.id})">View</button>
+          </div>
+        </td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="tbl-empty">No purchases yet</td></tr>';
+}
+
+async function viewInvoice(id) {
+  currentInvId = id;
+  try {
+    const s = await API.get(`/sales/${id}`);
+    document.getElementById('invModalTitle').textContent = s.invoiceNumber;
+    document.getElementById('emailBtn').title = `Email to ${s.customer.email}`;
+
+    document.getElementById('invContent').innerHTML = `
+      <div class="grid-2" style="margin-bottom:20px;gap:12px;font-size:13px">
+        <div><div class="form-label">Date</div><div>${fmtDateTime(s.invoiceDate)}</div></div>
+        <div><div class="form-label">Payment</div><div>${s.paymentMethod}</div></div>
+        <div><div class="form-label">Status</div><span class="status status-${s.status.toLowerCase()}">${s.status}</span></div>
+        ${s.loyaltyDiscountApplied ? '<div><div class="form-label">Loyalty</div><div class="text-blue">✓ 10% off</div></div>' : ''}
+      </div>
+      <table class="tbl" style="margin-bottom:14px">
+        <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+        <tbody>${s.items.map(i => `<tr>
+          <td class="text-strong">${i.partName}</td>
+          <td><code>${i.partNumber}</code></td>
+          <td class="mono">${i.quantity}</td>
+          <td class="amount">NPR ${fmt(i.unitPrice)}</td>
+          <td class="amount">NPR ${fmt(i.lineTotal)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      <div style="background:var(--bg);border-radius:var(--radius);padding:14px;text-align:right;font-size:13px">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-2)"><span>Subtotal</span><span class="amount">NPR ${fmt(s.subTotal)}</span></div>
+        ${s.loyaltyDiscountApplied ? `<div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--green)"><span>Loyalty Discount</span><span>-NPR ${fmt(s.discountAmount)}</span></div>` : ''}
+        <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:700;color:var(--blue);font-family:'Syne',sans-serif;border-top:1px solid var(--border);margin-top:6px">
+          <span>TOTAL</span><span>NPR ${fmt(s.totalAmount)}</span>
+        </div>
+      </div>`;
+
+    // Action buttons
+    const acts = document.getElementById('invActions');
+    acts.innerHTML = '';
+    if (s.status === 'Credit') {
+      const payBtn = document.createElement('button');
+      payBtn.className = 'btn btn-primary btn-sm';
+      payBtn.textContent = '✓ Mark as Paid';
+      payBtn.onclick = () => updateInvoiceStatus(id, 'Paid');
+      acts.appendChild(payBtn);
+    }
+    if (s.status !== 'Cancelled') {
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn btn-danger btn-sm';
+      cancelBtn.textContent = 'Cancel Invoice';
+      cancelBtn.onclick = () => updateInvoiceStatus(id, 'Cancelled');
+      acts.appendChild(cancelBtn);
+    }
+
+    openModal('invModal');
+  } catch (e) { notify('Failed to load invoice', 'error'); }
+}
+
+async function sendEmail() {
+  if (!currentInvId) return;
+  try {
+    const res = await API.post(`/sales/${currentInvId}/send-email`, {});
+    notify(res.message || 'Email sent!', 'success');
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function updateInvoiceStatus(id, status) {
+  if (!confirm(`${status === 'Cancelled' ? 'Cancel' : 'Mark as paid'} this invoice?`)) return;
+  try {
+    await API.patch(`/sales/${id}/status`, { status });
+    notify(`Invoice marked as ${status}`, 'success');
+    closeModal('invModal');
+    allInvoices = await API.get(`/sales/customer/${customerId}`);
+    renderPurchases(allInvoices);
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+async function updateReqStatus(id, status) {
+  try {
+    await API.patch(`/part-requests/${id}/status`, { status });
+    notify(`Request marked as ${status}`, 'success');
+    load();
+  } catch (err) { notify(err.message, 'error'); }
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
+
+load();
+</script>
+</body>
+</html>

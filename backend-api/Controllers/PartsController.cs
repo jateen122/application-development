@@ -21,8 +21,7 @@ namespace VehiclePartsAPI.Controllers
 
         public PartsController(AppDbContext context) => _context = context;
 
-        // GET /api/parts
-        // Returns all parts. Optional filter: ?category=Engine&search=brake
+
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? category, [FromQuery] string? search)
         {

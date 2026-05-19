@@ -7,39 +7,39 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.portal-nav { display: flex; gap: 2px; flex: 1; }
-.portal-link { color: var(--text-2); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 11px; border-radius: var(--radius-sm); white-space: nowrap; transition: color 0.15s, background 0.15s; }
-.portal-link:hover { color: var(--text); background: var(--surface-2); }
-.portal-link.active { color: var(--blue); background: var(--blue-dim); font-weight: 600; }
-.veh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.veh-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
-.veh-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.veh-card.petrol::before { background: var(--blue); }
-.veh-card.diesel::before { background: var(--amber); }
-.veh-card.electric::before { background: var(--green); }
-.veh-card.hybrid::before { background: var(--red); }
-.veh-card:hover { border-color: var(--border-2); transform: translateY(-2px); }
-.veh-icon { font-size: 30px; margin-bottom: 10px; }
-.veh-number { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; color: var(--blue); letter-spacing: 2px; margin-bottom: 4px; }
-.veh-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 12px; color: var(--text); }
-.veh-details { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; }
-.veh-detail-row { display: flex; gap: 8px; font-size: 13px; }
-.veh-detail-key { color: var(--text-3); width: 50px; font-family: 'Space Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
-.veh-detail-val { color: var(--text-2); }
-.veh-actions { display: flex; gap: 8px; border-top: 1px solid var(--border); padding-top: 14px; }
+.portal-nav{display:flex;align-items:center;gap:4px;flex:1}
+.portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
+.portal-link:hover{color:var(--text);background:var(--surface-2)}
+.portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+.veh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.veh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden;transition:all 0.2s}
+.veh-card:hover{border-color:var(--border-2);transform:translateY(-2px);box-shadow:var(--shadow)}
+.veh-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.veh-card.petrol::before{background:var(--blue)}
+.veh-card.diesel::before{background:var(--amber)}
+.veh-card.electric::before{background:var(--green)}
+.veh-card.hybrid::before{background:#8b5cf6}
+.veh-icon{font-size:30px;margin-bottom:10px}
+.veh-num{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);letter-spacing:2px;margin-bottom:3px}
+.veh-title{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:var(--text);margin-bottom:12px}
+.veh-meta{display:flex;flex-direction:column;gap:5px;font-size:12px;margin-bottom:16px}
+.veh-meta-row{display:flex;gap:8px;align-items:center}
+.veh-meta-key{color:var(--text-3);width:52px;font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px}
+.veh-actions{display:flex;gap:8px;border-top:1px solid var(--border);padding-top:14px}
 </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
     <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
   </a>
   <div class="portal-nav">
-    <a href="portal-profile.html" class="portal-link">My Profile</a>
+    <a href="portal-profile.html"  class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link active">My Vehicles</a>
-    <a href="portal-history.html" class="portal-link">Purchase History</a>
+    <a href="portal-history.html"  class="portal-link">Purchase History</a>
+    <a href="portal-services.html" class="portal-link">Services</a>
+    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -54,7 +54,7 @@
   </div>
 
   <div class="veh-grid" id="vehGrid">
-    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading...</div>
+    <div style="padding:48px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px;grid-column:1/-1">Loading…</div>
   </div>
 </main>
 
@@ -62,45 +62,30 @@
   <div class="modal">
     <div class="modal-hd">
       <div class="modal-title" id="vehModalTitle">Add Vehicle</div>
-      <button class="btn btn-outline btn-sm" onclick="closeModal('vehModal');resetForm()">Close</button>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('vehModal');resetVehForm()">Close</button>
     </div>
     <form id="vehForm" onsubmit="saveVehicle(event)">
       <input type="hidden" id="vehId">
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Vehicle Number</label>
-          <input class="input" id="fVehNum" required placeholder="BA 1 PA 2222">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Make</label>
-          <input class="input" id="fVehMake" required placeholder="Toyota">
-        </div>
+        <div class="form-group"><label class="form-label">Vehicle Number *</label><input class="input" id="fVNum" required placeholder="BA 1 PA 2222"></div>
+        <div class="form-group"><label class="form-label">Make *</label><input class="input" id="fVMake" required placeholder="Toyota"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Model</label>
-          <input class="input" id="fVehModel" required placeholder="Hilux">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Year</label>
-          <input class="input" id="fVehYear" type="number" min="1980" max="2030" required>
-        </div>
+        <div class="form-group"><label class="form-label">Model *</label><input class="input" id="fVModel" required placeholder="Hilux"></div>
+        <div class="form-group"><label class="form-label">Year *</label><input class="input" id="fVYear" type="number" min="1980" max="2030" required></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label class="form-label">Color</label><input class="input" id="fVColor" placeholder="White"></div>
         <div class="form-group">
-          <label class="form-label">Color</label>
-          <input class="input" id="fVehColor" placeholder="White">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Fuel Type</label>
-          <select class="input select" id="fVehFuel" required>
-            <option value="">Select...</option>
+          <label class="form-label">Fuel Type *</label>
+          <select class="input select" id="fVFuel" required>
+            <option value="">Select…</option>
             <option>Petrol</option><option>Diesel</option><option>Electric</option><option>Hybrid</option>
           </select>
         </div>
       </div>
       <div class="form-actions">
-        <button type="button" class="btn btn-outline" onclick="closeModal('vehModal');resetForm()">Cancel</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('vehModal');resetVehForm()">Cancel</button>
         <button type="submit" class="btn btn-primary" id="vehSubmitBtn">Add Vehicle</button>
       </div>
     </form>
@@ -109,52 +94,43 @@
 
 <script src="auth.js"></script>
 <script>
-const user = requireRole('Customer');
-if (user) {
-  const navUser = document.getElementById('nav-user');
-  navUser.innerHTML = `
-    <span class="nav-username">${user.firstName} ${user.lastName}</span>
-    <span class="nav-role">Customer</span>
-    <button class="nav-logout" onclick="logout()">Logout</button>
-  `;
-  loadVehicles();
-}
-
+// Declare ALL variables first — let/const are not hoisted
+const fuelIcons = { Petrol:'⛽', Diesel:'🛢', Electric:'⚡', Hybrid:'🌿' };
 let myVehicles = [];
-const fuelIcons = { Petrol: '&#9981;', Diesel: '&#128021;', Electric: '&#9889;', Hybrid: '&#127807;' };
+
+const user = requireRole('Customer');
+if (user) { buildPortalNav(); loadVehicles(); }
 
 async function loadVehicles() {
+  const grid = document.getElementById('vehGrid');
   try {
     myVehicles = await API.get(`/customers/${user.id}/vehicles`);
     renderVehicles();
-  } catch (e) {
-    document.getElementById('vehGrid').innerHTML = '<div class="tbl-empty" style="padding:48px;text-align:center">Failed to load vehicles</div>';
+  } catch(e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;
   }
 }
 
 function renderVehicles() {
   const grid = document.getElementById('vehGrid');
   if (!myVehicles.length) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;padding:60px;text-align:center">
-        <div style="font-size:48px;margin-bottom:16px">&#128663;</div>
-        <p style="color:var(--text-2);font-size:16px;margin-bottom:8px">No vehicles registered yet.</p>
-        <p class="muted">Add your vehicle to get started.</p>
-      </div>`;
-    return;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px;text-align:center">
+      <div style="font-size:48px;margin-bottom:16px">🚗</div>
+      <p style="color:var(--text-2);font-size:16px;margin-bottom:4px">No vehicles registered yet.</p>
+      <p class="muted">Click "+ Add Vehicle" to get started.</p>
+    </div>`; return;
   }
   grid.innerHTML = myVehicles.map(v => {
-    const fuelClass = v.fuelType.toLowerCase();
-    return `
-    <div class="veh-card ${fuelClass}">
-      <div class="veh-icon">${fuelIcons[v.fuelType] || '&#128663;'}</div>
-      <div class="veh-number">${v.vehicleNumber}</div>
+    const fc = v.fuelType.toLowerCase();
+    return `<div class="veh-card ${fc}">
+      <div class="veh-icon">${fuelIcons[v.fuelType]||'🚗'}</div>
+      <div class="veh-num">${v.vehicleNumber}</div>
       <div class="veh-title">${v.make} ${v.model}</div>
-      <div class="veh-details">
-        <div class="veh-detail-row"><span class="veh-detail-key">Year</span><span class="veh-detail-val">${v.year}</span></div>
-        <div class="veh-detail-row"><span class="veh-detail-key">Color</span><span class="veh-detail-val">${v.color || '—'}</span></div>
-        <div class="veh-detail-row"><span class="veh-detail-key">Fuel</span><span class="veh-detail-val"><span class="badge badge-blue">${v.fuelType}</span></span></div>
-        <div class="veh-detail-row"><span class="veh-detail-key">Since</span><span class="veh-detail-val muted" style="font-size:11px">${fmtDate(v.registeredAt)}</span></div>
+      <div class="veh-meta">
+        <div class="veh-meta-row"><span class="veh-meta-key">Year</span><span>${v.year}</span></div>
+        <div class="veh-meta-row"><span class="veh-meta-key">Color</span><span class="muted">${v.color||'—'}</span></div>
+        <div class="veh-meta-row"><span class="veh-meta-key">Fuel</span><span class="badge badge-blue" style="font-size:9px">${v.fuelType}</span></div>
+        <div class="veh-meta-row"><span class="veh-meta-key">Since</span><span class="muted">${fmtDate(v.registeredAt)}</span></div>
       </div>
       <div class="veh-actions">
         <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id})">Edit</button>
@@ -165,59 +141,51 @@ function renderVehicles() {
 }
 
 function editVehicle(id) {
-  const v = myVehicles.find(x => x.id === id);
-  if (!v) return;
-  document.getElementById('vehId').value = v.id;
-  document.getElementById('fVehNum').value = v.vehicleNumber;
-  document.getElementById('fVehMake').value = v.make;
-  document.getElementById('fVehModel').value = v.model;
-  document.getElementById('fVehYear').value = v.year;
-  document.getElementById('fVehColor').value = v.color || '';
-  document.getElementById('fVehFuel').value = v.fuelType;
+  const v = myVehicles.find(x=>x.id===id); if(!v) return;
+  document.getElementById('vehId').value   = v.id;
+  document.getElementById('fVNum').value   = v.vehicleNumber;
+  document.getElementById('fVMake').value  = v.make;
+  document.getElementById('fVModel').value = v.model;
+  document.getElementById('fVYear').value  = v.year;
+  document.getElementById('fVColor').value = v.color||'';
+  document.getElementById('fVFuel').value  = v.fuelType;
   document.getElementById('vehModalTitle').textContent = 'Edit Vehicle';
-  document.getElementById('vehSubmitBtn').textContent = 'Update Vehicle';
+  document.getElementById('vehSubmitBtn').textContent  = 'Update Vehicle';
   openModal('vehModal');
 }
 
-function resetForm() {
-  document.getElementById('vehId').value = '';
+function resetVehForm() {
+  document.getElementById('vehId').value='';
   document.getElementById('vehForm').reset();
-  document.getElementById('vehModalTitle').textContent = 'Add Vehicle';
-  document.getElementById('vehSubmitBtn').textContent = 'Add Vehicle';
+  document.getElementById('vehModalTitle').textContent='Add Vehicle';
+  document.getElementById('vehSubmitBtn').textContent='Add Vehicle';
 }
 
 async function saveVehicle(e) {
   e.preventDefault();
-  const id = document.getElementById('vehId').value;
+  const id   = document.getElementById('vehId').value;
   const body = {
-    vehicleNumber: document.getElementById('fVehNum').value.trim(),
-    make: document.getElementById('fVehMake').value.trim(),
-    model: document.getElementById('fVehModel').value.trim(),
-    year: parseInt(document.getElementById('fVehYear').value),
-    color: document.getElementById('fVehColor').value.trim(),
-    fuelType: document.getElementById('fVehFuel').value
+    vehicleNumber: document.getElementById('fVNum').value.trim(),
+    make:     document.getElementById('fVMake').value.trim(),
+    model:    document.getElementById('fVModel').value.trim(),
+    year:     parseInt(document.getElementById('fVYear').value),
+    color:    document.getElementById('fVColor').value.trim(),
+    fuelType: document.getElementById('fVFuel').value,
   };
   try {
-    if (id) { await API.put(`/customers/${user.id}/vehicles/${id}`, body); notify('Vehicle updated', 'success'); }
-    else { await API.post(`/customers/${user.id}/vehicles`, body); notify('Vehicle added', 'success'); }
-    closeModal('vehModal');
-    resetForm();
-    loadVehicles();
-  } catch (err) { notify(err.message, 'error'); }
+    if (id) { await API.put(`/customers/${user.id}/vehicles/${id}`, body); notify('Vehicle updated!','success'); }
+    else    { await API.post(`/customers/${user.id}/vehicles`, body);       notify('Vehicle added!','success'); }
+    closeModal('vehModal'); resetVehForm(); loadVehicles();
+  } catch(err) { notify(err.message,'error'); }
 }
 
 async function deleteVehicle(id, vnum) {
-  if (!confirm(`Remove vehicle "${vnum}" from your account?`)) return;
-  try {
-    await API.del(`/customers/${user.id}/vehicles/${id}`);
-    notify('Vehicle removed', 'success');
-    loadVehicles();
-  } catch (err) { notify(err.message, 'error'); }
+  if(!confirm(`Remove vehicle "${vnum}" from your account?`)) return;
+  try { await API.del(`/customers/${user.id}/vehicles/${id}`); notify('Vehicle removed','success'); loadVehicles(); }
+  catch(err) { notify(err.message,'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } });
-});
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){closeModal(m.id);resetVehForm();}}));
 </script>
 </body>
 </html>

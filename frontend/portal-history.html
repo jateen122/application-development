@@ -7,26 +7,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.portal-nav { display: flex; gap: 2px; flex: 1; }
-.portal-link { color: var(--text-2); text-decoration: none; font-size: 13.5px; font-weight: 500; padding: 6px 11px; border-radius: var(--radius-sm); white-space: nowrap; transition: color 0.15s, background 0.15s; }
-.portal-link:hover { color: var(--text); background: var(--surface-2); }
-.portal-link.active { color: var(--blue); background: var(--blue-dim); font-weight: 600; }
-.subtotal-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: var(--text-2); }
-.discount-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; color: var(--green); }
-.total-row { display: flex; justify-content: space-between; padding: 8px 0; font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; color: var(--blue); }
+.portal-nav{display:flex;align-items:center;gap:4px;flex:1}
+.portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
+.portal-link:hover{color:var(--text);background:var(--surface-2)}
+.portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+.loyalty-tag{font-family:'Space Mono',monospace;font-size:10px;background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:20px}
 </style>
 </head>
 <body>
-
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
     <div class="nav-brand-icon">&#9881;</div>
     <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
   </a>
   <div class="portal-nav">
-    <a href="portal-profile.html" class="portal-link">My Profile</a>
+    <a href="portal-profile.html"  class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
-    <a href="portal-history.html" class="portal-link active">Purchase History</a>
+    <a href="portal-history.html"  class="portal-link active">Purchase History</a>
+    <a href="portal-services.html" class="portal-link">Services</a>
+    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -39,27 +38,11 @@
     </div>
   </div>
 
-  <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
-    <div class="stat stat--blue">
-      <div class="stat-label">Total Spent</div>
-      <div class="stat-value" id="hTotalSpent">—</div>
-      <div class="stat-sub">NPR (all time)</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Invoices</div>
-      <div class="stat-value" id="hCount">—</div>
-      <div class="stat-sub">Total purchases</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Loyalty Discounts</div>
-      <div class="stat-value" id="hLoyalty">—</div>
-      <div class="stat-sub">Times applied</div>
-    </div>
-    <div class="stat stat--amber">
-      <div class="stat-label">Pending Credit</div>
-      <div class="stat-value" id="hCredit">—</div>
-      <div class="stat-sub">Unpaid invoices</div>
-    </div>
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat stat--blue"><div class="stat-label">Total Spent</div><div class="stat-value" id="hTotalSpent">—</div><div class="stat-sub">NPR (all time)</div></div>
+    <div class="stat"><div class="stat-label">Invoices</div><div class="stat-value" id="hCount">—</div><div class="stat-sub">Total purchases</div></div>
+    <div class="stat stat--green"><div class="stat-label">Loyalty Discounts</div><div class="stat-value" id="hLoyalty">—</div><div class="stat-sub">Times applied</div></div>
+    <div class="stat stat--red"><div class="stat-label">Pending Credit</div><div class="stat-value" id="hCredit">—</div><div class="stat-sub">Unpaid invoices</div></div>
   </div>
 
   <div class="card">
@@ -68,80 +51,64 @@
         <option value="">All Statuses</option>
         <option>Paid</option><option>Credit</option><option>Cancelled</option>
       </select>
-      <span class="muted" style="margin-left:auto"><span id="invCount">0</span> invoices</span>
+      <span class="muted" style="margin-left:auto"><span id="invCount">—</span> invoices</span>
     </div>
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Date</th>
-            <th>Items</th>
-            <th>Subtotal</th>
-            <th>Discount</th>
-            <th>Total</th>
-            <th>Payment</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
+          <tr><th>Invoice #</th><th>Date</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr>
         </thead>
-        <tbody id="histBody"><tr><td colspan="9" class="tbl-empty">Loading...</td></tr></tbody>
+        <tbody id="histBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
+<!-- DETAIL MODAL -->
 <div class="modal-overlay" id="detailModal">
   <div class="modal modal--wide">
     <div class="modal-hd">
       <div class="modal-title" id="detailTitle">Invoice</div>
       <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
     </div>
-    <div id="detailContent">Loading...</div>
+    <div id="detailContent">Loading…</div>
   </div>
 </div>
 
 <script src="auth.js"></script>
 <script>
-const user = requireRole('Customer');
-if (user) {
-  const navUser = document.getElementById('nav-user');
-  navUser.innerHTML = `
-    <span class="nav-username">${user.firstName} ${user.lastName}</span>
-    <span class="nav-role">Customer</span>
-    <button class="nav-logout" onclick="logout()">Logout</button>
-  `;
-  loadHistory();
-}
-
+// Declare ALL variables first — let/const are not hoisted
 let allInvoices = [];
+
+const user = requireRole('Customer');
+if (user) { buildPortalNav(); loadHistory(); }
 
 async function loadHistory() {
   try {
     allInvoices = await API.get(`/sales/customer/${user.id}`);
-    const paid = allInvoices.filter(i => i.status !== 'Cancelled');
-    const totalSpent = paid.reduce((s, i) => s + i.totalAmount, 0);
-    document.getElementById('hTotalSpent').textContent = fmt(totalSpent);
-    document.getElementById('hCount').textContent = paid.length;
-    document.getElementById('hLoyalty').textContent = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
-    document.getElementById('hCredit').textContent = allInvoices.filter(i => i.status === 'Credit').length;
+    const paid    = allInvoices.filter(i=>i.status!=='Cancelled');
+    const spent   = paid.reduce((s,i)=>s+i.totalAmount,0);
+    document.getElementById('statsRow').style.display = '';
+    document.getElementById('hTotalSpent').textContent = fmt(spent);
+    document.getElementById('hCount').textContent      = paid.length;
+    document.getElementById('hLoyalty').textContent    = allInvoices.filter(i=>i.loyaltyDiscountApplied).length;
+    document.getElementById('hCredit').textContent     = allInvoices.filter(i=>i.status==='Credit').length;
     renderInvoices(allInvoices);
-  } catch (e) {
-    document.getElementById('histBody').innerHTML = '<tr><td colspan="9" class="tbl-empty">Failed to load purchase history</td></tr>';
+  } catch(e) {
+    document.getElementById('histBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
   }
 }
 
 function renderInvoices(list) {
   document.getElementById('invCount').textContent = list.length;
   const body = document.getElementById('histBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="9" class="tbl-empty">No purchases found</td></tr>'; return; }
-  body.innerHTML = list.map(i => `
+  if (!list.length) { body.innerHTML='<tr><td colspan="8" class="tbl-empty">No purchases found</td></tr>'; return; }
+  body.innerHTML = list.map(i=>`
     <tr>
       <td><code>${i.invoiceNumber}</code></td>
       <td class="muted">${fmtDate(i.invoiceDate)}</td>
-      <td class="mono">${i.items ? i.items.length : '—'}</td>
-      <td class="amount">${i.subTotal !== undefined ? `NPR ${fmt(i.subTotal)}` : '—'}</td>
-      <td>${i.loyaltyDiscountApplied ? `<span class="badge badge-green">-10%</span>` : '—'}</td>
+      <td class="amount">${i.subTotal!==undefined?`NPR ${fmt(i.subTotal)}`:'—'}</td>
+      <td>${i.loyaltyDiscountApplied?'<span class="loyalty-tag">−10%</span>':'—'}</td>
       <td class="amount text-blue">NPR ${fmt(i.totalAmount)}</td>
       <td class="muted">${i.paymentMethod}</td>
       <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
@@ -151,7 +118,7 @@ function renderInvoices(list) {
 
 function filterInvoices() {
   const s = document.getElementById('statusFilter').value;
-  renderInvoices(s ? allInvoices.filter(i => i.status === s) : allInvoices);
+  renderInvoices(s?allInvoices.filter(i=>i.status===s):allInvoices);
 }
 
 async function viewDetail(id) {
@@ -159,36 +126,34 @@ async function viewDetail(id) {
     const inv = await API.get(`/sales/${id}`);
     document.getElementById('detailTitle').textContent = inv.invoiceNumber;
     document.getElementById('detailContent').innerHTML = `
-      <div class="grid-2" style="margin-bottom:20px;gap:12px">
+      <div class="grid-2" style="margin-bottom:20px;gap:12px;font-size:13px">
         <div><div class="form-label">Invoice Date</div><p>${fmtDateTime(inv.invoiceDate)}</p></div>
-        <div><div class="form-label">Payment</div><p>${inv.paymentMethod}</p></div>
+        <div><div class="form-label">Payment Method</div><p>${inv.paymentMethod}</p></div>
         <div><div class="form-label">Status</div><span class="status status-${inv.status.toLowerCase()}">${inv.status}</span></div>
-        ${inv.loyaltyDiscountApplied ? '<div><div class="form-label">Loyalty</div><span class="badge badge-green">10% discount applied</span></div>' : ''}
+        ${inv.loyaltyDiscountApplied?'<div><div class="form-label">Loyalty</div><span class="loyalty-tag">✓ 10% discount applied</span></div>':''}
       </div>
       <table class="tbl" style="margin-bottom:16px">
         <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
-        <tbody>
-          ${inv.items.map(it => `<tr>
-            <td class="text-strong">${it.partName}</td>
-            <td><code>${it.partNumber}</code></td>
-            <td class="mono">${it.quantity}</td>
-            <td class="amount">NPR ${fmt(it.unitPrice)}</td>
-            <td class="amount">NPR ${fmt(it.lineTotal)}</td>
-          </tr>`).join('')}
-        </tbody>
+        <tbody>${inv.items.map(it=>`<tr>
+          <td class="text-strong">${it.partName}</td>
+          <td><code>${it.partNumber}</code></td>
+          <td class="mono">${it.quantity}</td>
+          <td class="amount">NPR ${fmt(it.unitPrice)}</td>
+          <td class="amount">NPR ${fmt(it.lineTotal)}</td>
+        </tr>`).join('')}</tbody>
       </table>
-      <div style="padding:14px;background:var(--bg);border-radius:var(--radius)">
-        <div class="subtotal-row"><span>Subtotal</span><span>NPR ${fmt(inv.subTotal)}</span></div>
-        ${inv.loyaltyDiscountApplied ? `<div class="discount-row"><span>Loyalty Discount (10%)</span><span>-NPR ${fmt(inv.discountAmount)}</span></div>` : ''}
-        <div class="total-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span>TOTAL</span><span>NPR ${fmt(inv.totalAmount)}</span></div>
+      <div style="background:var(--bg);border-radius:var(--radius);padding:14px;text-align:right;font-size:13px">
+        <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-2)"><span>Subtotal</span><span class="amount">NPR ${fmt(inv.subTotal)}</span></div>
+        ${inv.loyaltyDiscountApplied?`<div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--green)"><span>Loyalty Discount (10%)</span><span>−NPR ${fmt(inv.discountAmount)}</span></div>`:''}
+        <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:700;color:var(--blue);font-family:'Syne',sans-serif;border-top:1px solid var(--border);margin-top:6px">
+          <span>TOTAL</span><span>NPR ${fmt(inv.totalAmount)}</span>
+        </div>
       </div>`;
     openModal('detailModal');
-  } catch (e) { notify('Failed to load invoice detail', 'error'); }
+  } catch(e) { notify(e.message,'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
-});
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
 </script>
 </body>
 </html>

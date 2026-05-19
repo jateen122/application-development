@@ -1,6 +1,6 @@
 namespace VehiclePartsAPI.DTOs;
 
-// ── Request DTOs ─────────────────────────────────────────────
+//Request DTOs 
 
 public class CreateSaleInvoiceDto
 {
@@ -15,7 +15,7 @@ public class CreateSaleItemDto
     public int Quantity { get; set; }
 }
 
-// ── Response DTOs ────────────────────────────────────────────
+// Response DTOs 
 
 /// <summary>Summary row — used in list endpoints and inside CustomerDetailDto.</summary>
 public class SaleInvoiceSummaryDto

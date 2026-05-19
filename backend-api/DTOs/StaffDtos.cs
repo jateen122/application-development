@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VehiclePartsAPI.DTOs;
 
-// ── Request DTOs ─────────────────────────────────────────────
 
 public class CreateStaffDto
 {
@@ -63,7 +62,6 @@ public class UpdateStaffStatusDto
     public bool IsActive { get; set; }
 }
 
-// ── Response DTOs ────────────────────────────────────────────
 
 public class StaffDto
 {

@@ -31,10 +31,6 @@ namespace VehiclePartsAPI.Controllers
 
         public CustomersController(AppDbContext context) => _context = context;
 
-        // ══════════════════════════════════════════════════════════
-        // CUSTOMER CRUD
-        // ══════════════════════════════════════════════════════════
-
         // GET /api/customers
         [HttpGet]
         public async Task<IActionResult> GetAll()

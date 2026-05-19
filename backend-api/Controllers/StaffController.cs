@@ -22,18 +22,10 @@ using Microsoft.AspNetCore.Mvc;
 public class StaffController : ControllerBase
 {
     private readonly AppDbContext _context;
-
-    // Roles allowed in the system
     private static readonly string[] AllowedRoles = { "Staff", "Admin" };
 
     public StaffController(AppDbContext context) => _context = context;
 
-    // ══════════════════════════════════════════════════════════
-    // READ
-    // ══════════════════════════════════════════════════════════
-
-    // GET /api/staff
-    // Returns all staff members ordered by name.
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -56,8 +48,6 @@ public class StaffController : ControllerBase
         return Ok(staff);
     }
 
-    // GET /api/staff/{id}
-    // Returns a single staff member by ID.
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -68,8 +58,7 @@ public class StaffController : ControllerBase
         return Ok(MapToDto(staff));
     }
 
-    // GET /api/staff/active
-    // Returns only active (non-deactivated) staff members.
+
     [HttpGet("active")]
     public async Task<IActionResult> GetActive()
     {
@@ -92,8 +81,7 @@ public class StaffController : ControllerBase
         return Ok(staff);
     }
 
-    // GET /api/staff/count
-    // Returns total and active staff counts.
+
     [HttpGet("count")]
     public async Task<IActionResult> Count()
     {
@@ -102,17 +90,11 @@ public class StaffController : ControllerBase
         return Ok(new { totalStaff = total, activeStaff = active, inactiveStaff = total - active });
     }
 
-    // ══════════════════════════════════════════════════════════
-    // CREATE
-    // ══════════════════════════════════════════════════════════
 
-    // POST /api/staff
-    // Admin registers a new staff member.
-    // Password is hashed with BCrypt before storage.
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateStaffDto dto)
     {
-        // Validate role value
+
         if (!AllowedRoles.Contains(dto.Role))
             return BadRequest(new { message = $"Invalid role '{dto.Role}'. Allowed: {string.Join(", ", AllowedRoles)}" });
 
@@ -138,13 +120,7 @@ public class StaffController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = staff.Id }, MapToDto(staff));
     }
 
-    // ══════════════════════════════════════════════════════════
-    // UPDATE
-    // ══════════════════════════════════════════════════════════
 
-    // PUT /api/staff/{id}
-    // Updates a staff member's contact details (name, email, phone).
-    // Role and status are managed through their dedicated PATCH endpoints.
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateStaffDto dto)
     {
@@ -166,8 +142,7 @@ public class StaffController : ControllerBase
         return NoContent();
     }
 
-    // PATCH /api/staff/{id}/role
-    // Changes a staff member's role (e.g. promote Staff → Admin or demote Admin → Staff).
+
     [HttpPatch("{id:int}/role")]
     public async Task<IActionResult> UpdateRole(int id, [FromBody] UpdateStaffRoleDto dto)
     {
@@ -196,7 +171,6 @@ public class StaffController : ControllerBase
     }
 
     // PATCH /api/staff/{id}/status
-    // Activates or deactivates a staff account without deleting it.
     [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStaffStatusDto dto)
     {
@@ -219,9 +193,6 @@ public class StaffController : ControllerBase
         return Ok(new { message = $"Staff account {statusLabel} successfully.", staff = MapToDto(staff) });
     }
 
-    // ══════════════════════════════════════════════════════════
-    // DELETE
-    // ══════════════════════════════════════════════════════════
 
     // DELETE /api/staff/{id}
     // Permanently removes a staff member.
@@ -246,7 +217,7 @@ public class StaffController : ControllerBase
         return NoContent();
     }
 
-    // ── Helper ─────────────────────────────────────────────────
+    // Helper
     private static StaffDto MapToDto(Staff s) => new()
     {
         Id = s.Id,

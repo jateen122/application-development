@@ -23,11 +23,7 @@ public class CustomerReportsController : ControllerBase
 
     public CustomerReportsController(AppDbContext context) => _context = context;
 
-    // ══════════════════════════════════════════════════════════
-    // TOP SPENDERS
-    // GET /api/customer-reports/top-spenders?limit=20
-    // Returns customers sorted by total amount spent (non-cancelled invoices).
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("top-spenders")]
     public async Task<IActionResult> TopSpenders([FromQuery] int limit = 20)
     {
@@ -58,11 +54,7 @@ public class CustomerReportsController : ControllerBase
         return Ok(result);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // REGULAR CUSTOMERS
-    // GET /api/customer-reports/regulars?minPurchases=3
-    // Customers who have made at least N purchases.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("regulars")]
     public async Task<IActionResult> Regulars([FromQuery] int minPurchases = 3)
     {
@@ -92,11 +84,7 @@ public class CustomerReportsController : ControllerBase
         return Ok(result);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // PENDING CREDITS
-    // GET /api/customer-reports/pending-credits
-    // Customers who have at least one unpaid credit invoice.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("pending-credits")]
     public async Task<IActionResult> PendingCredits()
     {
@@ -125,10 +113,6 @@ public class CustomerReportsController : ControllerBase
         return Ok(result);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // OVERDUE CREDITS (> 30 days unpaid)
-    // GET /api/customer-reports/overdue-credits
-    // ══════════════════════════════════════════════════════════
     [HttpGet("overdue-credits")]
     public async Task<IActionResult> OverdueCredits()
     {
@@ -160,11 +144,7 @@ public class CustomerReportsController : ControllerBase
         return Ok(result);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // UNIVERSAL SEARCH (Feature 10)
-    // GET /api/customer-reports/search?q=...
-    // Searches by customer name, email, phone, ID, or vehicle number.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("search")]
     public async Task<IActionResult> Search([FromQuery] string q)
     {

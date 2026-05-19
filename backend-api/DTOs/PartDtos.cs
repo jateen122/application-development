@@ -1,6 +1,6 @@
 namespace VehiclePartsAPI.DTOs;
 
-// ── Response DTO ─────────────────────────────────────────────
+// Response DTO
 public class PartDto
 {
     public int Id { get; set; }
@@ -14,7 +14,7 @@ public class PartDto
     public DateTime UpdatedAt { get; set; }
 }
 
-// ── Create DTO ───────────────────────────────────────────────
+// Create DTO 
 public class CreatePartDto
 {
     public string Name { get; set; } = string.Empty;
@@ -26,7 +26,7 @@ public class CreatePartDto
     public int StockQty { get; set; }
 }
 
-// ── Update DTO ───────────────────────────────────────────────
+// Update DTO
 public class UpdatePartDto
 {
     public string Name { get; set; } = string.Empty;
