@@ -11,29 +11,54 @@
 .portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
 .portal-link:hover{color:var(--text);background:var(--surface-2)}
 .portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+
 .svc-tabs{display:flex;gap:6px;margin-bottom:24px;background:var(--surface-2);padding:6px;border-radius:var(--radius-lg);border:1px solid var(--border)}
 .svctab{flex:1;padding:9px;border:none;background:none;color:var(--text-3);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
 .svctab.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,0.10)}
+
 .appt-card{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:start;gap:12px}
 .req-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .review-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:12px}
+
 .review-stars{color:#f59e0b;font-size:14px;margin-bottom:4px}
 .star{font-size:24px;cursor:pointer;color:var(--border-2);transition:color 0.15s;line-height:1;display:inline-block}
 .star.on{color:#f59e0b}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info { color: var(--text-3); font-size: 14px; }
+.pagination-btns { display: flex; gap: 6px; }
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+.pagination-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 </style>
 </head>
 <body>
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div class="portal-nav">
     <a href="portal-profile.html"  class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
     <a href="portal-history.html"  class="portal-link">Purchase History</a>
     <a href="portal-services.html" class="portal-link active">Services</a>
-    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
+    <a href="portal-shop.html" class="portal-link">Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -47,9 +72,9 @@
   </div>
 
   <div class="svc-tabs">
-    <button class="svctab active" onclick="switchTab('appointments',this)">📅 Appointments</button>
-    <button class="svctab" onclick="switchTab('requests',this)">🔧 Part Requests</button>
-    <button class="svctab" onclick="switchTab('reviews',this)">⭐ Reviews</button>
+    <button class="svctab active" onclick="switchTab('appointments',this)">Appointments</button>
+    <button class="svctab" onclick="switchTab('requests',this)">Part Requests</button>
+    <button class="svctab" onclick="switchTab('reviews',this)">Reviews</button>
   </div>
 
   <div id="tab-appointments">
@@ -57,7 +82,11 @@
       <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">My Appointments</h2>
       <button class="btn btn-primary" onclick="openModal('apptModal')">+ Book Appointment</button>
     </div>
-    <div id="apptList"><div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">Loading…</div></div>
+    <div id="apptList"></div>
+    <div class="pagination" id="apptPagination" style="display:none">
+      <div class="pagination-info" id="apptPaginationInfo"></div>
+      <div class="pagination-btns" id="apptPaginationBtns"></div>
+    </div>
   </div>
 
   <div id="tab-requests" style="display:none">
@@ -65,7 +94,11 @@
       <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">My Part Requests</h2>
       <button class="btn btn-primary" onclick="openModal('reqModal')">+ Request a Part</button>
     </div>
-    <div id="reqList"><div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">Loading…</div></div>
+    <div id="reqList"></div>
+    <div class="pagination" id="reqPagination" style="display:none">
+      <div class="pagination-info" id="reqPaginationInfo"></div>
+      <div class="pagination-btns" id="reqPaginationBtns"></div>
+    </div>
   </div>
 
   <div id="tab-reviews" style="display:none">
@@ -73,7 +106,7 @@
       <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">Service Reviews</h2>
       <button class="btn btn-primary" onclick="openModal('reviewModal')">+ Write Review</button>
     </div>
-    <div id="reviewList"><div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">Loading…</div></div>
+    <div id="reviewList"></div>
   </div>
 </main>
 
@@ -137,127 +170,206 @@
   </div>
 </div>
 
+<!-- Custom Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title" id="confirmTitle">Confirm</div></div>
+    <div style="padding:25px 30px; text-align:center;">
+      <div id="confirmIcon" style="font-size:42px;margin-bottom:12px;"></div>
+      <p style="font-size:15.5px;margin:10px 0 20px;" id="confirmMessage"></p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// Declare ALL variables first — let/const are not hoisted
 let selectedRating = 0;
+let allAppointments = [];
+let allRequests = [];
 
 const user = requireRole('Customer');
 if (user) {
   buildPortalNav();
-  const mn = new Date(); mn.setMinutes(mn.getMinutes()+60);
+  const mn = new Date(); 
+  mn.setMinutes(mn.getMinutes() + 60);
   document.getElementById('aDate').min = mn.toISOString().slice(0,16);
   loadAppointments();
 }
 
 function switchTab(tab, el) {
-  ['appointments','requests','reviews'].forEach(t=>document.getElementById(`tab-${t}`).style.display=t===tab?'block':'none');
-  document.querySelectorAll('.svctab').forEach(b=>b.classList.remove('active'));
+  ['appointments','requests','reviews'].forEach(t => 
+    document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none'
+  );
+  document.querySelectorAll('.svctab').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
-  if(tab==='appointments') loadAppointments();
-  if(tab==='requests')     loadRequests();
-  if(tab==='reviews')      loadReviews();
+
+  if (tab === 'appointments') loadAppointments();
+  if (tab === 'requests') loadRequests();
+  if (tab === 'reviews') loadReviews();
 }
 
+// ====================== APPOINTMENTS ======================
 async function loadAppointments() {
   const el = document.getElementById('apptList');
   try {
-    const list = await API.get(`/appointments/customer/${user.id}`);
-    if (!list.length) { el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:12px">No appointments yet.</div>'; return; }
-    const bc={Pending:'var(--amber)',Confirmed:'var(--blue)',Completed:'var(--green)',Cancelled:'var(--border-2)'};
-    el.innerHTML = list.map(a=>`
-      <div class="appt-card" style="border-left-color:${bc[a.status]||'var(--blue)'}">
-        <div>
-          <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--blue);margin-bottom:3px">${fmtDateTime(a.appointmentDate)}</div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--text)">${a.serviceType}</div>
-          ${a.notes?`<p class="muted" style="font-size:12px;margin-top:4px">${a.notes}</p>`:''}
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-          <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
-          ${(a.status==='Pending'||a.status==='Confirmed')?`<button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.id})">Cancel</button>`:''}
-        </div>
-      </div>`).join('');
-  } catch(e) { el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`; }
+    allAppointments = await API.get(`/appointments/customer/${user.id}`);
+    renderAppointments(allAppointments);
+  } catch(e) {
+    el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red)">Failed to load appointments</div>`;
+  }
 }
 
-async function bookAppointment() {
-  const serviceType=document.getElementById('aType').value;
-  const dateVal=document.getElementById('aDate').value;
-  if(!serviceType||!dateVal){notify('Please fill in all required fields','error');return;}
-  if(new Date(dateVal)<=new Date()){notify('Date must be in the future','error');return;}
-  try {
-    await API.post('/appointments',{customerId:user.id,serviceType,appointmentDate:new Date(dateVal).toISOString(),notes:document.getElementById('aNotes').value});
-    notify('Appointment booked!','success'); closeModal('apptModal');
-    document.getElementById('aType').value=''; document.getElementById('aDate').value=''; document.getElementById('aNotes').value='';
-    loadAppointments();
-  } catch(err){notify(err.message,'error');}
+function renderAppointments(list) {
+  const el = document.getElementById('apptList');
+  if (!list.length) {
+    el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">No appointments yet.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(a => `
+    <div class="appt-card" style="border-left-color:${a.status==='Pending'?'var(--amber)':a.status==='Confirmed'?'var(--blue)':a.status==='Completed'?'var(--green)':'var(--border-2)'}">
+      <div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--blue);margin-bottom:3px">${fmtDateTime(a.appointmentDate)}</div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:var(--text)">${a.serviceType}</div>
+        ${a.notes ? `<p class="muted" style="font-size:12px;margin-top:4px">${a.notes}</p>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="status status-${a.status.toLowerCase()}">${a.status}</span>
+        ${(a.status==='Pending' || a.status==='Confirmed') ? 
+          `<button class="btn btn-danger btn-sm" onclick="cancelAppt(${a.id})">Cancel</button>` : ''}
+      </div>
+    </div>`).join('');
 }
 
-async function cancelAppt(id) {
-  if(!confirm('Cancel this appointment?')) return;
-  try{await API.patch(`/appointments/${id}/status`,{status:'Cancelled'});notify('Appointment cancelled','success');loadAppointments();}
-  catch(err){notify(err.message,'error');}
-}
-
+// ====================== PART REQUESTS ======================
 async function loadRequests() {
-  const el=document.getElementById('reqList');
+  const el = document.getElementById('reqList');
   try {
-    const list=await API.get(`/part-requests/customer/${user.id}`);
-    if(!list.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:12px">No part requests yet.</div>';return;}
-    el.innerHTML=list.map(r=>`
+    const list = await API.get(`/part-requests/customer/${user.id}`);
+    if (!list.length) {
+      el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">No part requests yet.</div>`;
+      return;
+    }
+    el.innerHTML = list.map(r => `
       <div class="req-card">
         <div>
-          <div style="font-weight:600;color:var(--text);font-size:13.5px">${r.partName} ${r.partNumber?`<code>${r.partNumber}</code>`:''}</div>
-          <p class="muted" style="font-size:12px;margin-top:2px">Qty: ${r.quantity} &nbsp;•&nbsp; ${fmtDate(r.createdAt)}${r.notes?' &nbsp;•&nbsp; '+r.notes:''}</p>
+          <div style="font-weight:600;color:var(--text);font-size:13.5px">${r.partName} ${r.partNumber ? `<code>${r.partNumber}</code>` : ''}</div>
+          <p class="muted" style="font-size:12px;margin-top:2px">Qty: ${r.quantity} • ${fmtDate(r.createdAt)}${r.notes ? ' • ' + r.notes : ''}</p>
         </div>
         <span class="status status-${r.status.toLowerCase()}">${r.status}</span>
       </div>`).join('');
-  } catch(e){el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;}
+  } catch(e) {
+    el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red)">Failed to load requests</div>`;
+  }
 }
 
-async function submitRequest() {
-  const partName=document.getElementById('rPartName').value.trim();
-  if(!partName){notify('Part name is required','error');return;}
-  try {
-    await API.post('/part-requests',{customerId:user.id,partName,partNumber:document.getElementById('rPartNumber').value.trim(),quantity:parseInt(document.getElementById('rQty').value)||1,notes:document.getElementById('rNotes').value.trim()});
-    notify('Part request submitted!','success'); closeModal('reqModal');
-    document.getElementById('rPartName').value=''; document.getElementById('rPartNumber').value=''; document.getElementById('rQty').value='1'; document.getElementById('rNotes').value='';
-    loadRequests();
-  } catch(err){notify(err.message,'error');}
-}
-
+// ====================== REVIEWS ======================
 async function loadReviews() {
-  const el=document.getElementById('reviewList');
+  const el = document.getElementById('reviewList');
   try {
-    const list=await API.get('/reviews');
-    if(!list.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:12px">No reviews yet. Be the first!</div>';return;}
-    el.innerHTML=list.map(r=>`
+    const list = await API.get('/reviews');
+    if (!list.length) {
+      el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">No reviews yet. Be the first!</div>`;
+      return;
+    }
+    el.innerHTML = list.map(r => `
       <div class="review-card">
         <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
         <p style="color:var(--text-2);font-size:13px;line-height:1.6;margin-bottom:8px">${r.comment}</p>
-        <p class="muted" style="font-size:11px;font-family:'Space Mono',monospace">${r.customerName} &nbsp;•&nbsp; ${fmtDate(r.createdAt)}</p>
+        <p class="muted" style="font-size:11px;font-family:'Space Mono',monospace">${r.customerName} • ${fmtDate(r.createdAt)}</p>
       </div>`).join('');
-  } catch(e){el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;}
+  } catch(e) {
+    el.innerHTML = `<div style="padding:40px;text-align:center;color:var(--red)">Failed to load reviews</div>`;
+  }
+}
+
+// ====================== ACTIONS ======================
+async function bookAppointment() {
+  const serviceType = document.getElementById('aType').value;
+  const dateVal = document.getElementById('aDate').value;
+  if (!serviceType || !dateVal) { notify('Please fill required fields', 'error'); return; }
+  try {
+    await API.post('/appointments', {
+      customerId: user.id,
+      serviceType,
+      appointmentDate: new Date(dateVal).toISOString(),
+      notes: document.getElementById('aNotes').value
+    });
+    notify('Appointment booked!', 'success');
+    closeModal('apptModal');
+    loadAppointments();
+  } catch(err) { notify(err.message, 'error'); }
+}
+
+function cancelAppt(id) {
+  showConfirm("Cancel Appointment", "Are you sure you want to cancel this appointment?", () => {
+    API.patch(`/appointments/${id}/status`, { status: 'Cancelled' })
+      .then(() => {
+        notify('Appointment cancelled', 'success');
+        loadAppointments();
+      })
+      .catch(err => notify(err.message, 'error'));
+  });
+}
+
+async function submitRequest() {
+  const partName = document.getElementById('rPartName').value.trim();
+  if (!partName) { notify('Part name is required', 'error'); return; }
+  try {
+    await API.post('/part-requests', {
+      customerId: user.id,
+      partName,
+      partNumber: document.getElementById('rPartNumber').value.trim(),
+      quantity: parseInt(document.getElementById('rQty').value) || 1,
+      notes: document.getElementById('rNotes').value.trim()
+    });
+    notify('Part request submitted!', 'success');
+    closeModal('reqModal');
+    loadRequests();
+  } catch(err) { notify(err.message, 'error'); }
 }
 
 function setRating(val) {
-  selectedRating=val;
-  document.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<val));
+  selectedRating = val;
+  document.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < val));
 }
 
 async function submitReview() {
-  if(!selectedRating){notify('Please select a rating','error');return;}
-  const comment=document.getElementById('rvComment').value.trim();
-  if(!comment){notify('Please write a comment','error');return;}
+  if (!selectedRating) { notify('Please select a rating', 'error'); return; }
+  const comment = document.getElementById('rvComment').value.trim();
+  if (!comment) { notify('Please write a comment', 'error'); return; }
   try {
-    await API.post('/reviews',{customerId:user.id,rating:selectedRating,comment});
-    notify('Review submitted! Thank you.','success'); closeModal('reviewModal');
-    selectedRating=0; document.querySelectorAll('.star').forEach(s=>s.classList.remove('on')); document.getElementById('rvComment').value='';
+    await API.post('/reviews', { customerId: user.id, rating: selectedRating, comment });
+    notify('Review submitted! Thank you.', 'success');
+    closeModal('reviewModal');
+    selectedRating = 0;
+    document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+    document.getElementById('rvComment').value = '';
     loadReviews();
-  } catch(err){notify(err.message,'error');}
+  } catch(err) { notify(err.message, 'error'); }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+// Custom Confirm Modal
+function showConfirm(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').innerHTML = message;
+  document.getElementById('confirmActionBtn').onclick = () => {
+    closeConfirmModal();
+    callback();
+  };
+  openModal('confirmModal');
+}
+
+function closeConfirmModal() {
+  closeModal('confirmModal');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
 </script>
 </body>
 </html>

@@ -172,7 +172,7 @@ if (user) {
 
 // ── Payment result from Khalti redirect ────────────────────
 function checkPaymentResult() {
-  const params = new URLSearchParams(location.search);
+  const params  = new URLSearchParams(location.search);
   const payment = params.get('payment');
   const invoice = params.get('invoice');
 
@@ -182,7 +182,6 @@ function checkPaymentResult() {
       `✅ Payment successful! Invoice ${invoice || ''} has been created. Check your Purchase History.`;
     el.style.display = 'flex';
     cart = {}; renderCart();
-    // Clean URL
     history.replaceState({}, '', 'portal-shop.html');
   } else if (payment === 'failed') {
     document.getElementById('bannerError').style.display = 'flex';
@@ -268,11 +267,7 @@ function addToCart(partId) {
     cart[partId] = { part, quantity: 1 };
   }
   renderCart();
-  renderParts(allParts.filter(p => {
-    const q   = document.getElementById('partSearch').value.toLowerCase();
-    const cat = document.getElementById('catFilter').value;
-    return (!cat || p.category === cat) && (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q));
-  }));
+  filterParts();
   notify(`"${part.name}" added to cart`, 'success');
   if (!document.getElementById('cartPanel').classList.contains('open')) {
     document.getElementById('cartFab').style.display = 'flex';
@@ -329,16 +324,15 @@ function renderCart() {
       </div>
     </div>`).join('');
 
-  // Totals
   const subtotal  = items.reduce((s, i) => s + (i.part.sellingPrice * i.quantity), 0);
   const loyalty   = subtotal > 5000;
   const discount  = loyalty ? subtotal * 0.10 : 0;
   const total     = subtotal - discount;
 
-  document.getElementById('cSubtotal').textContent    = `NPR ${fmt(subtotal)}`;
+  document.getElementById('cSubtotal').textContent     = `NPR ${fmt(subtotal)}`;
   document.getElementById('cDiscountRow').style.display = loyalty ? 'flex' : 'none';
-  document.getElementById('cDiscount').textContent    = `− NPR ${fmt(discount)}`;
-  document.getElementById('cTotal').textContent       = `NPR ${fmt(total)}`;
+  document.getElementById('cDiscount').textContent     = `− NPR ${fmt(discount)}`;
+  document.getElementById('cTotal').textContent        = `NPR ${fmt(total)}`;
   document.getElementById('loyaltyNote').style.display = loyalty ? 'block' : 'none';
   footer.style.display = 'block';
 }
@@ -362,6 +356,7 @@ async function payWithKhalti() {
   try {
     const payload = {
       customerId: user.id,
+      // Send the current page's origin so the backend can redirect back correctly
       websiteUrl: window.location.origin,
       items: items.map(({ part, quantity }) => ({
         partId:   part.id,
@@ -371,20 +366,18 @@ async function payWithKhalti() {
 
     const res = await API.post('/payment/initiate', payload);
 
-    // Redirect to Khalti payment page
     notify('Redirecting to Khalti…', 'info');
     setTimeout(() => {
       window.location.href = res.paymentUrl;
     }, 800);
 
   } catch(err) {
-    notify(err.message, 'error');
+    notify(err.message || 'Payment initiation failed. Please try again.', 'error');
     btn.disabled = false;
     btn.innerHTML = '<span class="khalti-logo">💜</span> Pay with Khalti';
   }
 }
 
-// Close cart if click outside on mobile
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && document.getElementById('cartPanel').classList.contains('open')) {
     toggleCart();

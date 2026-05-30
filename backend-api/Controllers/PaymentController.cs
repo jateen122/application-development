@@ -46,7 +46,7 @@ public class PaymentController : ControllerBase
             query = query.Where(p => p.Name.Contains(search) || p.PartNumber.Contains(search));
 
         var parts = await query
-            .Where(p => p.StockQty > 0)   // only show in-stock parts
+            .Where(p => p.StockQty > 0)
             .OrderBy(p => p.Category).ThenBy(p => p.Name)
             .Select(p => new PartDto
             {
@@ -66,8 +66,6 @@ public class PaymentController : ControllerBase
     }
 
     // ── POST /api/payment/initiate ────────────────────────────
-    // Called from frontend when customer clicks "Pay with Khalti"
-    // Creates a pending sale invoice, then initiates Khalti payment
     [HttpPost("initiate")]
     public async Task<IActionResult> Initiate([FromBody] KhaltiInitiateDto dto)
     {
@@ -114,7 +112,6 @@ public class PaymentController : ControllerBase
         var count   = await _context.SaleInvoices.CountAsync() + 1;
         var invoiceNumber = $"SI-{year}-{count:D4}";
 
-        // Generate unique purchase order ID for Khalti
         var purchaseOrderId = $"VPP-{invoiceNumber}-{Guid.NewGuid().ToString("N")[..8].ToUpper()}";
 
         // Create invoice in PENDING state (stock NOT deducted yet)
@@ -128,25 +125,27 @@ public class PaymentController : ControllerBase
             TotalAmount            = totalAmount,
             LoyaltyDiscountApplied = loyaltyApplied,
             PaymentMethod          = "Khalti",
-            Status                 = "Pending",        // pending until Khalti confirms
+            Status                 = "Pending",
             Items                  = saleItems
         };
 
         _context.SaleInvoices.Add(invoice);
         await _context.SaveChangesAsync();
 
-        // Build return URL — Khalti will redirect here after payment
-        var baseUrl   = $"{Request.Scheme}://{Request.Host}";
-        var returnUrl = $"{baseUrl}/api/payment/callback?invoiceId={invoice.Id}";
+        // Build callback URL — points back to this API
+        var apiBaseUrl = $"{Request.Scheme}://{Request.Host}";
+        var returnUrl  = $"{apiBaseUrl}/api/payment/callback?invoiceId={invoice.Id}";
 
-        // Khalti amount is in PAISA (multiply NPR by 100)
+        // Determine the frontend URL for final redirect
+        // Use the websiteUrl from the request (sent by the frontend), fallback to origin header
+        var frontendOrigin = dto.WebsiteUrl?.TrimEnd('/') ?? GetFrontendOrigin();
+
         var amountInPaisa = (int)(totalAmount * 100);
 
-        // Build Khalti initiate payload
         var khaltiPayload = new
         {
             return_url          = returnUrl,
-            website_url         = dto.WebsiteUrl ?? "http://127.0.0.1:5501",
+            website_url         = frontendOrigin,
             amount              = amountInPaisa,
             purchase_order_id   = purchaseOrderId,
             purchase_order_name = $"VehicleParts Order {invoiceNumber}",
@@ -167,7 +166,8 @@ public class PaymentController : ControllerBase
         };
 
         // Call Khalti initiate API
-        var secretKey = _config["ExternalServices:KhaltiSecretKey"] ?? "live_secret_key_68791341fdd94846a146f7166456030";
+        var secretKey = _config["ExternalServices:KhaltiSecretKey"]
+                        ?? "live_secret_key_68791341fdd94846a146f7166456030";
         var client    = _http.CreateClient();
         client.DefaultRequestHeaders.Add("Authorization", $"Key {secretKey}");
 
@@ -184,7 +184,6 @@ public class PaymentController : ControllerBase
         }
         catch (Exception ex)
         {
-            // If Khalti is unreachable, remove the pending invoice
             _context.SaleInvoices.Remove(invoice);
             await _context.SaveChangesAsync();
             return StatusCode(503, new { message = $"Cannot reach Khalti: {ex.Message}" });
@@ -204,7 +203,6 @@ public class PaymentController : ControllerBase
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
         );
 
-        // Store pidx on the invoice for later lookup
         invoice.KhaltiPidx = khaltiResult!.Pidx;
         await _context.SaveChangesAsync();
 
@@ -220,8 +218,7 @@ public class PaymentController : ControllerBase
     }
 
     // ── GET /api/payment/callback ─────────────────────────────
-    // Khalti redirects here after payment — verifies via lookup API
-    // then finalises the sale or marks it failed
+    // Khalti redirects here after payment
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(
         [FromQuery] int    invoiceId,
@@ -230,24 +227,25 @@ public class PaymentController : ControllerBase
         [FromQuery] string? transaction_id,
         [FromQuery] string? purchase_order_id)
     {
-        // Find the pending invoice
+        var frontendOrigin = GetFrontendOrigin();
+
         var invoice = await _context.SaleInvoices
             .Include(si => si.Items)
             .FirstOrDefaultAsync(si => si.Id == invoiceId);
 
         if (invoice == null)
-            return Redirect($"http://127.0.0.1:5501/frontend/portal-history.html?payment=error&msg=Invoice+not+found");
+            return Redirect($"{frontendOrigin}/portal-history.html?payment=error&msg=Invoice+not+found");
 
-        // If user cancelled, delete the pending invoice
         if (status == "User canceled")
         {
             _context.SaleInvoices.Remove(invoice);
             await _context.SaveChangesAsync();
-            return Redirect($"http://127.0.0.1:5501/frontend/portal-shop.html?payment=cancelled");
+            return Redirect($"{frontendOrigin}/portal-shop.html?payment=cancelled");
         }
 
-        // Verify with Khalti lookup API
-        var secretKey = _config["ExternalServices:KhaltiSecretKey"] ?? "live_secret_key_68791341fdd94846a146f7166456030";
+        // Verify with Khalti lookup
+        var secretKey = _config["ExternalServices:KhaltiSecretKey"]
+                        ?? "live_secret_key_68791341fdd94846a146f7166456030";
         var client    = _http.CreateClient();
         client.DefaultRequestHeaders.Add("Authorization", $"Key {secretKey}");
 
@@ -275,7 +273,6 @@ public class PaymentController : ControllerBase
 
         if (lookupStatus == "Completed")
         {
-            // ✅ Payment confirmed — deduct stock and mark invoice as Paid
             var partIds  = invoice.Items.Select(i => i.PartId).ToList();
             var parts    = await _context.Parts.Where(p => partIds.Contains(p.Id)).ToListAsync();
             var partDict = parts.ToDictionary(p => p.Id);
@@ -290,23 +287,22 @@ public class PaymentController : ControllerBase
             invoice.KhaltiTransactionId = transaction_id;
             await _context.SaveChangesAsync();
 
-            return Redirect($"http://127.0.0.1:5501/frontend/portal-history.html?payment=success&invoice={invoice.InvoiceNumber}");
+            return Redirect($"{frontendOrigin}/portal-history.html?payment=success&invoice={invoice.InvoiceNumber}");
         }
         else
         {
-            // ❌ Payment not completed — remove pending invoice
             _context.SaleInvoices.Remove(invoice);
             await _context.SaveChangesAsync();
-            return Redirect($"http://127.0.0.1:5501/frontend/portal-shop.html?payment=failed&status={lookupStatus}");
+            return Redirect($"{frontendOrigin}/portal-shop.html?payment=failed&status={lookupStatus}");
         }
     }
 
     // ── POST /api/payment/lookup ──────────────────────────────
-    // Frontend can call this to check payment status manually
     [HttpPost("lookup")]
     public async Task<IActionResult> Lookup([FromBody] KhaltiLookupDto dto)
     {
-        var secretKey = _config["ExternalServices:KhaltiSecretKey"] ?? "live_secret_key_68791341fdd94846a146f7166456030";
+        var secretKey = _config["ExternalServices:KhaltiSecretKey"]
+                        ?? "live_secret_key_68791341fdd94846a146f7166456030";
         var client    = _http.CreateClient();
         client.DefaultRequestHeaders.Add("Authorization", $"Key {secretKey}");
 
@@ -320,5 +316,22 @@ public class PaymentController : ControllerBase
         var body     = await response.Content.ReadAsStringAsync();
 
         return Content(body, "application/json");
+    }
+
+    // ── Helper: detect frontend origin from Referer or Origin header ──
+    private string GetFrontendOrigin()
+    {
+        // Try the Origin header first (set by browsers on cross-origin requests)
+        var origin = Request.Headers["Origin"].ToString();
+        if (!string.IsNullOrWhiteSpace(origin))
+            return origin.TrimEnd('/');
+
+        // Try Referer
+        var referer = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refUri))
+            return $"{refUri.Scheme}://{refUri.Authority}";
+
+        // Fallback — same host, assume frontend is served from root
+        return $"{Request.Scheme}://{Request.Host}";
     }
 }

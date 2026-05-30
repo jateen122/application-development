@@ -12,20 +12,56 @@
 .portal-link:hover{color:var(--text);background:var(--surface-2)}
 .portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
 .loyalty-tag{font-family:'Space Mono',monospace;font-size:10px;background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:20px}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
 </style>
 </head>
 <body>
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div class="portal-nav">
     <a href="portal-profile.html"  class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
     <a href="portal-history.html"  class="portal-link active">Purchase History</a>
     <a href="portal-services.html" class="portal-link">Services</a>
-    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
+    <a href="portal-shop.html" class="portal-link">Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -61,6 +97,12 @@
         <tbody id="histBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="historyPagination">
+      <div class="pagination-info" id="historyPaginationInfo">Showing 1-10 of 0</div>
+      <div class="pagination-btns" id="historyPaginationBtns"></div>
+    </div>
   </div>
 </main>
 
@@ -77,48 +119,101 @@
 
 <script src="auth.js"></script>
 <script>
-// Declare ALL variables first — let/const are not hoisted
 let allInvoices = [];
+let currentPage = 1;
+const itemsPerPage = 10;
 
 const user = requireRole('Customer');
-if (user) { buildPortalNav(); loadHistory(); }
+if (user) { 
+  buildPortalNav(); 
+  loadHistory(); 
+}
 
 async function loadHistory() {
   try {
     allInvoices = await API.get(`/sales/customer/${user.id}`);
-    const paid    = allInvoices.filter(i=>i.status!=='Cancelled');
-    const spent   = paid.reduce((s,i)=>s+i.totalAmount,0);
+    const paid = allInvoices.filter(i => i.status !== 'Cancelled');
+    const spent = paid.reduce((s, i) => s + (i.totalAmount || 0), 0);
+
     document.getElementById('statsRow').style.display = '';
     document.getElementById('hTotalSpent').textContent = fmt(spent);
-    document.getElementById('hCount').textContent      = paid.length;
-    document.getElementById('hLoyalty').textContent    = allInvoices.filter(i=>i.loyaltyDiscountApplied).length;
-    document.getElementById('hCredit').textContent     = allInvoices.filter(i=>i.status==='Credit').length;
+    document.getElementById('hCount').textContent = paid.length;
+    document.getElementById('hLoyalty').textContent = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
+    document.getElementById('hCredit').textContent = allInvoices.filter(i => i.status === 'Credit').length;
+
+    currentPage = 1;
     renderInvoices(allInvoices);
   } catch(e) {
-    document.getElementById('histBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+    document.getElementById('histBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">Failed to load history</td></tr>`;
   }
 }
 
 function renderInvoices(list) {
-  document.getElementById('invCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('invCount').textContent = total;
   const body = document.getElementById('histBody');
-  if (!list.length) { body.innerHTML='<tr><td colspan="8" class="tbl-empty">No purchases found</td></tr>'; return; }
-  body.innerHTML = list.map(i=>`
+
+  if (!total) {
+    body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No purchases found</td></tr>';
+    updatePagination(total, totalPages);
+    return;
+  }
+
+  body.innerHTML = paginated.map(i => `
     <tr>
       <td><code>${i.invoiceNumber}</code></td>
       <td class="muted">${fmtDate(i.invoiceDate)}</td>
-      <td class="amount">${i.subTotal!==undefined?`NPR ${fmt(i.subTotal)}`:'—'}</td>
-      <td>${i.loyaltyDiscountApplied?'<span class="loyalty-tag">−10%</span>':'—'}</td>
+      <td class="amount">${i.subTotal !== undefined ? `NPR ${fmt(i.subTotal)}` : '—'}</td>
+      <td>${i.loyaltyDiscountApplied ? '<span class="loyalty-tag">−10%</span>' : '—'}</td>
       <td class="amount text-blue">NPR ${fmt(i.totalAmount)}</td>
       <td class="muted">${i.paymentMethod}</td>
       <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="viewDetail(${i.id})">View</button></td>
     </tr>`).join('');
+
+  updatePagination(total, totalPages);
+}
+
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('historyPaginationInfo');
+  const btns = document.getElementById('historyPaginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No invoices';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  const totalPages = Math.ceil(allInvoices.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderInvoices(allInvoices);
 }
 
 function filterInvoices() {
   const s = document.getElementById('statusFilter').value;
-  renderInvoices(s?allInvoices.filter(i=>i.status===s):allInvoices);
+  currentPage = 1;
+  renderInvoices(s ? allInvoices.filter(i => i.status === s) : allInvoices);
 }
 
 async function viewDetail(id) {
@@ -130,11 +225,11 @@ async function viewDetail(id) {
         <div><div class="form-label">Invoice Date</div><p>${fmtDateTime(inv.invoiceDate)}</p></div>
         <div><div class="form-label">Payment Method</div><p>${inv.paymentMethod}</p></div>
         <div><div class="form-label">Status</div><span class="status status-${inv.status.toLowerCase()}">${inv.status}</span></div>
-        ${inv.loyaltyDiscountApplied?'<div><div class="form-label">Loyalty</div><span class="loyalty-tag">✓ 10% discount applied</span></div>':''}
+        ${inv.loyaltyDiscountApplied ? '<div><div class="form-label">Loyalty</div><span class="loyalty-tag">✓ 10% discount applied</span></div>' : ''}
       </div>
       <table class="tbl" style="margin-bottom:16px">
         <thead><tr><th>Part</th><th>Part #</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr></thead>
-        <tbody>${inv.items.map(it=>`<tr>
+        <tbody>${inv.items.map(it => `<tr>
           <td class="text-strong">${it.partName}</td>
           <td><code>${it.partNumber}</code></td>
           <td class="mono">${it.quantity}</td>
@@ -144,16 +239,20 @@ async function viewDetail(id) {
       </table>
       <div style="background:var(--bg);border-radius:var(--radius);padding:14px;text-align:right;font-size:13px">
         <div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--text-2)"><span>Subtotal</span><span class="amount">NPR ${fmt(inv.subTotal)}</span></div>
-        ${inv.loyaltyDiscountApplied?`<div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--green)"><span>Loyalty Discount (10%)</span><span>−NPR ${fmt(inv.discountAmount)}</span></div>`:''}
+        ${inv.loyaltyDiscountApplied ? `<div style="display:flex;justify-content:space-between;padding:4px 0;color:var(--green)"><span>Loyalty Discount (10%)</span><span>−NPR ${fmt(inv.discountAmount)}</span></div>` : ''}
         <div style="display:flex;justify-content:space-between;padding:10px 0 0;font-size:18px;font-weight:700;color:var(--blue);font-family:'Syne',sans-serif;border-top:1px solid var(--border);margin-top:6px">
           <span>TOTAL</span><span>NPR ${fmt(inv.totalAmount)}</span>
         </div>
       </div>`;
     openModal('detailModal');
-  } catch(e) { notify(e.message,'error'); }
+  } catch(e) { 
+    notify(e.message || 'Failed to load invoice', 'error'); 
+  }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);}));
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+});
 </script>
 </body>
 </html>

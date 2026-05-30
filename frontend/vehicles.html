@@ -14,14 +14,50 @@
 .cust-option-name { font-weight: 600; font-size: 13.5px; color: var(--text); }
 .cust-option-sub  { font-size: 11.5px; color: var(--text-3); font-family: 'Space Mono', monospace; }
 .selected-cust { display: none; margin-top: 8px; padding: 8px 12px; background: var(--blue-dim); border: 1px solid var(--blue); border-radius: var(--radius); font-size: 13px; color: var(--blue); }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -54,6 +90,12 @@
           <tr><td colspan="8" class="tbl-empty">Loading vehicles...</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="vehPagination">
+      <div class="pagination-info" id="vehPaginationInfo">Showing 1-10 of 0</div>
+      <div class="pagination-btns" id="vehPaginationBtns"></div>
     </div>
   </div>
 </main>
@@ -99,27 +141,50 @@
   </div>
 </div>
 
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;">🗑️</div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage"></p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete Vehicle</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
 let allVehicles = [], allCustomers = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let deletePendingId = null;
+let deletePendingCustomerId = null;
+let deletePendingVnum = '';
 
 const user = requireRole('Admin', 'Staff');
-if (user) { buildNav(); loadAll(); }
+if (user) { 
+  buildNav(); 
+  loadAll(); 
+}
 
 async function loadAll() {
-  const body = document.getElementById('vehBody');
   try {
-    // Load customers first
     allCustomers = await API.get('/customers');
-
-    // Load each customer's vehicles in parallel, skip failures
     const results = await Promise.allSettled(
       allCustomers.map(c =>
         API.get(`/customers/${c.id}/vehicles`).then(vs =>
           vs.map(v => ({
             ...v,
-            customerName:  `${c.firstName} ${c.lastName}`,
+            customerName: `${c.firstName} ${c.lastName}`,
             customerEmail: c.email,
+            customerId: c.id
           }))
         )
       )
@@ -129,18 +194,30 @@ async function loadAll() {
       .filter(r => r.status === 'fulfilled')
       .flatMap(r => r.value);
 
+    currentPage = 1;
     renderVehicles(allVehicles);
   } catch (e) {
-    console.error('loadAll error:', e);
-    body.innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+    document.getElementById('vehBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">Failed to load vehicles</td></tr>`;
   }
 }
 
 function renderVehicles(list) {
-  document.getElementById('vehCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('vehCount').textContent = total;
   const body = document.getElementById('vehBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No vehicles found</td></tr>'; return; }
-  body.innerHTML = list.map(v => `
+
+  if (!total) {
+    body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No vehicles found</td></tr>';
+    updatePagination(total, totalPages);
+    return;
+  }
+
+  body.innerHTML = paginated.map(v => `
     <tr>
       <td><code>${v.vehicleNumber}</code></td>
       <td class="text-strong">${v.make} ${v.model}</td>
@@ -155,41 +232,81 @@ function renderVehicles(list) {
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id},${v.customerId})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${v.id},${v.customerId},'${v.vehicleNumber}')">Delete</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${v.id}, ${v.customerId}, '${v.vehicleNumber}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
+
+  updatePagination(total, totalPages);
+}
+
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('vehPaginationInfo');
+  const btns = document.getElementById('vehPaginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No vehicles';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  const totalPages = Math.ceil(allVehicles.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderVehicles(allVehicles);
 }
 
 function filterVehicles() {
-  const q    = document.getElementById('vehSearch').value.toLowerCase();
+  const q = document.getElementById('vehSearch').value.toLowerCase();
   const fuel = document.getElementById('fuelFilter').value;
-  renderVehicles(allVehicles.filter(v =>
+  
+  const filtered = allVehicles.filter(v =>
     (!fuel || v.fuelType === fuel) &&
     (!q || v.vehicleNumber.toLowerCase().includes(q) ||
-           v.make.toLowerCase().includes(q) ||
-           v.model.toLowerCase().includes(q) ||
-           (v.customerName  || '').toLowerCase().includes(q) ||
-           (v.customerEmail || '').toLowerCase().includes(q))
-  ));
+           (v.make || '').toLowerCase().includes(q) ||
+           (v.model || '').toLowerCase().includes(q) ||
+           (v.customerName || '').toLowerCase().includes(q))
+  );
+  
+  currentPage = 1;
+  renderVehicles(filtered);
 }
 
+// Customer Search in Modal
 let searchTimer;
 function searchCustomer() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
-    const q  = document.getElementById('custSearchInput').value.trim().toLowerCase();
+    const q = document.getElementById('custSearchInput').value.trim().toLowerCase();
     const dd = document.getElementById('custDropdown');
     if (!q) { dd.style.display = 'none'; return; }
+
     const matches = allCustomers.filter(c =>
       `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(q)
     ).slice(0, 8);
+
     if (!matches.length) { dd.style.display = 'none'; return; }
+
     dd.style.display = 'block';
     dd.innerHTML = matches.map(c => `
-      <div class="cust-option" onclick="selectCustomer(${c.id},'${c.firstName} ${c.lastName}','${c.email}')">
+      <div class="cust-option" onclick="selectCustomer(${c.id}, '${c.firstName} ${c.lastName}', '${c.email}')">
         <div class="cust-option-name">${c.firstName} ${c.lastName}</div>
-        <div class="cust-option-sub">${c.email} &middot; ${c.phone}</div>
+        <div class="cust-option-sub">${c.email} • ${c.phone}</div>
       </div>`).join('');
   }, 200);
 }
@@ -203,67 +320,102 @@ function selectCustomer(id, name, email) {
   el.textContent = `Selected: ${name} (${email})`;
 }
 
+// Edit / Save / Delete
 function editVehicle(id, customerId) {
   const v = allVehicles.find(x => x.id === id);
   if (!v) return;
-  document.getElementById('vehId').value         = id;
+  document.getElementById('vehId').value = id;
   document.getElementById('vehCustomerId').value = customerId;
-  document.getElementById('fVNum').value   = v.vehicleNumber;
-  document.getElementById('fVMake').value  = v.make;
+  document.getElementById('fVNum').value = v.vehicleNumber;
+  document.getElementById('fVMake').value = v.make;
   document.getElementById('fVModel').value = v.model;
-  document.getElementById('fVYear').value  = v.year;
+  document.getElementById('fVYear').value = v.year;
   document.getElementById('fVColor').value = v.color || '';
-  document.getElementById('fVFuel').value  = v.fuelType;
+  document.getElementById('fVFuel').value = v.fuelType;
+
   document.getElementById('custSearchGroup').style.display = 'none';
   document.getElementById('vehModalTitle').textContent = 'Edit Vehicle';
-  document.getElementById('vehSubmitBtn').textContent  = 'Update Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Update Vehicle';
   openModal('vehModal');
 }
 
 function resetVehForm() {
-  document.getElementById('vehId').value         = '';
+  document.getElementById('vehId').value = '';
   document.getElementById('vehCustomerId').value = '';
   document.getElementById('vehForm').reset();
-  document.getElementById('custDropdown').style.display   = 'none';
-  document.getElementById('selectedCust').style.display   = 'none';
+  document.getElementById('custDropdown').style.display = 'none';
+  document.getElementById('selectedCust').style.display = 'none';
   document.getElementById('custSearchGroup').style.display = 'block';
   document.getElementById('vehModalTitle').textContent = 'Add Vehicle';
-  document.getElementById('vehSubmitBtn').textContent  = 'Add Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Add Vehicle';
 }
 
 async function saveVehicle(e) {
   e.preventDefault();
-  const id         = document.getElementById('vehId').value;
+  const id = document.getElementById('vehId').value;
   const customerId = document.getElementById('vehCustomerId').value;
   if (!id && !customerId) { notify('Please select a customer first.', 'error'); return; }
+
   const body = {
     vehicleNumber: document.getElementById('fVNum').value.trim(),
-    make:     document.getElementById('fVMake').value.trim(),
-    model:    document.getElementById('fVModel').value.trim(),
-    year:     parseInt(document.getElementById('fVYear').value),
-    color:    document.getElementById('fVColor').value.trim(),
+    make: document.getElementById('fVMake').value.trim(),
+    model: document.getElementById('fVModel').value.trim(),
+    year: parseInt(document.getElementById('fVYear').value),
+    color: document.getElementById('fVColor').value.trim(),
     fuelType: document.getElementById('fVFuel').value,
   };
+
   try {
-    if (id) { await API.put(`/customers/${customerId}/vehicles/${id}`, body); notify('Vehicle updated!', 'success'); }
-    else    { await API.post(`/customers/${customerId}/vehicles`, body);       notify('Vehicle added!',   'success'); }
+    if (id) {
+      await API.put(`/customers/${customerId}/vehicles/${id}`, body);
+      notify('Vehicle updated!', 'success');
+    } else {
+      await API.post(`/customers/${customerId}/vehicles`, body);
+      notify('Vehicle added!', 'success');
+    }
     closeModal('vehModal');
     resetVehForm();
     loadAll();
   } catch (err) { notify(err.message, 'error'); }
 }
 
-async function deleteVehicle(id, customerId, vnum) {
-  if (!confirm(`Delete vehicle "${vnum}"?`)) return;
-  try {
-    await API.del(`/customers/${customerId}/vehicles/${id}`);
-    notify('Vehicle deleted', 'success');
-    loadAll();
-  } catch (err) { notify(err.message, 'error'); }
+// Custom Delete Modal
+function showDeleteConfirm(id, customerId, vnum) {
+  deletePendingId = id;
+  deletePendingCustomerId = customerId;
+  deletePendingVnum = vnum;
+  document.getElementById('deleteMessage').innerHTML = `Delete vehicle <strong>${vnum}</strong>?`;
+  openModal('deleteConfirmModal');
 }
 
+function closeDeleteModal() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDeleteVehicle() {
+  if (!deletePendingId || !deletePendingCustomerId) return;
+  try {
+    await API.del(`/customers/${deletePendingCustomerId}/vehicles/${deletePendingId}`);
+    notify('Vehicle deleted successfully', 'success');
+    closeDeleteModal();
+    loadAll();
+  } catch (err) { 
+    notify(err.message, 'error'); 
+  }
+}
+
+document.getElementById('confirmDeleteBtn').onclick = confirmDeleteVehicle;
+
+// Modal backdrop
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetVehForm(); } });
+  m.addEventListener('click', e => { 
+    if (e.target === m) { 
+      closeModal(m.id); 
+      if (m.id === 'vehModal') resetVehForm();
+      if (m.id === 'deleteConfirmModal') closeDeleteModal();
+    } 
+  });
 });
 </script>
 </body>

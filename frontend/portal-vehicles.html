@@ -11,6 +11,7 @@
 .portal-link{color:var(--text-2);text-decoration:none;font-size:13.5px;font-weight:500;padding:6px 12px;border-radius:var(--radius-sm);transition:all 0.15s;white-space:nowrap}
 .portal-link:hover{color:var(--text);background:var(--surface-2)}
 .portal-link.active{color:var(--blue);background:var(--blue-dim);font-weight:600}
+
 .veh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
 .veh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;position:relative;overflow:hidden;transition:all 0.2s}
 .veh-card:hover{border-color:var(--border-2);transform:translateY(-2px);box-shadow:var(--shadow)}
@@ -19,7 +20,7 @@
 .veh-card.diesel::before{background:var(--amber)}
 .veh-card.electric::before{background:var(--green)}
 .veh-card.hybrid::before{background:#8b5cf6}
-.veh-icon{font-size:30px;margin-bottom:10px}
+
 .veh-num{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);letter-spacing:2px;margin-bottom:3px}
 .veh-title{font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:var(--text);margin-bottom:12px}
 .veh-meta{display:flex;flex-direction:column;gap:5px;font-size:12px;margin-bottom:16px}
@@ -31,15 +32,14 @@
 <body>
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div class="portal-nav">
     <a href="portal-profile.html"  class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link active">My Vehicles</a>
     <a href="portal-history.html"  class="portal-link">Purchase History</a>
     <a href="portal-services.html" class="portal-link">Services</a>
-    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
+    <a href="portal-shop.html" class="portal-link">Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -54,7 +54,7 @@
   </div>
 
   <div class="veh-grid" id="vehGrid">
-    <div style="padding:48px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px;grid-column:1/-1">Loading…</div>
+    <div style="grid-column:1/-1;padding:60px;text-align:center;color:var(--text-3)">Loading vehicles...</div>
   </div>
 </main>
 
@@ -92,14 +92,34 @@
   </div>
 </div>
 
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;">🗑️</div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage"></p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Remove Vehicle</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// Declare ALL variables first — let/const are not hoisted
-const fuelIcons = { Petrol:'⛽', Diesel:'🛢', Electric:'⚡', Hybrid:'🌿' };
 let myVehicles = [];
+let deletePendingId = null;
 
 const user = requireRole('Customer');
-if (user) { buildPortalNav(); loadVehicles(); }
+if (user) { 
+  buildPortalNav(); 
+  loadVehicles(); 
+}
 
 async function loadVehicles() {
   const grid = document.getElementById('vehGrid');
@@ -107,7 +127,7 @@ async function loadVehicles() {
     myVehicles = await API.get(`/customers/${user.id}/vehicles`);
     renderVehicles();
   } catch(e) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:60px;text-align:center;color:var(--red)">Failed to load vehicles</div>`;
   }
 }
 
@@ -115,15 +135,15 @@ function renderVehicles() {
   const grid = document.getElementById('vehGrid');
   if (!myVehicles.length) {
     grid.innerHTML = `<div style="grid-column:1/-1;padding:60px;text-align:center">
-      <div style="font-size:48px;margin-bottom:16px">🚗</div>
       <p style="color:var(--text-2);font-size:16px;margin-bottom:4px">No vehicles registered yet.</p>
-      <p class="muted">Click "+ Add Vehicle" to get started.</p>
-    </div>`; return;
+      <p class="muted">Click "+ Add Vehicle" to register your vehicle.</p>
+    </div>`; 
+    return;
   }
+
   grid.innerHTML = myVehicles.map(v => {
-    const fc = v.fuelType.toLowerCase();
-    return `<div class="veh-card ${fc}">
-      <div class="veh-icon">${fuelIcons[v.fuelType]||'🚗'}</div>
+    const fuelClass = v.fuelType.toLowerCase();
+    return `<div class="veh-card ${fuelClass}">
       <div class="veh-num">${v.vehicleNumber}</div>
       <div class="veh-title">${v.make} ${v.model}</div>
       <div class="veh-meta">
@@ -134,58 +154,97 @@ function renderVehicles() {
       </div>
       <div class="veh-actions">
         <button class="btn btn-outline btn-sm" onclick="editVehicle(${v.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${v.id},'${v.vehicleNumber}')">Remove</button>
+        <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${v.id}, '${v.vehicleNumber}')">Remove</button>
       </div>
     </div>`;
   }).join('');
 }
 
 function editVehicle(id) {
-  const v = myVehicles.find(x=>x.id===id); if(!v) return;
-  document.getElementById('vehId').value   = v.id;
-  document.getElementById('fVNum').value   = v.vehicleNumber;
-  document.getElementById('fVMake').value  = v.make;
+  const v = myVehicles.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('vehId').value = v.id;
+  document.getElementById('fVNum').value = v.vehicleNumber;
+  document.getElementById('fVMake').value = v.make;
   document.getElementById('fVModel').value = v.model;
-  document.getElementById('fVYear').value  = v.year;
-  document.getElementById('fVColor').value = v.color||'';
-  document.getElementById('fVFuel').value  = v.fuelType;
+  document.getElementById('fVYear').value = v.year;
+  document.getElementById('fVColor').value = v.color || '';
+  document.getElementById('fVFuel').value = v.fuelType;
   document.getElementById('vehModalTitle').textContent = 'Edit Vehicle';
-  document.getElementById('vehSubmitBtn').textContent  = 'Update Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Update Vehicle';
   openModal('vehModal');
 }
 
 function resetVehForm() {
-  document.getElementById('vehId').value='';
+  document.getElementById('vehId').value = '';
   document.getElementById('vehForm').reset();
-  document.getElementById('vehModalTitle').textContent='Add Vehicle';
-  document.getElementById('vehSubmitBtn').textContent='Add Vehicle';
+  document.getElementById('vehModalTitle').textContent = 'Add Vehicle';
+  document.getElementById('vehSubmitBtn').textContent = 'Add Vehicle';
 }
 
 async function saveVehicle(e) {
   e.preventDefault();
-  const id   = document.getElementById('vehId').value;
+  const id = document.getElementById('vehId').value;
   const body = {
     vehicleNumber: document.getElementById('fVNum').value.trim(),
-    make:     document.getElementById('fVMake').value.trim(),
-    model:    document.getElementById('fVModel').value.trim(),
-    year:     parseInt(document.getElementById('fVYear').value),
-    color:    document.getElementById('fVColor').value.trim(),
+    make: document.getElementById('fVMake').value.trim(),
+    model: document.getElementById('fVModel').value.trim(),
+    year: parseInt(document.getElementById('fVYear').value),
+    color: document.getElementById('fVColor').value.trim(),
     fuelType: document.getElementById('fVFuel').value,
   };
   try {
-    if (id) { await API.put(`/customers/${user.id}/vehicles/${id}`, body); notify('Vehicle updated!','success'); }
-    else    { await API.post(`/customers/${user.id}/vehicles`, body);       notify('Vehicle added!','success'); }
-    closeModal('vehModal'); resetVehForm(); loadVehicles();
-  } catch(err) { notify(err.message,'error'); }
+    if (id) {
+      await API.put(`/customers/${user.id}/vehicles/${id}`, body);
+      notify('Vehicle updated!', 'success');
+    } else {
+      await API.post(`/customers/${user.id}/vehicles`, body);
+      notify('Vehicle added!', 'success');
+    }
+    closeModal('vehModal');
+    resetVehForm();
+    loadVehicles();
+  } catch(err) { 
+    notify(err.message, 'error'); 
+  }
 }
 
-async function deleteVehicle(id, vnum) {
-  if(!confirm(`Remove vehicle "${vnum}" from your account?`)) return;
-  try { await API.del(`/customers/${user.id}/vehicles/${id}`); notify('Vehicle removed','success'); loadVehicles(); }
-  catch(err) { notify(err.message,'error'); }
+// Custom Delete Confirmation
+function showDeleteConfirm(id, vnum) {
+  deletePendingId = id;
+  document.getElementById('deleteMessage').innerHTML = `Remove vehicle <strong>${vnum}</strong> from your account?`;
+  openModal('deleteConfirmModal');
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){closeModal(m.id);resetVehForm();}}));
+function closeDeleteModal() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDeleteVehicle() {
+  if (!deletePendingId) return;
+  try {
+    await API.del(`/customers/${user.id}/vehicles/${deletePendingId}`);
+    notify('Vehicle removed successfully', 'success');
+    closeDeleteModal();
+    loadVehicles();
+  } catch(err) { 
+    notify(err.message, 'error'); 
+  }
+}
+
+document.getElementById('confirmDeleteBtn').onclick = confirmDeleteVehicle;
+
+// Modal backdrop
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { 
+    if (e.target === m) { 
+      closeModal(m.id); 
+      if (m.id === 'vehModal') resetVehForm();
+      if (m.id === 'deleteConfirmModal') closeDeleteModal();
+    } 
+  });
+});
 </script>
 </body>
 </html>

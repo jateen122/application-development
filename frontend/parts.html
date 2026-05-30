@@ -7,16 +7,61 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
 <style>
-.qty-warn   { color:var(--amber); font-weight:600; font-family:'Space Mono',monospace; }
-.qty-danger { color:var(--red);   font-weight:600; font-family:'Space Mono',monospace; }
-.qty-ok     { color:var(--green); font-family:'Space Mono',monospace; }
+.qty-warn   { color:var(--amber); font-weight:600; }
+.qty-danger { color:var(--red);   font-weight:600; }
+.qty-ok     { color:var(--green); font-weight:600; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+/* Custom Delete Confirmation Modal */
+#deleteConfirmModal .modal {
+  max-width: 380px;
+}
+.delete-icon {
+  font-size: 42px;
+  color: var(--red);
+  margin-bottom: 12px;
+}
 </style>
 </head>
 <body>
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -39,6 +84,7 @@
       </select>
       <span class="muted" style="margin-left:auto"><span id="partCount">—</span> parts</span>
     </div>
+    
     <div class="table-wrap">
       <table class="tbl">
         <thead>
@@ -46,6 +92,11 @@
         </thead>
         <tbody id="partsBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
+    </div>
+
+    <div class="pagination" id="pagination">
+      <div class="pagination-info" id="paginationInfo">Showing 1-10 of 0</div>
+      <div class="pagination-btns" id="paginationBtns"></div>
     </div>
   </div>
 </main>
@@ -60,11 +111,11 @@
     <form id="partForm" onsubmit="savePart(event)">
       <input type="hidden" id="partId">
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Part Name *</label><input class="input" id="fName" required placeholder="e.g. Brake Pad"></div>
-        <div class="form-group"><label class="form-label">Part Number *</label><input class="input" id="fNum" required placeholder="e.g. BP-001"></div>
+        <div class="form-group"><label class="form-label">Part Name *</label><input class="input" id="fName" required placeholder=""></div>
+        <div class="form-group"><label class="form-label">Part Number *</label><input class="input" id="fNum" required placeholder=""></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Category *</label><input class="input" id="fCat" required placeholder="e.g. Brakes"></div>
+        <div class="form-group"><label class="form-label">Category *</label><input class="input" id="fCat" required placeholder=""></div>
         <div class="form-group"><label class="form-label">Stock Quantity</label><input class="input" id="fStock" type="number" min="0" value="0"></div>
       </div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="input textarea" id="fDesc" placeholder="Brief description…"></textarea></div>
@@ -80,34 +131,72 @@
   </div>
 </div>
 
+<!-- CUSTOM DELETE CONFIRMATION MODAL -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 20px 30px 10px;">
+      <div class="delete-icon"></div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage">
+        Are you sure you want to delete this part?
+      </p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="cancelDelete()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// ── declare all variables FIRST ────────────────────────────
+// ── Variables ────────────────────────────
 let allParts = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let deletePendingId = null;
+let deletePendingName = '';
 
+// ── Init ────────────────────────────
 const user = requireRole('Admin');
-if (user) { buildNav(); loadParts(); }
+if (user) { 
+  buildNav(); 
+  loadParts(); 
+}
 
-// ── functions ──────────────────────────────────────────────
+// ── Load & Render Parts with Pagination ────────────────────────────
 async function loadParts() {
   try {
     allParts = await API.get('/parts');
+    currentPage = 1;
     renderParts(allParts);
     loadCategories();
   } catch(e) {
     document.getElementById('partsBody').innerHTML =
-      `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+      `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">Failed to load parts</td></tr>`;
   }
 }
 
 function renderParts(parts) {
-  document.getElementById('partCount').textContent = parts.length;
+  const total = parts.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginatedParts = parts.slice(start, end);
+
+  document.getElementById('partCount').textContent = total;
+
   const body = document.getElementById('partsBody');
-  if (!parts.length) {
+  if (!total) {
     body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No parts found</td></tr>';
+    updatePagination(0, 0);
     return;
   }
-  body.innerHTML = parts.map(p => `
+
+  body.innerHTML = paginatedParts.map(p => `
     <tr>
       <td><code>${p.partNumber}</code></td>
       <td class="text-strong">${p.name}</td>
@@ -119,10 +208,12 @@ function renderParts(parts) {
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="editPart(${p.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deletePart(${p.id},'${p.name}')">Delete</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${p.id}, '${p.name.replace(/'/g, "\\'")}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
+
+  updatePagination(total, totalPages);
 }
 
 function stockCell(qty) {
@@ -131,11 +222,46 @@ function stockCell(qty) {
   return `<span class="qty-ok">${qty}</span>`;
 }
 
+// Pagination Functions
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('paginationInfo');
+  const btnsContainer = document.getElementById('paginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No parts';
+
+  let btnHTML = `
+    <button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+  
+  const maxVisible = 5;
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisible/2));
+  let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  
+  if (endPage - startPage < maxVisible - 1) startPage = Math.max(1, endPage - maxVisible + 1);
+  
+  for (let i = startPage; i <= endPage; i++) {
+    btnHTML += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  btnHTML += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+  
+  btnsContainer.innerHTML = btnHTML;
+}
+
+function changePage(page) {
+  const totalPages = Math.ceil(allParts.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderParts(allParts);
+}
+
+// Filter & Categories
 async function loadCategories() {
   try {
     const cats = await API.get('/parts/categories');
-    const sel  = document.getElementById('categoryFilter');
-    // remove old options except first
+    const sel = document.getElementById('categoryFilter');
     while (sel.options.length > 1) sel.remove(1);
     cats.forEach(c => {
       const o = document.createElement('option');
@@ -146,27 +272,33 @@ async function loadCategories() {
 }
 
 function filterParts() {
-  const q   = document.getElementById('searchInput').value.toLowerCase();
+  const q = document.getElementById('searchInput').value.toLowerCase();
   const cat = document.getElementById('categoryFilter').value;
-  renderParts(allParts.filter(p =>
+  
+  const filtered = allParts.filter(p =>
     (!cat || p.category === cat) &&
     (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q))
-  ));
+  );
+  
+  currentPage = 1;
+  renderParts(filtered);
 }
 
+// Edit & Save Functions (unchanged)
 function editPart(id) {
   const p = allParts.find(x => x.id === id);
   if (!p) return;
-  document.getElementById('partId').value  = p.id;
-  document.getElementById('fName').value   = p.name;
-  document.getElementById('fNum').value    = p.partNumber;
-  document.getElementById('fCat').value    = p.category;
-  document.getElementById('fDesc').value   = p.description;
-  document.getElementById('fCost').value   = p.costPrice;
-  document.getElementById('fSell').value   = p.sellingPrice;
-  document.getElementById('fStock').value  = p.stockQty;
+  document.getElementById('partId').value = p.id;
+  document.getElementById('fName').value = p.name;
+  document.getElementById('fNum').value = p.partNumber;
+  document.getElementById('fCat').value = p.category;
+  document.getElementById('fDesc').value = p.description || '';
+  document.getElementById('fCost').value = p.costPrice;
+  document.getElementById('fSell').value = p.sellingPrice;
+  document.getElementById('fStock').value = p.stockQty;
+  
   document.getElementById('partModalTitle').textContent = 'Edit Part';
-  document.getElementById('partSubmitBtn').textContent  = 'Update Part';
+  document.getElementById('partSubmitBtn').textContent = 'Update Part';
   openModal('partModal');
 }
 
@@ -174,40 +306,80 @@ function resetForm() {
   document.getElementById('partId').value = '';
   document.getElementById('partForm').reset();
   document.getElementById('partModalTitle').textContent = 'Add Part';
-  document.getElementById('partSubmitBtn').textContent  = 'Add Part';
+  document.getElementById('partSubmitBtn').textContent = 'Add Part';
 }
 
 async function savePart(e) {
   e.preventDefault();
-  const id   = document.getElementById('partId').value;
+  const id = document.getElementById('partId').value;
   const body = {
-    name:         document.getElementById('fName').value,
-    partNumber:   document.getElementById('fNum').value,
-    category:     document.getElementById('fCat').value,
-    description:  document.getElementById('fDesc').value,
-    costPrice:    parseFloat(document.getElementById('fCost').value),
+    name: document.getElementById('fName').value,
+    partNumber: document.getElementById('fNum').value,
+    category: document.getElementById('fCat').value,
+    description: document.getElementById('fDesc').value,
+    costPrice: parseFloat(document.getElementById('fCost').value),
     sellingPrice: parseFloat(document.getElementById('fSell').value),
-    stockQty:     parseInt(document.getElementById('fStock').value) || 0,
+    stockQty: parseInt(document.getElementById('fStock').value) || 0,
   };
-  try {
-    if (id) { await API.put(`/parts/${id}`, body); notify('Part updated!', 'success'); }
-    else    { await API.post('/parts', body);       notify('Part added!',   'success'); }
-    closeModal('partModal'); resetForm(); loadParts();
-  } catch(err) { notify(err.message, 'error'); }
-}
 
-async function deletePart(id, name) {
-  if (!confirm(`Delete part "${name}"?`)) return;
   try {
-    await API.del(`/parts/${id}`);
-    notify('Part deleted', 'success');
+    if (id) {
+      await API.put(`/parts/${id}`, body);
+      notify('Part updated successfully!', 'success');
+    } else {
+      await API.post('/parts', body);
+      notify('Part added successfully!', 'success');
+    }
+    closeModal('partModal');
+    resetForm();
     loadParts();
-  } catch(err) { notify(err.message, 'error'); }
+  } catch(err) {
+    notify(err.message || 'Operation failed', 'error');
+  }
 }
 
-document.querySelectorAll('.modal-overlay').forEach(m =>
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetForm(); } })
-);
+// ── Custom Delete Confirmation ────────────────────────────
+function showDeleteConfirm(id, name) {
+  deletePendingId = id;
+  deletePendingName = name;
+  document.getElementById('deleteMessage').innerHTML = 
+    `Are you sure you want to delete <strong>"${name}"</strong>?`;
+  openModal('deleteConfirmModal');
+}
+
+function cancelDelete() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDelete() {
+  if (!deletePendingId) return;
+  
+  try {
+    await API.del(`/parts/${deletePendingId}`);
+    notify(`Part "${deletePendingName}" has been deleted`, 'success');
+    closeModal('deleteConfirmModal');
+    loadParts();
+  } catch(err) {
+    notify(err.message || 'Failed to delete part', 'error');
+  } finally {
+    deletePendingId = null;
+  }
+}
+
+// Attach confirm button
+document.getElementById('confirmDeleteBtn').onclick = confirmDelete;
+
+// Modal backdrop click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { 
+    if (e.target === m) { 
+      closeModal(m.id); 
+      if (m.id === 'deleteConfirmModal') deletePendingId = null;
+      else resetForm(); 
+    } 
+  });
+});
 </script>
 </body>
 </html>

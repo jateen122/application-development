@@ -23,14 +23,36 @@
 .spend-badge { font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:var(--blue); }
 
 @media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info { color: var(--text-3); font-size: 14px; }
+.pagination-btns { display: flex; gap: 6px; }
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+.pagination-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -92,19 +114,20 @@
       <div class="card">
         <div class="card-hd">
           <span class="card-title">Purchase History</span>
-          <a href="#" class="link" id="fullHistoryLink">View full →</a>
         </div>
         <div class="table-wrap">
           <table class="tbl">
             <thead>
-              <tr>
-                <th>Invoice #</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th>
-              </tr>
+              <tr><th>Invoice #</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody id="purchaseBody">
               <tr><td colspan="6" class="tbl-empty">Loading…</td></tr>
             </tbody>
           </table>
+        </div>
+        <div class="pagination" id="purchasePagination">
+          <div class="pagination-info" id="purchasePaginationInfo">Showing 1-8 of 0</div>
+          <div class="pagination-btns" id="purchasePaginationBtns"></div>
         </div>
       </div>
 
@@ -140,12 +163,29 @@
     <div class="modal-hd">
       <div class="modal-title" id="invModalTitle">Invoice</div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-outline btn-sm" id="emailBtn" onclick="sendEmail()">📧 Email Invoice</button>
+        <button class="btn btn-outline btn-sm" id="emailBtn" onclick="sendEmail()">Email Invoice</button>
         <button class="btn btn-outline btn-sm" onclick="closeModal('invModal')">Close</button>
       </div>
     </div>
     <div id="invContent">Loading…</div>
     <div style="margin-top:16px;display:flex;gap:10px" id="invActions"></div>
+  </div>
+</div>
+
+<!-- Custom Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="confirmTitle">Confirm Action</div>
+    </div>
+    <div style="padding:25px 30px; text-align:center;">
+      <div id="confirmIcon" style="font-size:42px; margin-bottom:12px;"></div>
+      <p style="font-size:15.5px; margin:10px 0 20px;" id="confirmMessage"></p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+    </div>
   </div>
 </div>
 
@@ -161,13 +201,13 @@ if (!customerId) { window.location.href = 'customers.html'; }
 let customer = null;
 let allInvoices = [];
 let currentInvId = null;
+let currentPurchasePage = 1;
+const itemsPerPage = 8;
 
 async function load() {
   try {
-    // Customer detail
     customer = await API.get(`/customers/${customerId}`);
     document.getElementById('pageTitle').textContent = `${customer.firstName} ${customer.lastName}`;
-    document.getElementById('fullHistoryLink').href = `customer-detail.html?id=${customerId}`;
     document.getElementById('newSaleBtn').style.display = '';
     document.getElementById('statsRow').style.display = '';
     document.getElementById('detailGrid').style.display = '';
@@ -184,7 +224,7 @@ async function load() {
         <div class="info-row"><span class="info-label">Address</span><span class="info-val">${customer.address || '—'}</span></div>
       </div>
       <div style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-outline btn-sm" onclick="openEditModal()">Edit Profile</button>
+        <button class="btn btn-outline btn-sm" onclick="openEditModal()"></button>
       </div>`;
 
     // Vehicles
@@ -198,18 +238,19 @@ async function load() {
           </div>`).join('')
       : '<div class="muted" style="padding:12px">No vehicles registered</div>';
 
-    // Full sales history
+    // Load Invoices
     allInvoices = await API.get(`/sales/customer/${customerId}`);
-    const totalSpend  = allInvoices.filter(i => i.status !== 'Cancelled').reduce((s, i) => s + i.totalAmount, 0);
+    renderPurchases(allInvoices);
+
+    // Stats
+    const totalSpend = allInvoices.filter(i => i.status !== 'Cancelled').reduce((s, i) => s + (i.totalAmount || 0), 0);
     const loyaltyUses = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
     const creditCount = allInvoices.filter(i => i.status === 'Credit').length;
 
-    document.getElementById('statSpend').textContent   = fmt(totalSpend);
-    document.getElementById('statCount').textContent   = allInvoices.filter(i => i.status !== 'Cancelled').length;
+    document.getElementById('statSpend').textContent = fmt(totalSpend);
+    document.getElementById('statCount').textContent = allInvoices.filter(i => i.status !== 'Cancelled').length;
     document.getElementById('statLoyalty').textContent = loyaltyUses;
-    document.getElementById('statCredit').textContent  = creditCount;
-
-    renderPurchases(allInvoices);
+    document.getElementById('statCredit').textContent = creditCount;
 
     // Appointments
     const appts = await API.get(`/appointments/customer/${customerId}`);
@@ -232,14 +273,7 @@ async function load() {
           <td>${r.partName} ${r.partNumber ? `<code>${r.partNumber}</code>` : ''}</td>
           <td class="mono">${r.quantity}</td>
           <td class="muted">${fmtDate(r.createdAt)}</td>
-          <td>
-            <div style="display:flex;gap:6px;align-items:center">
-              <span class="status status-${r.status.toLowerCase()}">${r.status}</span>
-              ${r.status === 'Pending' ? `
-                <button class="btn btn-outline btn-sm" onclick="updateReqStatus(${r.id},'Fulfilled')">Fulfill</button>
-                <button class="btn btn-danger btn-sm" onclick="updateReqStatus(${r.id},'Rejected')">Reject</button>` : ''}
-            </div>
-          </td>
+          <td><span class="status status-${r.status.toLowerCase()}">${r.status}</span></td>
         </tr>`).join('')
       : '<tr><td colspan="4" class="tbl-empty">No part requests</td></tr>';
 
@@ -249,9 +283,15 @@ async function load() {
 }
 
 function renderPurchases(list) {
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPurchasePage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
   const body = document.getElementById('purchaseBody');
-  body.innerHTML = list.length
-    ? list.map(s => `<tr>
+  body.innerHTML = paginated.length
+    ? paginated.map(s => `<tr>
         <td><code>${s.invoiceNumber}</code></td>
         <td class="muted">${fmtDate(s.invoiceDate)}</td>
         <td class="amount">NPR ${fmt(s.totalAmount)}</td>
@@ -264,6 +304,39 @@ function renderPurchases(list) {
         </td>
       </tr>`).join('')
     : '<tr><td colspan="6" class="tbl-empty">No purchases yet</td></tr>';
+
+  updatePurchasePagination(total, totalPages);
+}
+
+function updatePurchasePagination(total, totalPages) {
+  const info = document.getElementById('purchasePaginationInfo');
+  const btns = document.getElementById('purchasePaginationBtns');
+  
+  const start = (currentPurchasePage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPurchasePage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No purchases';
+
+  let html = `<button class="pagination-btn" onclick="changePurchasePage(${currentPurchasePage-1})" ${currentPurchasePage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPurchasePage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPurchasePage?'active':''}" onclick="changePurchasePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePurchasePage(${currentPurchasePage+1})" ${currentPurchasePage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePurchasePage(page) {
+  const totalPages = Math.ceil(allInvoices.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPurchasePage = page;
+  renderPurchases(allInvoices);
 }
 
 async function viewInvoice(id) {
@@ -271,7 +344,6 @@ async function viewInvoice(id) {
   try {
     const s = await API.get(`/sales/${id}`);
     document.getElementById('invModalTitle').textContent = s.invoiceNumber;
-    document.getElementById('emailBtn').title = `Email to ${s.customer.email}`;
 
     document.getElementById('invContent').innerHTML = `
       <div class="grid-2" style="margin-bottom:20px;gap:12px;font-size:13px">
@@ -298,7 +370,6 @@ async function viewInvoice(id) {
         </div>
       </div>`;
 
-    // Action buttons
     const acts = document.getElementById('invActions');
     acts.innerHTML = '';
     if (s.status === 'Credit') {
@@ -328,15 +399,38 @@ async function sendEmail() {
   } catch (err) { notify(err.message, 'error'); }
 }
 
+// Custom Confirmation
+function showConfirm(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').innerHTML = message;
+  document.getElementById('confirmActionBtn').onclick = () => {
+    closeConfirmModal();
+    callback();
+  };
+  openModal('confirmModal');
+}
+
+function closeConfirmModal() {
+  closeModal('confirmModal');
+}
+
 async function updateInvoiceStatus(id, status) {
-  if (!confirm(`${status === 'Cancelled' ? 'Cancel' : 'Mark as paid'} this invoice?`)) return;
-  try {
-    await API.patch(`/sales/${id}/status`, { status });
-    notify(`Invoice marked as ${status}`, 'success');
-    closeModal('invModal');
-    allInvoices = await API.get(`/sales/customer/${customerId}`);
-    renderPurchases(allInvoices);
-  } catch (err) { notify(err.message, 'error'); }
+  const action = status === 'Cancelled' ? 'cancel' : 'mark as paid';
+  showConfirm(
+    status === 'Cancelled' ? "Cancel Invoice" : "Mark as Paid",
+    `Are you sure you want to ${action} this invoice?`,
+    async () => {
+      try {
+        await API.patch(`/sales/${id}/status`, { status });
+        notify(`Invoice marked as ${status}`, 'success');
+        closeModal('invModal');
+        allInvoices = await API.get(`/sales/customer/${customerId}`);
+        renderPurchases(allInvoices);
+      } catch (err) { 
+        notify(err.message, 'error'); 
+      }
+    }
+  );
 }
 
 async function updateReqStatus(id, status) {

@@ -6,12 +6,49 @@
 <title>VehicleParts Pro — Customers</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="styles.css">
+<style>
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+</style>
 </head>
 <body>
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -38,6 +75,12 @@
         </thead>
         <tbody id="custsBody"><tr><td colspan="6" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="custPagination">
+      <div class="pagination-info" id="custPaginationInfo">Showing 1-10 of 0</div>
+      <div class="pagination-btns" id="custPaginationBtns"></div>
     </div>
   </div>
 </main>
@@ -91,33 +134,66 @@
   </div>
 </div>
 
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;"></div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage"></p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete Customer</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// ── declare all variables FIRST before any function calls ──
 let allCustomers = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let deletePendingId = null;
+let deletePendingName = '';
 
 const user = requireRole('Admin', 'Staff');
-if (user) { buildNav(); loadCustomers(); }
+if (user) { 
+  buildNav(); 
+  loadCustomers(); 
+}
 
-// ── functions ──────────────────────────────────────────────
 async function loadCustomers() {
   try {
     allCustomers = await API.get('/customers');
+    currentPage = 1;
     renderCustomers(allCustomers);
   } catch(e) {
     document.getElementById('custsBody').innerHTML =
-      `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+      `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">Failed to load customers</td></tr>`;
   }
 }
 
 function renderCustomers(list) {
-  document.getElementById('custCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('custCount').textContent = total;
   const body = document.getElementById('custsBody');
-  if (!list.length) {
+
+  if (!total) {
     body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No customers found</td></tr>';
+    updatePagination(total, totalPages);
     return;
   }
-  body.innerHTML = list.map(c => `
+
+  body.innerHTML = paginated.map(c => `
     <tr>
       <td class="text-strong">${c.firstName} ${c.lastName}</td>
       <td class="muted">${c.email}</td>
@@ -128,10 +204,43 @@ function renderCustomers(list) {
         <div style="display:flex;gap:6px">
           <a href="customer-detail.html?id=${c.id}" class="btn btn-outline btn-sm">View</a>
           <button class="btn btn-outline btn-sm" onclick="editCustomer(${c.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id},'${c.firstName} ${c.lastName}')">Delete</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${c.id}, '${c.firstName} ${c.lastName}')">Delete</button>
         </div>
       </td>
     </tr>`).join('');
+
+  updatePagination(total, totalPages);
+}
+
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('custPaginationInfo');
+  const btns = document.getElementById('custPaginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No customers';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  const totalPages = Math.ceil(allCustomers.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderCustomers(allCustomers);
 }
 
 let searchTimer = null;
@@ -139,16 +248,22 @@ async function searchCustomers() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(async () => {
     const q = document.getElementById('custSearch').value.trim();
-    if (!q) { renderCustomers(allCustomers); return; }
+    if (!q) { 
+      currentPage = 1;
+      renderCustomers(allCustomers); 
+      return; 
+    }
     try {
-      // Universal search — also finds by vehicle number
       const res = await API.get(`/customer-reports/search?q=${encodeURIComponent(q)}`);
+      currentPage = 1;
       renderCustomers(res);
     } catch(_) {
       const lq = q.toLowerCase();
-      renderCustomers(allCustomers.filter(c =>
+      const filtered = allCustomers.filter(c =>
         `${c.firstName} ${c.lastName} ${c.email} ${c.phone}`.toLowerCase().includes(lq)
-      ));
+      );
+      currentPage = 1;
+      renderCustomers(filtered);
     }
   }, 300);
 }
@@ -214,17 +329,43 @@ async function saveCustomer(e) {
   } catch(err) { notify(err.message, 'error'); }
 }
 
-async function deleteCustomer(id, name) {
-  if (!confirm(`Delete customer "${name}"? This cannot be undone.`)) return;
-  try {
-    await API.del(`/customers/${id}`);
-    notify('Customer deleted', 'success');
-    loadCustomers();
-  } catch(err) { notify(err.message, 'error'); }
+// Custom Delete Modal
+function showDeleteConfirm(id, name) {
+  deletePendingId = id;
+  deletePendingName = name;
+  document.getElementById('deleteMessage').innerHTML = `Are you sure you want to delete <strong>${name}</strong>?`;
+  openModal('deleteConfirmModal');
 }
 
+function closeDeleteModal() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDeleteCustomer() {
+  if (!deletePendingId) return;
+  try {
+    await API.del(`/customers/${deletePendingId}`);
+    notify('Customer deleted successfully', 'success');
+    closeDeleteModal();
+    loadCustomers();
+  } catch(err) { 
+    notify(err.message, 'error'); 
+  }
+}
+
+// Attach confirm button
+document.getElementById('confirmDeleteBtn').onclick = confirmDeleteCustomer;
+
+// Modal backdrop
 document.querySelectorAll('.modal-overlay').forEach(m =>
-  m.addEventListener('click', e => { if (e.target === m) { closeModal(m.id); resetCustForm(); } })
+  m.addEventListener('click', e => { 
+    if (e.target === m) { 
+      closeModal(m.id); 
+      if (m.id === 'custModal') resetCustForm();
+      if (m.id === 'deleteConfirmModal') deletePendingId = null;
+    } 
+  })
 );
 </script>
 </body>

@@ -4,30 +4,43 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace WeatherAPI.Migrations
 {
-    /// <inheritdoc />
+    /// <summary>
+    /// Adds KhaltiPidx and KhaltiTransactionId to SaleInvoices.
+    /// Uses IF NOT EXISTS so it is safe to run even if columns already exist.
+    /// </summary>
     public partial class AddKhaltiFields : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "KhaltiPidx",
-                table: "SaleInvoices",
-                type: "text",
-                nullable: true);
+            // Use raw SQL with IF NOT EXISTS to avoid errors if already applied manually
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='SaleInvoices' AND column_name='KhaltiPidx'
+                    ) THEN
+                        ALTER TABLE ""SaleInvoices"" ADD COLUMN ""KhaltiPidx"" text NULL;
+                    END IF;
 
-            migrationBuilder.AddColumn<string>(
-                name: "KhaltiTransactionId",
-                table: "SaleInvoices",
-                type: "text",
-                nullable: true);
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name='SaleInvoices' AND column_name='KhaltiTransactionId'
+                    ) THEN
+                        ALTER TABLE ""SaleInvoices"" ADD COLUMN ""KhaltiTransactionId"" text NULL;
+                    END IF;
+                END
+                $$;
+            ");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(name: "KhaltiPidx",          table: "SaleInvoices");
-            migrationBuilder.DropColumn(name: "KhaltiTransactionId", table: "SaleInvoices");
+            migrationBuilder.Sql(@"
+                ALTER TABLE ""SaleInvoices""
+                    DROP COLUMN IF EXISTS ""KhaltiPidx"",
+                    DROP COLUMN IF EXISTS ""KhaltiTransactionId"";
+            ");
         }
     }
 }

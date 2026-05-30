@@ -11,16 +11,57 @@
 .pi-item-row { display: grid; grid-template-columns: 1fr 80px 120px auto; gap: 8px; align-items: end; }
 .pi-item-row .form-group { margin-bottom: 0; }
 .remove-item { background: none; border: none; color: var(--red); cursor: pointer; font-size: 18px; padding: 10px 8px; line-height: 1; }
-.add-item-btn { background: none; border: 1px dashed var(--border-2); border-radius: var(--radius); color: var(--text-3); cursor: pointer; padding: 8px; width: 100%; font-size: 12px; font-family: 'Space Mono', monospace; letter-spacing: 1px; transition: all 0.2s; margin-top: 8px; }
+.add-item-btn { background: none; border: 1px dashed var(--border-2); border-radius: var(--radius); color: var(--text-3); cursor: pointer; padding: 8px; width: 100%; font-size: 13px; transition: all 0.2s; margin-top: 8px; }
 .add-item-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+/* Custom Cancel Modal */
+#cancelConfirmModal .modal {
+  max-width: 380px;
+}
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -62,6 +103,12 @@
         <tbody id="piBody"><tr><td colspan="7" class="tbl-empty">Loading...</td></tr></tbody>
       </table>
     </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination">
+      <div class="pagination-info" id="paginationInfo">Showing 1-10 of 0</div>
+      <div class="pagination-btns" id="paginationBtns"></div>
+    </div>
   </div>
 </main>
 
@@ -81,7 +128,7 @@
       <div class="modal-title">New Purchase Invoice</div>
       <button class="btn btn-outline btn-sm" onclick="closeModal('piModal');resetPiForm()">Close</button>
     </div>
-    <p style="font-size:12px;color:var(--green);margin-bottom:20px;font-family:'Space Mono',monospace">Stock updates automatically on creation</p>
+    <p style="font-size:12px;color:var(--green);margin-bottom:20px">Stock updates automatically on creation</p>
     <form id="piForm" onsubmit="createPurchase(event)">
       <div class="form-row">
         <div class="form-group">
@@ -113,13 +160,37 @@
   </div>
 </div>
 
+<!-- Custom Cancel Confirmation Modal -->
+<div class="modal-overlay" id="cancelConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Cancel</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;"></div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="cancelMessage">
+        Are you sure you want to cancel this invoice?
+      </p>
+      <p style="color:var(--red); font-size:13px;">Stock quantities will be reversed.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeCancelModal()">No, Keep It</button>
+      <button class="btn btn-danger" id="confirmCancelBtn">Yes, Cancel Invoice</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
 const user = requireRole('Admin');
 if (user) { buildNav(); init(); }
 
 let allPI = [], allVendors = [], allParts = [];
+let currentPage = 1;
+const itemsPerPage = 10;
+let cancelPendingId = null;
 
+// ── Init ─────────────────────────────
 async function init() {
   document.getElementById('fPiDate').value = new Date().toISOString().split('T')[0];
   try {
@@ -127,22 +198,47 @@ async function init() {
       API.get('/purchase-invoices'), API.get('/vendors'), API.get('/parts')
     ]);
     renderPI(allPI);
-    allVendors.forEach(v => {
-      const o1 = document.createElement('option'); o1.value = v.id; o1.textContent = v.name;
-      document.getElementById('fPiVendor').appendChild(o1);
-      const o2 = document.createElement('option'); o2.value = v.id; o2.textContent = v.name;
-      document.getElementById('piVendorFilter').appendChild(o2);
-    });
+    populateVendors();
   } catch (e) {
     document.getElementById('piBody').innerHTML = '<tr><td colspan="7" class="tbl-empty">Failed to load</td></tr>';
   }
 }
 
+function populateVendors() {
+  const vendorSelect = document.getElementById('fPiVendor');
+  const filterSelect = document.getElementById('piVendorFilter');
+  
+  allVendors.forEach(v => {
+    const o1 = document.createElement('option'); 
+    o1.value = v.id; 
+    o1.textContent = v.name;
+    vendorSelect.appendChild(o1);
+
+    const o2 = document.createElement('option'); 
+    o2.value = v.id; 
+    o2.textContent = v.name;
+    filterSelect.appendChild(o2);
+  });
+}
+
+// ── Render with Pagination ─────────────────────────────
 function renderPI(list) {
-  document.getElementById('piCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('piCount').textContent = total;
+
   const body = document.getElementById('piBody');
-  if (!list.length) { body.innerHTML = '<tr><td colspan="7" class="tbl-empty">No purchase invoices yet</td></tr>'; return; }
-  body.innerHTML = list.map(p => `
+  if (!total) {
+    body.innerHTML = '<tr><td colspan="7" class="tbl-empty">No purchase invoices yet</td></tr>';
+    updatePagination(0, 0);
+    return;
+  }
+
+  body.innerHTML = paginated.map(p => `
     <tr>
       <td><code>${p.invoiceNumber}</code></td>
       <td class="muted">${fmtDate(p.invoiceDate)}</td>
@@ -153,19 +249,59 @@ function renderPI(list) {
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-outline btn-sm" onclick="viewPI(${p.id})">View</button>
-          ${p.status === 'Received' ? `<button class="btn btn-danger btn-sm" onclick="cancelPI(${p.id})">Cancel</button>` : ''}
+          ${p.status === 'Received' ? `<button class="btn btn-danger btn-sm" onclick="showCancelConfirm(${p.id})">Cancel</button>` : ''}
           ${p.status === 'Pending' ? `<button class="btn btn-primary btn-sm" onclick="receivePI(${p.id})">Receive</button>` : ''}
         </div>
       </td>
     </tr>`).join('');
+
+  updatePagination(total, totalPages);
+}
+
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('paginationInfo');
+  const btns = document.getElementById('paginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No invoices';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  const totalPages = Math.ceil(allPI.length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  currentPage = page;
+  renderPI(allPI);
 }
 
 function filterPurchases() {
-  const s = document.getElementById('piStatusFilter').value;
-  const v = document.getElementById('piVendorFilter').value;
-  renderPI(allPI.filter(p => (!s || p.status === s) && (!v || p.vendorId == v)));
+  const status = document.getElementById('piStatusFilter').value;
+  const vendor = document.getElementById('piVendorFilter').value;
+  
+  let filtered = allPI;
+  if (status) filtered = filtered.filter(p => p.status === status);
+  if (vendor) filtered = filtered.filter(p => p.vendorId == vendor);
+  
+  currentPage = 1;
+  renderPI(filtered);
 }
 
+// ── Other Functions (unchanged except cancel) ─────────────────────────────
 let piIdx = 0;
 function addPiItem() {
   piIdx++;
@@ -236,20 +372,41 @@ async function receivePI(id) {
     await API.patch(`/purchase-invoices/${id}/status`, { status: 'Received' });
     notify('Invoice received and stock updated', 'success');
     allPI = await API.get('/purchase-invoices');
+    currentPage = 1;
     renderPI(allPI);
   } catch (err) { notify(err.message, 'error'); }
 }
 
-async function cancelPI(id) {
-  if (!confirm('Cancel this invoice? Stock will be reversed.')) return;
+// ── Custom Cancel Confirmation ─────────────────────────────
+function showCancelConfirm(id) {
+  cancelPendingId = id;
+  document.getElementById('cancelMessage').innerHTML = `Are you sure you want to cancel invoice <strong>#${id}</strong>?`;
+  openModal('cancelConfirmModal');
+}
+
+function closeCancelModal() {
+  closeModal('cancelConfirmModal');
+  cancelPendingId = null;
+}
+
+async function confirmCancel() {
+  if (!cancelPendingId) return;
   try {
-    await API.patch(`/purchase-invoices/${id}/status`, { status: 'Cancelled' });
+    await API.patch(`/purchase-invoices/${cancelPendingId}/status`, { status: 'Cancelled' });
     notify('Invoice cancelled and stock reversed', 'success');
+    closeCancelModal();
     allPI = await API.get('/purchase-invoices');
+    currentPage = 1;
     renderPI(allPI);
-  } catch (err) { notify(err.message, 'error'); }
+  } catch (err) {
+    notify(err.message, 'error');
+  }
 }
 
+// Attach confirm button
+document.getElementById('confirmCancelBtn').onclick = confirmCancel;
+
+// ── Create & Reset ─────────────────────────────
 async function createPurchase(e) {
   e.preventDefault();
   const items = [];
@@ -258,21 +415,28 @@ async function createPurchase(e) {
     const qty = row.querySelector('input[id^="piQty"]');
     const cost = row.querySelector('input[id^="piCost"]');
     if (part && part.value && qty && cost) {
-      items.push({ partId: parseInt(part.value), quantity: parseInt(qty.value), unitCost: parseFloat(cost.value) });
+      items.push({ 
+        partId: parseInt(part.value), 
+        quantity: parseInt(qty.value), 
+        unitCost: parseFloat(cost.value) 
+      });
     }
   });
   if (!items.length) { notify('Add at least one item', 'error'); return; }
+
   const body = {
     vendorId: parseInt(document.getElementById('fPiVendor').value),
     invoiceDate: new Date(document.getElementById('fPiDate').value).toISOString(),
     items
   };
+
   try {
     await API.post('/purchase-invoices', body);
     notify('Purchase invoice created and stock updated', 'success');
     closeModal('piModal');
     resetPiForm();
     allPI = await API.get('/purchase-invoices');
+    currentPage = 1;
     renderPI(allPI);
   } catch (err) { notify(err.message, 'error'); }
 }
@@ -285,8 +449,11 @@ function resetPiForm() {
   document.getElementById('fPiDate').value = new Date().toISOString().split('T')[0];
 }
 
+// Modal backdrop
 document.querySelectorAll('.modal-overlay').forEach(m => {
-  m.addEventListener('click', e => { if (e.target === m) closeModal(m.id); });
+  m.addEventListener('click', e => { 
+    if (e.target === m) closeModal(m.id); 
+  });
 });
 </script>
 </body>

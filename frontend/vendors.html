@@ -38,16 +38,9 @@
   transform: translateY(-2px); 
 }
 
-/* Typography Improvements */
-.page-title {
-  font-size: 28px;
-  font-weight: 700;        /* Reduced - less fat */
-  margin: 0;
-}
-
 .vendor-name { 
   font-family: 'Syne', sans-serif; 
-  font-weight: 700;        /* Reduced from 800 */
+  font-weight: 700; 
   font-size: 20px; 
   margin-bottom: 4px; 
   color: var(--text); 
@@ -57,7 +50,6 @@
   font-size: 13px; 
   color: var(--text-3); 
   margin-bottom: 16px; 
-  font-family: 'Space Mono', monospace; 
 }
 
 .vendor-info { 
@@ -96,10 +88,41 @@
   margin-left: auto; 
 }
 
-/* Stats / General */
-.stat-value {
-  font-size: 26px;
-  font-weight: 700;
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
 }
 </style>
 </head>
@@ -107,8 +130,7 @@
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -124,10 +146,17 @@
   </div>
 
   <div class="vendors-grid" id="vendorsGrid">
-    <div style="padding:48px;text-align:center;color:var(--text-3)">Loading vendors...</div>
+    <!-- Vendors will be rendered here -->
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination">
+    <div class="pagination-info" id="paginationInfo">Showing 1-9 of 0</div>
+    <div class="pagination-btns" id="paginationBtns"></div>
   </div>
 </main>
 
+<!-- Add/Edit Vendor Modal -->
 <div class="modal-overlay" id="vendorModal">
   <div class="modal">
     <div class="modal-hd">
@@ -166,9 +195,42 @@
   </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;"></div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage"></p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete Vendor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoices List Modal -->
+<div class="modal-overlay" id="invoicesModal">
+  <div class="modal modal--wide">
+    <div class="modal-hd">
+      <div class="modal-title" id="invoicesModalTitle">Vendor Invoices</div>
+      <button class="btn btn-outline btn-sm" onclick="closeModal('invoicesModal')">Close</button>
+    </div>
+    <div id="invoicesContent" style="padding:20px; max-height:60vh; overflow:auto;"></div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
 let allVendors = [];
+let currentPage = 1;
+const itemsPerPage = 9; // Good number for grid layout
+let deletePendingId = null;
+let deletePendingName = '';
 
 const user = requireRole('Admin');
 if (user) { 
@@ -180,20 +242,28 @@ async function loadVendors() {
   const grid = document.getElementById('vendorsGrid');
   try {
     allVendors = await API.get('/vendors');
+    currentPage = 1;
     renderVendors();
   } catch (e) {
-    console.error('loadVendors error:', e);
-    grid.innerHTML = `<div style="padding:48px;text-align:center;color:var(--red)">${e.message}</div>`;
+    grid.innerHTML = `<div style="padding:48px;text-align:center;color:var(--red)">Failed to load vendors</div>`;
   }
 }
 
 function renderVendors() {
   const grid = document.getElementById('vendorsGrid');
-  if (!allVendors.length) {
-    grid.innerHTML = '<div style="padding:48px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:13px">No vendors yet. Add your first vendor.</div>';
+  const total = allVendors.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = allVendors.slice(start, end);
+
+  if (!total) {
+    grid.innerHTML = '<div style="padding:48px;text-align:center;color:var(--text-3)">No vendors yet. Add your first vendor.</div>';
+    updatePagination(0, 0);
     return;
   }
-  grid.innerHTML = allVendors.map(v => `
+
+  grid.innerHTML = paginated.map(v => `
     <div class="vendor-card">
       <div class="vendor-name">${v.name}</div>
       <div class="vendor-contact">${v.contactPerson}</div>
@@ -203,91 +273,160 @@ function renderVendors() {
         ${v.address ? `<div class="vendor-info-row"><span class="vendor-info-icon">~</span>${v.address}</div>` : ''}
       </div>
       <div class="vendor-actions">
-        <button class="btn btn-outline btn-sm" onclick="viewInvoices(${v.id},'${v.name}')">Invoices</button>
+        <button class="btn btn-outline btn-sm" onclick="viewInvoices(${v.id},'${v.name.replace(/'/g, "\\'")}')">Invoices</button>
         <button class="btn btn-outline btn-sm" onclick="editVendor(${v.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteVendor(${v.id},'${v.name}')">Delete</button>
+        <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${v.id},'${v.name.replace(/'/g, "\\'")}')">Delete</button>
         <span class="vendor-since">Since ${v.createdAt ? fmtDate(v.createdAt) : '—'}</span>
       </div>
     </div>`).join('');
+
+  updatePagination(total, totalPages);
 }
 
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('paginationInfo');
+  const btns = document.getElementById('paginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No vendors';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  if (page < 1 || page > Math.ceil(allVendors.length / itemsPerPage)) return;
+  currentPage = page;
+  renderVendors();
+}
+
+// Edit & Save
 function editVendor(id) {
   const v = allVendors.find(x => x.id === id);
   if (!v) return;
-  document.getElementById('vendorId').value    = v.id;
-  document.getElementById('fVName').value      = v.name;
-  document.getElementById('fVContact').value   = v.contactPerson;
-  document.getElementById('fVEmail').value     = v.email;
-  document.getElementById('fVPhone').value     = v.phone;
-  document.getElementById('fVAddress').value   = v.address || '';
-  document.getElementById('vendorModalTitle').textContent  = 'Edit Vendor';
-  document.getElementById('vendorSubmitBtn').textContent   = 'Update';
+  document.getElementById('vendorId').value = v.id;
+  document.getElementById('fVName').value = v.name;
+  document.getElementById('fVContact').value = v.contactPerson;
+  document.getElementById('fVEmail').value = v.email;
+  document.getElementById('fVPhone').value = v.phone;
+  document.getElementById('fVAddress').value = v.address || '';
+  
+  document.getElementById('vendorModalTitle').textContent = 'Edit Vendor';
+  document.getElementById('vendorSubmitBtn').textContent = 'Update';
   openModal('vendorModal');
-}
-
-async function viewInvoices(id, name) {
-  try {
-    const invs = await API.get(`/vendors/${id}/invoices`);
-    if (!invs.length) { 
-      notify(`No invoices for ${name}`, 'info'); 
-      return; 
-    }
-    alert(`${name} — ${invs.length} invoice(s)\n` + invs.map(i => `${i.invoiceNumber} | NPR ${fmt(i.totalAmount)} | ${i.status}`).join('\n'));
-  } catch (e) { 
-    notify(e.message, 'error'); 
-  }
 }
 
 function resetVendorForm() {
   document.getElementById('vendorId').value = '';
   document.getElementById('vendorForm').reset();
   document.getElementById('vendorModalTitle').textContent = 'Add Vendor';
-  document.getElementById('vendorSubmitBtn').textContent  = 'Add Vendor';
+  document.getElementById('vendorSubmitBtn').textContent = 'Add Vendor';
 }
 
 async function saveVendor(e) {
   e.preventDefault();
-  const id   = document.getElementById('vendorId').value;
+  const id = document.getElementById('vendorId').value;
   const body = {
-    name:          document.getElementById('fVName').value,
+    name: document.getElementById('fVName').value,
     contactPerson: document.getElementById('fVContact').value,
-    email:         document.getElementById('fVEmail').value,
-    phone:         document.getElementById('fVPhone').value,
-    address:       document.getElementById('fVAddress').value,
+    email: document.getElementById('fVEmail').value,
+    phone: document.getElementById('fVPhone').value,
+    address: document.getElementById('fVAddress').value,
   };
   try {
-    if (id) { 
-      await API.put(`/vendors/${id}`, body);  
-      notify('Vendor updated', 'success'); 
-    }
-    else { 
-      await API.post('/vendors', body);         
-      notify('Vendor added',   'success'); 
+    if (id) {
+      await API.put(`/vendors/${id}`, body);
+      notify('Vendor updated successfully', 'success');
+    } else {
+      await API.post('/vendors', body);
+      notify('Vendor added successfully', 'success');
     }
     closeModal('vendorModal');
     resetVendorForm();
     loadVendors();
-  } catch (err) { 
-    notify(err.message, 'error'); 
+  } catch (err) {
+    notify(err.message, 'error');
   }
 }
 
-async function deleteVendor(id, name) {
-  if (!confirm(`Delete vendor "${name}"?`)) return;
+// Delete Confirmation
+function showDeleteConfirm(id, name) {
+  deletePendingId = id;
+  deletePendingName = name;
+  document.getElementById('deleteMessage').innerHTML = `Are you sure you want to delete <strong>${name}</strong>?`;
+  openModal('deleteConfirmModal');
+}
+
+function closeDeleteModal() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDelete() {
+  if (!deletePendingId) return;
   try {
-    await API.del(`/vendors/${id}`);
-    notify('Vendor deleted', 'success');
+    await API.del(`/vendors/${deletePendingId}`);
+    notify('Vendor deleted successfully', 'success');
+    closeDeleteModal();
     loadVendors();
-  } catch (err) { 
-    notify(err.message, 'error'); 
+  } catch (err) {
+    notify(err.message, 'error');
+  }
+}
+document.getElementById('confirmDeleteBtn').onclick = confirmDelete;
+
+// View Invoices - Custom Modal
+async function viewInvoices(id, name) {
+  try {
+    const invs = await API.get(`/vendors/${id}/invoices`);
+    document.getElementById('invoicesModalTitle').textContent = `${name} — Invoices`;
+    
+    let content = '';
+    if (!invs.length) {
+      content = `<div style="text-align:center;padding:40px;color:var(--text-3)">No invoices found for this vendor.</div>`;
+    } else {
+      content = `
+        <table class="tbl">
+          <thead><tr><th>Invoice #</th><th>Date</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+            ${invs.map(i => `
+              <tr>
+                <td><code>${i.invoiceNumber}</code></td>
+                <td>${fmtDate(i.invoiceDate)}</td>
+                <td class="amount">NPR ${fmt(i.totalAmount)}</td>
+                <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    }
+    document.getElementById('invoicesContent').innerHTML = content;
+    openModal('invoicesModal');
+  } catch (e) {
+    notify('Failed to load invoices', 'error');
   }
 }
 
+// Modal Backdrop
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { 
     if (e.target === m) { 
       closeModal(m.id); 
-      resetVendorForm(); 
+      if (m.id === 'vendorModal') resetVendorForm();
+      if (m.id === 'deleteConfirmModal') deletePendingId = null;
     } 
   });
 });

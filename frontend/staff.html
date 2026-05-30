@@ -54,16 +54,9 @@
 .staff-avatar.admin { border-color: var(--blue); color: var(--blue); }
 .staff-avatar.staff-role { border-color: var(--amber); color: var(--amber); }
 
-/* Typography Improvements */
-.page-title {
-  font-size: 28px;
-  font-weight: 700;        /* Reduced weight - less fat */
-  margin: 0;
-}
-
 .staff-name { 
   font-family: 'Syne', sans-serif; 
-  font-weight: 700;        /* Slightly reduced */
+  font-weight: 700; 
   font-size: 20px; 
   margin-bottom: 2px; 
   color: var(--text); 
@@ -90,19 +83,35 @@
   flex-wrap: wrap; 
 }
 
-/* Better stat text */
-.stat-value {
-  font-size: 26px;
-  font-weight: 700;
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+.pagination-info { color: var(--text-3); font-size: 14px; }
+.pagination-btns { display: flex; gap: 6px; }
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+.pagination-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
 </style>
 </head>
 <body>
 
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -118,18 +127,9 @@
   </div>
 
   <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
-    <div class="stat">
-      <div class="stat-label">Total Staff</div>
-      <div class="stat-value" id="sTotalStaff">—</div>
-    </div>
-    <div class="stat stat--green">
-      <div class="stat-label">Active</div>
-      <div class="stat-value" id="sActiveStaff">—</div>
-    </div>
-    <div class="stat">
-      <div class="stat-label">Inactive</div>
-      <div class="stat-value" id="sInactiveStaff">—</div>
-    </div>
+    <div class="stat"><div class="stat-label">Total Staff</div><div class="stat-value" id="sTotalStaff">—</div></div>
+    <div class="stat stat--green"><div class="stat-label">Active</div><div class="stat-value" id="sActiveStaff">—</div></div>
+    <div class="stat"><div class="stat-label">Inactive</div><div class="stat-value" id="sInactiveStaff">—</div></div>
   </div>
 
   <div class="controls" style="margin-bottom:20px">
@@ -148,8 +148,14 @@
   <div class="staff-grid" id="staffGrid">
     <div style="padding:48px;text-align:center;color:var(--text-3)">Loading...</div>
   </div>
+
+  <div class="pagination" id="pagination">
+    <div class="pagination-info" id="paginationInfo">Showing 1-6 of 0</div>
+    <div class="pagination-btns" id="paginationBtns"></div>
+  </div>
 </main>
 
+<!-- Add/Edit Staff Modal -->
 <div class="modal-overlay" id="staffModal">
   <div class="modal">
     <div class="modal-hd">
@@ -159,23 +165,11 @@
     <form id="staffForm" onsubmit="saveStaff(event)">
       <input type="hidden" id="staffId">
       <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">First Name</label>
-          <input class="input" id="fSFirstName" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Last Name</label>
-          <input class="input" id="fSLastName" required>
-        </div>
+        <div class="form-group"><label class="form-label">First Name</label><input class="input" id="fSFirstName" required></div>
+        <div class="form-group"><label class="form-label">Last Name</label><input class="input" id="fSLastName" required></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="input" id="fSEmail" type="email" required>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone</label>
-        <input class="input" id="fSPhone" required>
-      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="input" id="fSEmail" type="email" required></div>
+      <div class="form-group"><label class="form-label">Phone</label><input class="input" id="fSPhone" required></div>
       <div class="form-group" id="staffRoleGroup">
         <label class="form-label">Role</label>
         <select class="input select" id="fSRole">
@@ -195,11 +189,28 @@
   </div>
 </div>
 
+<!-- Custom Confirmation Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="confirmTitle">Confirm Action</div>
+    </div>
+    <div style="padding:25px 30px; text-align:center;">
+      <div id="confirmIcon" style="font-size:42px; margin-bottom:12px;"></div>
+      <p style="font-size:15.5px; margin:10px 0 20px;" id="confirmMessage"></p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// ==================== FIXED CODE ====================
-
-let allStaff = [];   // ← MUST BE AT THE TOP
+let allStaff = [];
+let currentPage = 1;
+const itemsPerPage = 6;
 
 const user = requireRole('Admin');
 if (user) {
@@ -210,6 +221,7 @@ if (user) {
 async function loadStaff() {
   try {
     allStaff = await API.get('/staff');
+    currentPage = 1;
     renderStaff(allStaff);
 
     try {
@@ -217,33 +229,31 @@ async function loadStaff() {
       document.getElementById('sTotalStaff').textContent = c.totalStaff || 0;
       document.getElementById('sActiveStaff').textContent = c.activeStaff || 0;
       document.getElementById('sInactiveStaff').textContent = c.inactiveStaff || 0;
-    } catch (countErr) {
-      console.warn("Staff count endpoint not available or failed:", countErr);
+    } catch (_) {
       document.getElementById('sTotalStaff').textContent = allStaff.length;
       document.getElementById('sActiveStaff').textContent = allStaff.filter(s => s.isActive).length;
       document.getElementById('sInactiveStaff').textContent = allStaff.filter(s => !s.isActive).length;
     }
-
   } catch (e) {
-    console.error("STAFF LOAD ERROR:", e);
-    document.getElementById('staffGrid').innerHTML = `
-      <div style="color:#ff6b6b;padding:40px;text-align:center;border:1px solid #ff6b6b33;border-radius:12px">
-        <strong>Failed to load staff</strong><br><br>
-        ${e.message || 'Unknown error occurred'}
-        <br><br>
-        <small style="opacity:0.8">Check console (F12) for details</small>
-      </div>`;
+    document.getElementById('staffGrid').innerHTML = `<div style="color:#ff6b6b;padding:40px;text-align:center;border:1px solid #ff6b6b33;border-radius:12px">Failed to load staff</div>`;
   }
 }
 
 function renderStaff(list) {
   const grid = document.getElementById('staffGrid');
-  if (!list.length) {
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  if (!total) {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3)">No staff members found</div>';
+    updatePagination(0, 0);
     return;
   }
 
-  grid.innerHTML = list.map(s => {
+  grid.innerHTML = paginated.map(s => {
     const roleClass = s.role === 'Admin' ? 'admin' : 'staff-role';
     const initials = `${(s.firstName || '')[0]}${(s.lastName || '')[0]}`.toUpperCase();
 
@@ -259,26 +269,127 @@ function renderStaff(list) {
       <div class="muted" style="margin-bottom:16px;font-family:'Space Mono',monospace;font-size:12px">${s.phone || '—'}</div>
       <div class="staff-actions">
         <button class="btn btn-outline btn-sm" onclick="editStaff(${s.id})">Edit</button>
-        <button class="btn btn-outline btn-sm" onclick="changeRole(${s.id},'${s.role}','${s.firstName}')">Role</button>
-        <button class="btn ${s.isActive ? 'btn-danger' : 'btn-outline'} btn-sm" onclick="toggleStatus(${s.id},${s.isActive},'${s.firstName}')">
+        <button class="btn btn-outline btn-sm" onclick="showRoleConfirm(${s.id},'${s.role}','${s.firstName}')">Change Role</button>
+        <button class="btn ${s.isActive ? 'btn-danger' : 'btn-outline'} btn-sm" onclick="showStatusConfirm(${s.id},${!!s.isActive},'${s.firstName}')">
           ${s.isActive ? 'Deactivate' : 'Activate'}
         </button>
-        <button class="btn btn-danger btn-sm" onclick="deleteStaff(${s.id},'${s.firstName}')">Del</button>
+        <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${s.id},'${s.firstName} ${s.lastName}')">Delete</button>
       </div>
     </div>`;
   }).join('');
+
+  updatePagination(total, totalPages);
+}
+
+function updatePagination(total, totalPages) {
+  const info = document.getElementById('paginationInfo');
+  const btns = document.getElementById('paginationBtns');
+  
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+  
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No staff';
+
+  let html = `<button class="pagination-btn" onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+  
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i===currentPage?'active':''}" onclick="changePage(${i})">${i}</button>`;
+  }
+  
+  html += `<button class="pagination-btn" onclick="changePage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(page) {
+  if (page < 1 || page > Math.ceil(allStaff.length / itemsPerPage)) return;
+  currentPage = page;
+  renderStaff(allStaff);
 }
 
 function filterStaff() {
   const r = document.getElementById('roleFilter').value;
   const a = document.getElementById('activeFilter').value;
   const filtered = allStaff.filter(s => 
-    (!r || s.role === r) && 
-    (a === '' || String(s.isActive) === a)
+    (!r || s.role === r) && (a === '' || String(s.isActive) === a)
   );
+  currentPage = 1;
   renderStaff(filtered);
 }
 
+// ==================== FIXED CONFIRMATION SYSTEM ====================
+function showConfirm(title, message, callback) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMessage').innerHTML = message;
+  document.getElementById('confirmIcon').innerHTML = '';
+  
+  // Important: Re-attach the click handler every time
+  const confirmBtn = document.getElementById('confirmActionBtn');
+  confirmBtn.onclick = () => {
+    closeConfirmModal();
+    if (callback) callback();
+  };
+  
+  openModal('confirmModal');
+}
+
+function closeConfirmModal() {
+  closeModal('confirmModal');
+}
+
+function showDeleteConfirm(id, name) {
+  showConfirm("Delete Staff", `Are you sure you want to permanently delete <strong>${name}</strong>?`, () => deleteStaffConfirmed(id));
+}
+
+async function deleteStaffConfirmed(id) {
+  try {
+    await API.del(`/staff/${id}`);
+    notify('Staff member deleted', 'success');
+    loadStaff();
+  } catch (err) {
+    notify(err.message || 'Failed to delete staff', 'error');
+  }
+}
+
+function showRoleConfirm(id, currentRole, name) {
+  const newRole = currentRole === 'Admin' ? 'Staff' : 'Admin';
+  showConfirm("Change Role", `Change <strong>${name}</strong>'s role from <strong>${currentRole}</strong> to <strong>${newRole}</strong>?`, () => changeRoleConfirmed(id, newRole));
+}
+
+async function changeRoleConfirmed(id, newRole) {
+  try {
+    await API.patch(`/staff/${id}/role`, { role: newRole });
+    notify(`Role changed to ${newRole}`, 'success');
+    loadStaff();
+  } catch (err) {
+    notify(err.message || 'Failed to change role', 'error');
+  }
+}
+
+function showStatusConfirm(id, isActive, name) {
+  const action = isActive ? 'Deactivate' : 'Activate';
+  showConfirm(
+    action + " Staff", 
+    `${action} <strong>${name}</strong>?`, 
+    () => toggleStatusConfirmed(id, isActive)
+  );
+}
+
+async function toggleStatusConfirmed(id, isActive) {
+  try {
+    await API.patch(`/staff/${id}/status`, { isActive: !isActive });
+    notify(`Staff ${isActive ? 'deactivated' : 'activated'}`, 'success');
+    loadStaff();
+  } catch (err) {
+    notify(err.message || 'Failed to update status', 'error');
+  }
+}
+
+// Edit & Save
 function editStaff(id) {
   const s = allStaff.find(x => x.id === id);
   if (!s) return;
@@ -297,41 +408,6 @@ function editStaff(id) {
   openModal('staffModal');
 }
 
-async function changeRole(id, currentRole, name) {
-  const newRole = currentRole === 'Admin' ? 'Staff' : 'Admin';
-  if (!confirm(`Change ${name}'s role from ${currentRole} to ${newRole}?`)) return;
-  try {
-    await API.patch(`/staff/${id}/role`, { role: newRole });
-    notify(`Role changed to ${newRole}`, 'success');
-    loadStaff();
-  } catch (err) { 
-    notify(err.message || 'Failed to change role', 'error'); 
-  }
-}
-
-async function toggleStatus(id, isActive, name) {
-  const action = isActive ? 'deactivate' : 'activate';
-  if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${name}?`)) return;
-  try {
-    await API.patch(`/staff/${id}/status`, { isActive: !isActive });
-    notify(`Staff ${action}d`, 'success');
-    loadStaff();
-  } catch (err) { 
-    notify(err.message || 'Failed to update status', 'error'); 
-  }
-}
-
-async function deleteStaff(id, name) {
-  if (!confirm(`Permanently delete "${name}"?`)) return;
-  try {
-    await API.del(`/staff/${id}`);
-    notify('Staff deleted', 'success');
-    loadStaff();
-  } catch (err) { 
-    notify(err.message || 'Failed to delete staff', 'error'); 
-  }
-}
-
 function resetStaffForm() {
   document.getElementById('staffId').value = '';
   document.getElementById('staffForm').reset();
@@ -344,7 +420,6 @@ function resetStaffForm() {
 async function saveStaff(e) {
   e.preventDefault();
   const id = document.getElementById('staffId').value;
-
   try {
     if (id) {
       await API.put(`/staff/${id}`, {
@@ -353,7 +428,7 @@ async function saveStaff(e) {
         email: document.getElementById('fSEmail').value,
         phone: document.getElementById('fSPhone').value,
       });
-      notify('Staff updated', 'success');
+      notify('Staff updated successfully', 'success');
     } else {
       await API.post('/staff', {
         firstName: document.getElementById('fSFirstName').value,
@@ -363,7 +438,7 @@ async function saveStaff(e) {
         role: document.getElementById('fSRole').value,
         password: document.getElementById('fSPassword').value,
       });
-      notify('Staff added', 'success');
+      notify('Staff added successfully', 'success');
     }
     closeModal('staffModal');
     resetStaffForm();
@@ -373,11 +448,12 @@ async function saveStaff(e) {
   }
 }
 
+// Modal Backdrop
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => {
     if (e.target === m) {
       closeModal(m.id);
-      resetStaffForm();
+      if (m.id === 'staffModal') resetStaffForm();
     }
   });
 });

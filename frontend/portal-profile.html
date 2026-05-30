@@ -22,15 +22,14 @@
 <body>
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div class="portal-nav">
     <a href="portal-profile.html"  class="portal-link active">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
     <a href="portal-history.html"  class="portal-link">Purchase History</a>
     <a href="portal-services.html" class="portal-link">Services</a>
-    <a href="portal-shop.html" class="portal-link">🛒 Shop</a>
+    <a href="portal-shop.html" class="portal-link">Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
@@ -160,12 +159,21 @@ async function loadProfile() {
 
 async function saveProfile(e) {
   e.preventDefault();
-  const body = { firstName:document.getElementById('eFirst').value, lastName:document.getElementById('eLast').value, email:document.getElementById('eEmail').value, phone:document.getElementById('ePhone').value, address:document.getElementById('eAddress').value };
+  const body = { 
+    firstName: document.getElementById('eFirst').value, 
+    lastName: document.getElementById('eLast').value, 
+    email: document.getElementById('eEmail').value, 
+    phone: document.getElementById('ePhone').value, 
+    address: document.getElementById('eAddress').value 
+  };
   try {
     await API.put(`/customers/${user.id}`, body);
-    user.firstName = body.firstName; user.lastName = body.lastName;
+    user.firstName = body.firstName; 
+    user.lastName = body.lastName;
     sessionStorage.setItem('user', JSON.stringify(user));
-    notify('Profile updated!', 'success'); closeModal('editModal'); loadProfile();
+    notify('Profile updated!', 'success'); 
+    closeModal('editModal'); 
+    loadProfile();
   } catch(err) { notify(err.message, 'error'); }
 }
 
@@ -176,8 +184,10 @@ async function changePassword() {
   if (np !== cp) { notify('Passwords do not match', 'error'); return; }
   try {
     await API.patch(`/customers/${user.id}/password`, { password: np });
-    notify('Password updated!', 'success'); closeModal('pwdModal');
-    document.getElementById('newPwd').value = ''; document.getElementById('confirmPwd').value = '';
+    notify('Password updated!', 'success'); 
+    closeModal('pwdModal');
+    document.getElementById('newPwd').value = ''; 
+    document.getElementById('confirmPwd').value = '';
   } catch(err) { notify(err.message, 'error'); }
 }
 

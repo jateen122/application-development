@@ -11,13 +11,49 @@
 .svctab{flex:1;padding:9px;border:none;background:none;color:var(--text-3);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;border-radius:var(--radius);cursor:pointer;transition:all 0.2s}
 .svctab.active{background:var(--surface);color:var(--blue);box-shadow:0 1px 4px rgba(0,0,0,0.10)}
 .review-stars{color:#f59e0b;font-size:15px}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.pagination-info {
+  color: var(--text-3);
+  font-size: 14px;
+}
+.pagination-btns {
+  display: flex;
+  gap: 6px;
+}
+.pagination-btn {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+.pagination-btn:hover {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+}
+.pagination-btn.active {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
 </style>
 </head>
 <body>
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -32,9 +68,9 @@
   </div>
 
   <div class="svc-tabs">
-    <button class="svctab active" onclick="switchTab('appointments',this)">📅 Appointments</button>
-    <button class="svctab" onclick="switchTab('parts',this)">🔧 Part Requests</button>
-    <button class="svctab" onclick="switchTab('reviews',this)">⭐ Reviews</button>
+    <button class="svctab active" onclick="switchTab('appointments',this)">Appointments</button>
+    <button class="svctab" onclick="switchTab('parts',this)">Part Requests</button>
+    <button class="svctab" onclick="switchTab('reviews',this)">Reviews</button>
   </div>
 
   <!-- APPOINTMENTS -->
@@ -52,6 +88,10 @@
           <thead><tr><th>Customer</th><th>Service</th><th>Date & Time</th><th>Notes</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="apptBody"><tr><td colspan="6" class="tbl-empty">Loading…</td></tr></tbody>
         </table>
+      </div>
+      <div class="pagination" id="apptPagination">
+        <div class="pagination-info" id="apptPaginationInfo">Showing 1-10 of 0</div>
+        <div class="pagination-btns" id="apptPaginationBtns"></div>
       </div>
     </div>
   </div>
@@ -72,6 +112,10 @@
           <tbody id="reqBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
         </table>
       </div>
+      <div class="pagination" id="reqPagination">
+        <div class="pagination-info" id="reqPaginationInfo">Showing 1-10 of 0</div>
+        <div class="pagination-btns" id="reqPaginationBtns"></div>
+      </div>
     </div>
   </div>
 
@@ -88,16 +132,39 @@
   </div>
 </main>
 
+<!-- Custom Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title">Confirm Delete</div>
+    </div>
+    <div style="text-align:center; padding: 25px 30px 10px;">
+      <div style="font-size:42px; color:var(--red); margin-bottom:12px;"></div>
+      <p style="margin:10px 0 20px; font-size:15.5px;" id="deleteMessage">Are you sure you want to delete this review?</p>
+      <p style="color:var(--red); font-size:13px;">This action cannot be undone.</p>
+    </div>
+    <div class="form-actions" style="padding:15px 30px 25px;">
+      <button class="btn btn-outline" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script src="auth.js"></script>
 <script>
-// ── declare all variables FIRST ────────────────────────────
 let allAppts = [];
-let allReqs  = [];
+let allReqs = [];
+let currentApptPage = 1;
+let currentReqPage = 1;
+const itemsPerPage = 10;
+let deletePendingId = null;
 
 const user = requireRole('Admin', 'Staff');
-if (user) { buildNav(); loadAppointments(); }
+if (user) { 
+  buildNav(); 
+  loadAppointments(); 
+}
 
-// ── Tab switching ──────────────────────────────────────────
 function switchTab(tab, el) {
   ['appointments','parts','reviews'].forEach(t =>
     document.getElementById(`tab-${t}`).style.display = t === tab ? 'block' : 'none'
@@ -105,29 +172,38 @@ function switchTab(tab, el) {
   document.querySelectorAll('.svctab').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   if (tab === 'appointments') loadAppointments();
-  if (tab === 'parts')        loadPartRequests();
-  if (tab === 'reviews')      loadReviews();
+  if (tab === 'parts') loadPartRequests();
+  if (tab === 'reviews') loadReviews();
 }
 
-// ── Appointments ───────────────────────────────────────────
+// ====================== APPOINTMENTS ======================
 async function loadAppointments() {
   try {
     allAppts = await API.get('/appointments');
+    currentApptPage = 1;
     renderAppts(allAppts);
   } catch(e) {
-    document.getElementById('apptBody').innerHTML =
-      `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+    document.getElementById('apptBody').innerHTML = `<tr><td colspan="6" class="tbl-empty" style="color:var(--red)">Failed to load</td></tr>`;
   }
 }
 
 function renderAppts(list) {
-  document.getElementById('apptCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentApptPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('apptCount').textContent = total;
   const body = document.getElementById('apptBody');
-  if (!list.length) {
+
+  if (!total) {
     body.innerHTML = '<tr><td colspan="6" class="tbl-empty">No appointments yet</td></tr>';
+    updatePagination('appt', total, totalPages);
     return;
   }
-  body.innerHTML = list.map(a => `
+
+  body.innerHTML = paginated.map(a => `
     <tr>
       <td>
         <a href="customer-detail.html?id=${a.customerId}" class="link">${a.customerName}</a>
@@ -139,47 +215,44 @@ function renderAppts(list) {
       <td><span class="status status-${a.status.toLowerCase()}">${a.status}</span></td>
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          ${a.status === 'Pending'   ? `<button class="btn btn-outline btn-sm" onclick="setApptStatus(${a.id},'Confirmed')">Confirm</button>` : ''}
+          ${a.status === 'Pending' ? `<button class="btn btn-outline btn-sm" onclick="setApptStatus(${a.id},'Confirmed')">Confirm</button>` : ''}
           ${a.status === 'Confirmed' ? `<button class="btn btn-primary btn-sm" onclick="setApptStatus(${a.id},'Completed')">Complete</button>` : ''}
-          ${a.status !== 'Cancelled' && a.status !== 'Completed'
-            ? `<button class="btn btn-danger btn-sm" onclick="setApptStatus(${a.id},'Cancelled')">Cancel</button>` : ''}
+          ${a.status !== 'Cancelled' && a.status !== 'Completed' ? `<button class="btn btn-danger btn-sm" onclick="setApptStatus(${a.id},'Cancelled')">Cancel</button>` : ''}
         </div>
       </td>
     </tr>`).join('');
+
+  updatePagination('appt', total, totalPages);
 }
 
-function filterAppts() {
-  const s = document.getElementById('apptStatusFilter').value;
-  renderAppts(s ? allAppts.filter(a => a.status === s) : allAppts);
-}
-
-async function setApptStatus(id, status) {
-  try {
-    await API.patch(`/appointments/${id}/status`, { status });
-    notify(`Appointment ${status.toLowerCase()}`, 'success');
-    loadAppointments();
-  } catch(err) { notify(err.message, 'error'); }
-}
-
-// ── Part Requests ──────────────────────────────────────────
+// ====================== PART REQUESTS ======================
 async function loadPartRequests() {
   try {
     allReqs = await API.get('/part-requests');
+    currentReqPage = 1;
     renderReqs(allReqs);
   } catch(e) {
-    document.getElementById('reqBody').innerHTML =
-      `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+    document.getElementById('reqBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">Failed to load</td></tr>`;
   }
 }
 
 function renderReqs(list) {
-  document.getElementById('reqCount').textContent = list.length;
+  const total = list.length;
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const start = (currentReqPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginated = list.slice(start, end);
+
+  document.getElementById('reqCount').textContent = total;
   const body = document.getElementById('reqBody');
-  if (!list.length) {
+
+  if (!total) {
     body.innerHTML = '<tr><td colspan="8" class="tbl-empty">No part requests</td></tr>';
+    updatePagination('req', total, totalPages);
     return;
   }
-  body.innerHTML = list.map(r => `
+
+  body.innerHTML = paginated.map(r => `
     <tr>
       <td><a href="customer-detail.html?id=${r.customerId}" class="link">${r.customerName}</a></td>
       <td class="text-strong">${r.partName}</td>
@@ -196,11 +269,65 @@ function renderReqs(list) {
           </div>` : '—'}
       </td>
     </tr>`).join('');
+
+  updatePagination('req', total, totalPages);
+}
+
+// Pagination Helper
+function updatePagination(type, total, totalPages) {
+  const prefix = type === 'appt' ? 'appt' : 'req';
+  const info = document.getElementById(prefix + 'PaginationInfo');
+  const btns = document.getElementById(prefix + 'PaginationBtns');
+
+  const currentPage = type === 'appt' ? currentApptPage : currentReqPage;
+  const start = (currentPage - 1) * itemsPerPage + 1;
+  const end = Math.min(currentPage * itemsPerPage, total);
+
+  info.textContent = total ? `Showing ${start}-${end} of ${total}` : 'No records';
+
+  let html = `<button class="pagination-btn" onclick="changePage('${type}',${currentPage-1})" ${currentPage===1?'disabled':''}>Previous</button>`;
+
+  const max = 5;
+  let s = Math.max(1, currentPage - Math.floor(max/2));
+  let e = Math.min(totalPages, s + max - 1);
+  if (e - s < max - 1) s = Math.max(1, e - max + 1);
+
+  for (let i = s; i <= e; i++) {
+    html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage('${type}',${i})">${i}</button>`;
+  }
+
+  html += `<button class="pagination-btn" onclick="changePage('${type}',${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next</button>`;
+  btns.innerHTML = html;
+}
+
+function changePage(type, page) {
+  const totalPages = Math.ceil((type === 'appt' ? allAppts : allReqs).length / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  if (type === 'appt') currentApptPage = page;
+  else currentReqPage = page;
+  if (type === 'appt') renderAppts(allAppts);
+  else renderReqs(allReqs);
+}
+
+function filterAppts() {
+  const s = document.getElementById('apptStatusFilter').value;
+  currentApptPage = 1;
+  renderAppts(s ? allAppts.filter(a => a.status === s) : allAppts);
 }
 
 function filterReqs() {
   const s = document.getElementById('reqStatusFilter').value;
+  currentReqPage = 1;
   renderReqs(s ? allReqs.filter(r => r.status === s) : allReqs);
+}
+
+// Status Update Functions
+async function setApptStatus(id, status) {
+  try {
+    await API.patch(`/appointments/${id}/status`, { status });
+    notify(`Appointment ${status.toLowerCase()}`, 'success');
+    loadAppointments();
+  } catch(err) { notify(err.message, 'error'); }
 }
 
 async function setReqStatus(id, status) {
@@ -211,11 +338,11 @@ async function setReqStatus(id, status) {
   } catch(err) { notify(err.message, 'error'); }
 }
 
-// ── Reviews ────────────────────────────────────────────────
+// ====================== REVIEWS ======================
 async function loadReviews() {
   try {
     const reviews = await API.get('/reviews');
-    const body    = document.getElementById('reviewBody');
+    const body = document.getElementById('reviewBody');
     if (!reviews.length) {
       body.innerHTML = '<tr><td colspan="5" class="tbl-empty">No reviews yet</td></tr>';
       return;
@@ -226,23 +353,49 @@ async function loadReviews() {
         <td><span class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span></td>
         <td style="max-width:300px;white-space:normal;color:var(--text-2);font-size:13px">${r.comment}</td>
         <td class="muted">${fmtDate(r.createdAt)}</td>
-        <td>${user.role === 'Admin'
-          ? `<button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id})">Delete</button>` : '—'}</td>
+        <td>${user.role === 'Admin' ? `<button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${r.id})">Delete</button>` : '—'}</td>
       </tr>`).join('');
   } catch(e) {
-    document.getElementById('reviewBody').innerHTML =
-      `<tr><td colspan="5" class="tbl-empty" style="color:var(--red)">${e.message}</td></tr>`;
+    document.getElementById('reviewBody').innerHTML = `<tr><td colspan="5" class="tbl-empty" style="color:var(--red)">Failed to load reviews</td></tr>`;
   }
 }
 
-async function deleteReview(id) {
-  if (!confirm('Delete this review?')) return;
-  try {
-    await API.del(`/reviews/${id}`);
-    notify('Review deleted', 'success');
-    loadReviews();
-  } catch(err) { notify(err.message, 'error'); }
+// Custom Delete Modal
+function showDeleteConfirm(id) {
+  deletePendingId = id;
+  document.getElementById('deleteMessage').textContent = "Are you sure you want to delete this review?";
+  openModal('deleteConfirmModal');
 }
+
+function closeDeleteModal() {
+  closeModal('deleteConfirmModal');
+  deletePendingId = null;
+}
+
+async function confirmDeleteReview() {
+  if (!deletePendingId) return;
+  try {
+    await API.del(`/reviews/${deletePendingId}`);
+    notify('Review deleted successfully', 'success');
+    closeDeleteModal();
+    loadReviews();
+  } catch(err) {
+    notify(err.message, 'error');
+  }
+}
+
+// Attach button
+document.getElementById('confirmDeleteBtn').onclick = confirmDeleteReview;
+
+// Modal Backdrop
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => {
+    if (e.target === m) {
+      closeModal(m.id);
+      if (m.id === 'deleteConfirmModal') deletePendingId = null;
+    }
+  });
+});
 </script>
 </body>
 </html>

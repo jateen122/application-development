@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VehicleParts Pro — Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+
 <link rel="stylesheet" href="styles.css">
 <style>
 .dash-grid {
@@ -13,27 +13,43 @@
   gap: 16px;
   margin-top: 16px;
 }
-.quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.action-btn {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 13px 15px;
-  color: var(--text-2); text-decoration: none;
-  font-size: 13.5px; font-weight: 500; transition: all 0.15s;
+.quick-actions { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: 10px; 
 }
-.action-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
-.action-icon { font-size: 17px; }
-.qty-warn   { color: var(--amber); font-weight: 600; font-family: 'Space Mono', monospace; }
-.qty-danger { color: var(--red);   font-weight: 600; font-family: 'Space Mono', monospace; }
-.loyalty-tag { font-family:'Space Mono',monospace;font-size:10px;background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:20px; }
-@media(max-width:900px){ .dash-grid { grid-template-columns: 1fr; } }
+.action-btn {
+  display: flex; 
+  align-items: center; 
+  gap: 10px;
+  background: var(--bg); 
+  border: 1px solid var(--border);
+  border-radius: var(--radius); 
+  padding: 13px 15px;
+  color: var(--text-2); 
+  text-decoration: none;
+  font-size: 13.5px; 
+  font-weight: 500; 
+  transition: all 0.15s;
+}
+.action-btn:hover { 
+  border-color: var(--blue); 
+  color: var(--blue); 
+  background: var(--blue-dim); 
+}
+.qty-warn   { color: var(--amber); font-weight: 600; }
+.qty-danger { color: var(--red);   font-weight: 600; }
+.loyalty-tag { font-size:10px;background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:20px; }
+
+@media(max-width:900px){ 
+  .dash-grid { grid-template-columns: 1fr; } 
+}
 </style>
 </head>
 <body>
 <nav class="navbar">
   <a href="index.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div id="nav-links"></div>
   <div id="nav-user"></div>
@@ -143,18 +159,18 @@ if (user) {
 function initQuickActions() {
   const isAdmin = user.role === 'Admin';
   const actions = [
-    { href:'sales.html',            label:'New Sale',        icon:'&#128203;', always:true  },
-    { href:'customers.html',        label:'Add Customer',    icon:'&#128100;', always:true  },
-    { href:'vehicles.html',         label:'Add Vehicle',     icon:'&#128664;', always:true  },
-    { href:'service-requests.html', label:'Services',        icon:'&#128295;', always:true  },
-    { href:'purchases.html',        label:'New Purchase',    icon:'&#128230;', always:false },
-    { href:'parts.html',            label:'Add Part',        icon:'&#128297;', always:false },
-    { href:'vendors.html',          label:'Add Vendor',      icon:'&#127981;', always:false },
-    { href:'reports.html',          label:'Reports',         icon:'&#128202;', always:false },
+    { href:'sales.html',            label:'New Sale',        always:true  },
+    { href:'customers.html',        label:'Add Customer',    always:true  },
+    { href:'vehicles.html',         label:'Add Vehicle',     always:true  },
+    { href:'service-requests.html', label:'Services',        always:true  },
+    { href:'purchases.html',        label:'New Purchase',    always:false },
+    { href:'parts.html',            label:'Add Part',        always:false },
+    { href:'vendors.html',          label:'Add Vendor',      always:false },
+    { href:'reports.html',          label:'Reports',         always:false },
   ];
   document.getElementById('quickActions').innerHTML = actions
     .filter(a => a.always || isAdmin)
-    .map(a => `<a href="${a.href}" class="action-btn"><span class="action-icon">${a.icon}</span>${a.label}</a>`)
+    .map(a => `<a href="${a.href}" class="action-btn">${a.label}</a>`)
     .join('');
 }
 

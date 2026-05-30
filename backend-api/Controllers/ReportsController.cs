@@ -24,28 +24,39 @@ public class ReportsController : ControllerBase
     // GET /api/reports/daily?date=2026-04-27
     // Returns a detailed financial breakdown for a single day.
     // ══════════════════════════════════════════════════════════
-    [HttpGet("daily")]
-    public async Task<IActionResult> Daily([FromQuery] DateTime? date)
+[HttpGet("daily")]
+public async Task<IActionResult> Daily([FromQuery] DateTime? date)
+{
+    try
     {
-        // Default to today if no date provided
-        var reportDate = (date ?? DateTime.UtcNow).Date;
+        var reportDate = DateTime.SpecifyKind(
+    (date ?? DateTime.UtcNow).Date,
+    DateTimeKind.Utc
+);
         var nextDay = reportDate.AddDays(1);
 
-        // ── Sales in this day ────────────────────────────────
         var salesInvoices = await _context.SaleInvoices
-            .Where(si => si.InvoiceDate >= reportDate && si.InvoiceDate < nextDay && si.Status != "Cancelled")
+            .Where(si => si.InvoiceDate >= reportDate &&
+                         si.InvoiceDate < nextDay &&
+                         si.Status != "Cancelled")
             .Include(si => si.Items)
-                .ThenInclude(i => i.Part)
             .ToListAsync();
 
-        // ── Purchases in this day ────────────────────────────
         var purchaseInvoices = await _context.PurchaseInvoices
-            .Where(pi => pi.InvoiceDate >= reportDate && pi.InvoiceDate < nextDay && pi.Status == "Received")
+            .Where(pi => pi.InvoiceDate >= reportDate &&
+                         pi.InvoiceDate < nextDay &&
+                         pi.Status == "Received")
             .ToListAsync();
 
         var report = BuildDailyReport(reportDate, salesInvoices, purchaseInvoices);
+
         return Ok(report);
     }
+    catch (Exception ex)
+    {
+        return StatusCode(500, ex.ToString());
+    }
+}
 
     // ══════════════════════════════════════════════════════════
     // MONTHLY REPORT
@@ -68,7 +79,6 @@ public class ReportsController : ControllerBase
         var salesInvoices = await _context.SaleInvoices
             .Where(si => si.InvoiceDate >= start && si.InvoiceDate < end && si.Status != "Cancelled")
             .Include(si => si.Items)
-                .ThenInclude(i => i.Part)
             .ToListAsync();
 
         // ── Purchases this month ─────────────────────────────
@@ -290,37 +300,44 @@ public class ReportsController : ControllerBase
     /// Groups sale invoice items by part and returns the top N by quantity sold.
     /// </summary>
     private static List<TopSellingPartDto> GetTopSellingParts(List<SaleInvoice> invoices, int topN)
-    {
-        return invoices
-            .SelectMany(si => si.Items)
-            .GroupBy(i => new { i.PartId, i.Part.Name, i.Part.PartNumber })
-            .Select(g => new TopSellingPartDto
-            {
-                PartId = g.Key.PartId,
-                PartName = g.Key.Name,
-                PartNumber = g.Key.PartNumber,
-                QuantitySold = g.Sum(i => i.Quantity),
-                TotalRevenue = g.Sum(i => i.Quantity * i.UnitPrice)
-            })
-            .OrderByDescending(x => x.QuantitySold)
-            .Take(topN)
-            .ToList();
-    }
+{
+    return invoices
+        .Where(si => si.Items != null)
+        .SelectMany(si => si.Items)
+        .Where(i => i.Part != null)
+        .GroupBy(i => new
+        {
+            i.PartId,
+            Name = i.Part.Name,
+            PartNumber = i.Part.PartNumber
+        })
+        .Select(g => new TopSellingPartDto
+        {
+            PartId = g.Key.PartId,
+            PartName = g.Key.Name,
+            PartNumber = g.Key.PartNumber,
+            QuantitySold = g.Sum(i => i.Quantity),
+            TotalRevenue = g.Sum(i => i.Quantity * i.UnitPrice)
+        })
+        .OrderByDescending(x => x.QuantitySold)
+        .Take(topN)
+        .ToList();
+}
 
     /// <summary>
     /// Groups invoices by payment method and returns revenue per method.
     /// </summary>
     private static List<PaymentMethodSummaryDto> GetRevenueByPaymentMethod(List<SaleInvoice> invoices)
-    {
-        return invoices
-            .GroupBy(si => si.PaymentMethod)
-            .Select(g => new PaymentMethodSummaryDto
-            {
-                PaymentMethod = g.Key,
-                InvoiceCount = g.Count(),
-                TotalRevenue = g.Sum(si => si.TotalAmount)
-            })
-            .OrderByDescending(x => x.TotalRevenue)
-            .ToList();
-    }
+{
+    return invoices
+        .GroupBy(si => si.PaymentMethod ?? "Unknown")
+        .Select(g => new PaymentMethodSummaryDto
+        {
+            PaymentMethod = g.Key,
+            InvoiceCount = g.Count(),
+            TotalRevenue = g.Sum(si => si.TotalAmount)
+        })
+        .OrderByDescending(x => x.TotalRevenue)
+        .ToList();
+}
 }
