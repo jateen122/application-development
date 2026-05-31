@@ -6,13 +6,6 @@ using VehiclePartsAPI.Data;
 
 namespace VehiclePartsAPI.Controllers
 {
-    /// <summary>
-    /// Feature 3 — Admin can perform parts management (add, edit, delete).
-    /// Endpoints: GET /api/parts, GET /api/parts/{id},
-    ///            POST /api/parts, PUT /api/parts/{id}, DELETE /api/parts/{id}
-    ///            GET /api/parts/low-stock   (parts with StockQty less than 10)
-    ///            GET /api/parts/categories  (distinct categories)
-    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class PartsController : ControllerBase
@@ -178,7 +171,7 @@ namespace VehiclePartsAPI.Controllers
         public async Task<IActionResult> Count()
             => Ok(new { totalParts = await _context.Parts.CountAsync() });
 
-        // ── Helpers ───────────────────────────────────────────────
+        // Helpers
         private static PartDto MapToDto(Part p) => new()
         {
             Id = p.Id,

@@ -1,44 +1,39 @@
 namespace VehiclePartsAPI.DTOs;
 
-// ── Financial Report Response DTOs ───────────────────────────
-
-/// <summary>Top-level financial report returned for daily/monthly/yearly queries.</summary>
 public class FinancialReportDto
 {
-    public string Period { get; set; } = string.Empty;          // e.g. "2026-04-27" | "2026-04" | "2026"
-    public string ReportType { get; set; } = string.Empty;      // Daily | Monthly | Yearly
+    public string Period { get; set; } = string.Empty;          
+    public string ReportType { get; set; } = string.Empty;      
 
     // Revenue
-    public decimal TotalRevenue { get; set; }                   // sum of sale invoice totals
-    public decimal TotalDiscount { get; set; }                  // sum of discounts given
-    public decimal GrossRevenue { get; set; }                   // TotalRevenue + TotalDiscount (before discount)
+    public decimal TotalRevenue { get; set; }                   
+    public decimal TotalDiscount { get; set; }                
+    public decimal GrossRevenue { get; set; }                   
 
     // Cost
-    public decimal TotalPurchaseCost { get; set; }              // sum of purchase invoice totals
+    public decimal TotalPurchaseCost { get; set; }              
 
     // Profit
-    public decimal GrossProfit { get; set; }                    // TotalRevenue - TotalPurchaseCost
+    public decimal GrossProfit { get; set; }                    
 
     // Counts
     public int TotalSalesInvoices { get; set; }
     public int TotalPurchaseInvoices { get; set; }
-    public int LoyaltyDiscountCount { get; set; }               // invoices where loyalty was applied
+    public int LoyaltyDiscountCount { get; set; }               
 
     // Breakdowns
-    public List<SalesSummaryByDayDto> SalesByDay { get; set; } = new();     // for monthly/yearly
+    public List<SalesSummaryByDayDto> SalesByDay { get; set; } = new();    
     public List<TopSellingPartDto> TopSellingParts { get; set; } = new();
     public List<PaymentMethodSummaryDto> RevenueByPaymentMethod { get; set; } = new();
 }
 
-/// <summary>Daily revenue row used inside monthly and yearly reports.</summary>
 public class SalesSummaryByDayDto
 {
-    public string Date { get; set; } = string.Empty;            // "2026-04-27"
+    public string Date { get; set; } = string.Empty;            
     public decimal Revenue { get; set; }
     public int InvoiceCount { get; set; }
 }
 
-/// <summary>Top selling parts by quantity sold in the period.</summary>
 public class TopSellingPartDto
 {
     public int PartId { get; set; }
@@ -48,7 +43,6 @@ public class TopSellingPartDto
     public decimal TotalRevenue { get; set; }
 }
 
-/// <summary>Revenue grouped by payment method (Cash, Credit, Card).</summary>
 public class PaymentMethodSummaryDto
 {
     public string PaymentMethod { get; set; } = string.Empty;
@@ -56,7 +50,6 @@ public class PaymentMethodSummaryDto
     public decimal TotalRevenue { get; set; }
 }
 
-/// <summary>Compact month row used inside yearly reports.</summary>
 public class MonthlySummaryDto
 {
     public int Month { get; set; }
@@ -67,7 +60,6 @@ public class MonthlySummaryDto
     public int InvoiceCount { get; set; }
 }
 
-/// <summary>Full yearly report (replaces SalesByDay with SalesByMonth).</summary>
 public class YearlyFinancialReportDto
 {
     public string Period { get; set; } = string.Empty;

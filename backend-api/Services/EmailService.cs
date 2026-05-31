@@ -5,11 +5,7 @@ using VehiclePartsAPI.Models;
 
 namespace VehiclePartsAPI.Services
 {
-    /// <summary>
-    /// Handles all outbound email: invoice delivery, low-stock alerts, overdue-credit reminders.
-    /// Configured via appsettings.json → ExternalServices (SmtpServer, SmtpPort, EmailFrom, EmailPassword).
-    /// Falls back gracefully when SMTP is not configured (logs to console instead).
-    /// </summary>
+
     public interface IEmailService
     {
         Task SendSaleInvoiceAsync(SaleInvoice invoice);
@@ -28,7 +24,7 @@ namespace VehiclePartsAPI.Services
             _logger = logger;
         }
 
-        // ── Sale Invoice Email ────────────────────────────────────
+        //  Sale Invoice Email 
         public async Task SendSaleInvoiceAsync(SaleInvoice invoice)
         {
             var to      = invoice.Customer?.Email;

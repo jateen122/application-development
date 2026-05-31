@@ -244,7 +244,7 @@ function renderAppointments(list) {
     </div>`).join('');
 }
 
-// ====================== PART REQUESTS ======================
+//  PART REQUESTS 
 async function loadRequests() {
   const el = document.getElementById('reqList');
   try {
@@ -286,7 +286,7 @@ async function loadReviews() {
   }
 }
 
-// ====================== ACTIONS ======================
+// ACTIONS 
 async function bookAppointment() {
   const serviceType = document.getElementById('aType').value;
   const dateVal = document.getElementById('aDate').value;

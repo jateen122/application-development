@@ -52,6 +52,7 @@
 </style>
 </head>
 <body>
+
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
     <span class="nav-brand-name">VehicleParts Pro</span>
@@ -125,27 +126,35 @@ const itemsPerPage = 10;
 
 const user = requireRole('Customer');
 if (user) { 
-  buildPortalNav(); 
+  buildPortalNav();
   loadHistory(); 
 }
 
 async function loadHistory() {
   try {
     allInvoices = await API.get(`/sales/customer/${user.id}`);
-    const paid = allInvoices.filter(i => i.status !== 'Cancelled');
-    const spent = paid.reduce((s, i) => s + (i.totalAmount || 0), 0);
+    // Exclude pending (in-progress Khalti orders) from stats
+    const completed = allInvoices.filter(i => i.status !== 'Cancelled' && i.status !== 'Pending');
+    const spent = completed.reduce((s, i) => s + (i.totalAmount || 0), 0);
 
     document.getElementById('statsRow').style.display = '';
     document.getElementById('hTotalSpent').textContent = fmt(spent);
-    document.getElementById('hCount').textContent = paid.length;
+    document.getElementById('hCount').textContent = completed.length;
     document.getElementById('hLoyalty').textContent = allInvoices.filter(i => i.loyaltyDiscountApplied).length;
     document.getElementById('hCredit').textContent = allInvoices.filter(i => i.status === 'Credit').length;
 
+    // Only show non-pending to customer
+    const visible = allInvoices.filter(i => i.status !== 'Pending');
     currentPage = 1;
-    renderInvoices(allInvoices);
+    renderInvoices(visible);
   } catch(e) {
     document.getElementById('histBody').innerHTML = `<tr><td colspan="8" class="tbl-empty" style="color:var(--red)">Failed to load history</td></tr>`;
   }
+}
+
+function paymentBadge(method) {
+  if (method === 'Khalti') return `<span style="background:#f3eeff;color:#5C2D91;font-family:'Space Mono',monospace;font-size:10px;padding:2px 8px;border-radius:20px;"> Khalti</span>`;
+  return method;
 }
 
 function renderInvoices(list) {
@@ -168,10 +177,10 @@ function renderInvoices(list) {
     <tr>
       <td><code>${i.invoiceNumber}</code></td>
       <td class="muted">${fmtDate(i.invoiceDate)}</td>
-      <td class="amount">${i.subTotal !== undefined ? `NPR ${fmt(i.subTotal)}` : '—'}</td>
-      <td>${i.loyaltyDiscountApplied ? '<span class="loyalty-tag">−10%</span>' : '—'}</td>
+      <td class="amount">NPR ${fmt(i.subTotal || 0)}</td>
+      <td>${i.loyaltyDiscountApplied ? '<span class="loyalty-tag">−NPR ' + fmt(i.discountAmount || 0) + '</span>' : '—'}</td>
       <td class="amount text-blue">NPR ${fmt(i.totalAmount)}</td>
-      <td class="muted">${i.paymentMethod}</td>
+      <td>${paymentBadge(i.paymentMethod)}</td>
       <td><span class="status status-${i.status.toLowerCase()}">${i.status}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="viewDetail(${i.id})">View</button></td>
     </tr>`).join('');
@@ -204,16 +213,18 @@ function updatePagination(total, totalPages) {
 }
 
 function changePage(page) {
-  const totalPages = Math.ceil(allInvoices.length / itemsPerPage);
+  const visible = allInvoices.filter(i => i.status !== 'Pending');
+  const totalPages = Math.ceil(visible.length / itemsPerPage);
   if (page < 1 || page > totalPages) return;
   currentPage = page;
-  renderInvoices(allInvoices);
+  renderInvoices(visible);
 }
 
 function filterInvoices() {
   const s = document.getElementById('statusFilter').value;
+  const visible = allInvoices.filter(i => i.status !== 'Pending');
   currentPage = 1;
-  renderInvoices(s ? allInvoices.filter(i => i.status === s) : allInvoices);
+  renderInvoices(s ? visible.filter(i => i.status === s) : visible);
 }
 
 async function viewDetail(id) {
@@ -223,7 +234,7 @@ async function viewDetail(id) {
     document.getElementById('detailContent').innerHTML = `
       <div class="grid-2" style="margin-bottom:20px;gap:12px;font-size:13px">
         <div><div class="form-label">Invoice Date</div><p>${fmtDateTime(inv.invoiceDate)}</p></div>
-        <div><div class="form-label">Payment Method</div><p>${inv.paymentMethod}</p></div>
+        <div><div class="form-label">Payment Method</div><p>${paymentBadge(inv.paymentMethod)}</p></div>
         <div><div class="form-label">Status</div><span class="status status-${inv.status.toLowerCase()}">${inv.status}</span></div>
         ${inv.loyaltyDiscountApplied ? '<div><div class="form-label">Loyalty</div><span class="loyalty-tag">✓ 10% discount applied</span></div>' : ''}
       </div>

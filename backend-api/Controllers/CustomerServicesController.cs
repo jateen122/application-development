@@ -3,25 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.Models;
 using VehiclePartsAPI.DTOs;
 
-/// <summary>
-/// Feature 13 — Customers can book service appointments, request unavailable parts, and submit reviews.
-///
-/// Endpoints:
-///   GET    /api/appointments                       → All appointments (staff/admin)
-///   GET    /api/appointments/customer/{id}         → Customer's own appointments
-///   POST   /api/appointments                       → Book an appointment
-///   PATCH  /api/appointments/{id}/status           → Update status (Confirmed/Completed/Cancelled)
-///   DELETE /api/appointments/{id}                  → Cancel (customer or admin)
-///
-///   GET    /api/part-requests                      → All part requests
-///   GET    /api/part-requests/customer/{id}        → Customer's requests
-///   POST   /api/part-requests                      → Submit a part request
-///   PATCH  /api/part-requests/{id}/status          → Update status (Fulfilled/Rejected)
-///
-///   GET    /api/reviews                            → All public reviews
-///   POST   /api/reviews                            → Submit a review
-///   DELETE /api/reviews/{id}                       → Admin removes a review
-/// </summary>
 [ApiController]
 public class CustomerServicesController : ControllerBase
 {
@@ -151,9 +132,9 @@ public class CustomerServicesController : ControllerBase
         return NoContent();
     }
 
-    // ══════════════════════════════════════════════════════════
+
     // PART REQUESTS
-    // ══════════════════════════════════════════════════════════
+
 
     [HttpGet("api/part-requests")]
     public async Task<IActionResult> GetAllPartRequests([FromQuery] string? status)
@@ -254,9 +235,7 @@ public class CustomerServicesController : ControllerBase
         return NoContent();
     }
 
-    // ══════════════════════════════════════════════════════════
     // REVIEWS
-    // ══════════════════════════════════════════════════════════
 
     [HttpGet("api/reviews")]
     public async Task<IActionResult> GetAllReviews()

@@ -20,6 +20,9 @@
 .total-line.final { border-top:1px solid var(--border); margin-top:6px; padding-top:10px; font-size:17px; font-weight:700; color:var(--blue); }
 .discount-line { color:var(--green); font-size:13px; }
 
+.status-pending   { background: rgba(38,85,232,0.10); color: var(--blue); }
+.pay-khalti { background:#f3eeff; color:#5C2D91; font-family:'Space Mono',monospace; font-size:10px; padding:2px 8px; border-radius:20px; }
+
 /* Pagination */
 .pagination {
   display: flex;
@@ -80,14 +83,33 @@
     <div class="controls">
       <select class="select-filter" id="statusFilter" onchange="filterSales()">
         <option value="">All Statuses</option>
-        <option>Paid</option><option>Credit</option><option>Cancelled</option>
+        <option>Paid</option>
+        <option>Credit</option>
+        <option>Pending</option>
+        <option>Cancelled</option>
+      </select>
+      <select class="select-filter" id="paymentFilter" onchange="filterSales()">
+        <option value="">All Payment Methods</option>
+        <option>Cash</option>
+        <option>Card</option>
+        <option>Credit</option>
+        <option>Khalti</option>
       </select>
       <span class="muted" style="margin-left:auto"><span id="saleCount">—</span> invoices</span>
     </div>
     <div class="table-wrap">
       <table class="tbl">
         <thead>
-          <tr><th>Invoice #</th><th>Date</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Payment</th><th>Status</th><th>Actions</th></tr>
+          <tr>
+            <th>Invoice #</th>
+            <th>Date</th>
+            <th>Subtotal</th>
+            <th>Discount</th>
+            <th>Total</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody id="salesBody"><tr><td colspan="8" class="tbl-empty">Loading…</td></tr></tbody>
       </table>
@@ -163,6 +185,7 @@ const user = requireRole('Admin', 'Staff');
 if (user) { buildNav(); init(); }
 
 let allSales = [], allParts = [], allCustomers = [];
+let filteredSales = [];
 let itemIdx = 0;
 let currentInvoiceId = null;
 let currentPage = 1;
@@ -173,7 +196,8 @@ async function init() {
     [allSales, allParts, allCustomers] = await Promise.all([
       API.get('/sales'), API.get('/parts'), API.get('/customers')
     ]);
-    renderSales(allSales);
+    filteredSales = allSales;
+    renderSales(filteredSales);
     populateCustomers();
   } catch(e) {
     document.getElementById('salesBody').innerHTML = '<tr><td colspan="8" class="tbl-empty">Failed to load.</td></tr>';
@@ -188,6 +212,11 @@ function populateCustomers() {
     o.textContent = `${c.firstName} ${c.lastName}`;
     select.appendChild(o);
   });
+}
+
+function paymentBadge(method) {
+  if (method === 'Khalti') return `<span class="pay-khalti">💜 Khalti</span>`;
+  return `<span class="muted">${method}</span>`;
 }
 
 function renderSales(list) {
@@ -210,10 +239,10 @@ function renderSales(list) {
     <tr>
       <td><code>${s.invoiceNumber}</code></td>
       <td class="muted">${fmtDate(s.invoiceDate)}</td>
-      <td class="amount">—</td>
-      <td>${s.loyaltyDiscountApplied ? '<span class="text-green" style="font-size:12px">-10%</span>' : '—'}</td>
+      <td class="amount">NPR ${fmt(s.subTotal || 0)}</td>
+      <td>${s.loyaltyDiscountApplied ? '<span class="text-green" style="font-size:12px">−NPR ' + fmt(s.discountAmount || 0) + '</span>' : '—'}</td>
       <td class="amount text-blue">NPR ${fmt(s.totalAmount)}</td>
-      <td class="muted">${s.paymentMethod}</td>
+      <td>${paymentBadge(s.paymentMethod)}</td>
       <td><span class="status status-${s.status.toLowerCase()}">${s.status}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="viewSale(${s.id})">View</button></td>
     </tr>`).join('');
@@ -251,20 +280,23 @@ function updatePagination(total, totalPages) {
 }
 
 function changePage(page) {
-  const totalPages = Math.ceil(allSales.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
   if (page < 1 || page > totalPages) return;
   currentPage = page;
-  renderSales(allSales);   // Use current filter state
+  renderSales(filteredSales);
 }
 
 function filterSales() {
   const status = document.getElementById('statusFilter').value;
-  const filtered = status ? allSales.filter(x => x.status === status) : allSales;
+  const payment = document.getElementById('paymentFilter').value;
+  filteredSales = allSales.filter(x =>
+    (!status || x.status === status) &&
+    (!payment || x.paymentMethod === payment)
+  );
   currentPage = 1;
-  renderSales(filtered);
+  renderSales(filteredSales);
 }
 
-// Rest of the functions remain the same
 async function viewSale(id) {
   currentInvoiceId = id;
   try {
@@ -274,7 +306,7 @@ async function viewSale(id) {
       <div class="grid-2" style="margin-bottom:20px;gap:12px;font-size:13px">
         <div><div class="form-label">Customer</div><a href="customer-detail.html?id=${s.customer.id}" class="link">${s.customer.firstName} ${s.customer.lastName}</a></div>
         <div><div class="form-label">Date</div><div>${fmtDateTime(s.invoiceDate)}</div></div>
-        <div><div class="form-label">Payment</div><div>${s.paymentMethod}</div></div>
+        <div><div class="form-label">Payment</div><div>${paymentBadge(s.paymentMethod)}</div></div>
         <div><div class="form-label">Status</div><span class="status status-${s.status.toLowerCase()}">${s.status}</span></div>
       </div>
       <table class="tbl" style="margin-bottom:16px">
@@ -297,6 +329,21 @@ async function viewSale(id) {
 
     const acts = document.getElementById('saleStatusActions');
     acts.innerHTML = '';
+
+    // Pending = Khalti payment initiated but not yet confirmed (can only cancel)
+    if (s.status === 'Pending') {
+      const b = document.createElement('button');
+      b.className = 'btn btn-danger btn-sm';
+      b.textContent = 'Cancel Invoice';
+      b.onclick = () => changeStatus(id, 'Cancelled');
+      acts.appendChild(b);
+      const note = document.createElement('span');
+      note.className = 'muted';
+      note.style.fontSize = '12px';
+      note.textContent = 'Khalti payment not yet confirmed.';
+      acts.appendChild(note);
+    }
+
     if (s.status === 'Credit') {
       const b = document.createElement('button');
       b.className = 'btn btn-primary btn-sm';
@@ -304,7 +351,7 @@ async function viewSale(id) {
       b.onclick = () => changeStatus(id, 'Paid');
       acts.appendChild(b);
     }
-    if (s.status !== 'Cancelled') {
+    if (s.status !== 'Cancelled' && s.status !== 'Pending') {
       const b2 = document.createElement('button');
       b2.className = 'btn btn-danger btn-sm';
       b2.textContent = 'Cancel Invoice';
@@ -331,13 +378,12 @@ async function changeStatus(id, status) {
     notify(`Invoice marked as ${status}`, 'success');
     closeModal('saleDetailModal');
     allSales = await API.get('/sales');
-    currentPage = 1;
-    renderSales(allSales);
+    filterSales();
   } catch(err) { notify(err.message, 'error'); }
 }
 
-// Sale Form Functions (unchanged)
-function addSaleItem() { /* ... same as before ... */
+// Sale Form
+function addSaleItem() {
   itemIdx++;
   const idx  = itemIdx;
   const list = document.getElementById('saleItemsList');
@@ -402,8 +448,7 @@ async function createSale(e) {
     notify('Invoice created! Email sent to customer.', 'success');
     closeModal('saleModal'); resetSaleForm();
     allSales = await API.get('/sales');
-    currentPage = 1;
-    renderSales(allSales);
+    filterSales();
     allParts = await API.get('/parts');
   } catch(err) { notify(err.message, 'error'); }
 }

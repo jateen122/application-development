@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful</title>
+
+    <style>
+        body{
+            margin:0;
+            font-family: Arial, sans-serif;
+            background:#f4f6f9;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .card{
+            background:white;
+            padding:40px;
+            border-radius:15px;
+            box-shadow:0 5px 15px rgba(0,0,0,0.15);
+            text-align:center;
+            width:450px;
+        }
+
+        .success-icon{
+            font-size:70px;
+            color:green;
+        }
+
+        h1{
+            color:#28a745;
+            margin-top:10px;
+        }
+
+        p{
+            color:#555;
+            margin-bottom:25px;
+        }
+
+        .btn{
+            display:inline-block;
+            padding:12px 20px;
+            margin:10px;
+            border:none;
+            border-radius:8px;
+            text-decoration:none;
+            color:white;
+            font-weight:bold;
+            cursor:pointer;
+        }
+
+        .history-btn{
+            background:#007bff;
+        }
+
+        .shop-btn{
+            background:#28a745;
+        }
+
+        .btn:hover{
+            opacity:0.9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="success-icon"></div>
+
+    <h1>Payment Successful</h1>
+
+    <p>
+        Your Khalti payment has been completed successfully.
+        Thank you for your purchase.
+    </p>
+
+    <a href="portal-history.html" class="btn history-btn">
+        View Purchase History
+    </a>
+
+    <a href="portal-shop.html" class="btn shop-btn">
+        Continue Shopping
+    </a>
+</div>
+
+</body>
+</html>

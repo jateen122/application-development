@@ -1,7 +1,3 @@
-// ─────────────────────────────────────────────────────────────
-// auth.js  —  shared API helper + auth utilities
-// Uses 127.0.0.1 explicitly to avoid Windows IPv6/localhost issues
-// ─────────────────────────────────────────────────────────────
 
 const BASE_URL = 'http://127.0.0.1:5033/api';
 
@@ -53,7 +49,7 @@ const API = {
   }
 };
 
-// ── Auth helpers ──────────────────────────────────────────────
+//  Auth helpers 
 function getUser() {
   try { return JSON.parse(sessionStorage.getItem('user') || 'null'); }
   catch { return null; }
@@ -75,7 +71,7 @@ function requireRole(...roles) {
   return user;
 }
 
-// ── Format helpers ────────────────────────────────────────────
+// Format helpers
 function fmt(n) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
 }
@@ -86,7 +82,7 @@ function fmtDateTime(d) {
   return new Date(d).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
-// ── Toast notification ────────────────────────────────────────
+//  Toast notification 
 function notify(msg, type = 'info') {
   let el = document.getElementById('__notify');
   if (!el) {
@@ -102,11 +98,11 @@ function notify(msg, type = 'info') {
   el._t = setTimeout(() => el.classList.remove('toast--show'), 4000);
 }
 
-// ── Modal helpers ─────────────────────────────────────────────
+//  Modal helpers 
 function openModal(id)  { const el = document.getElementById(id); if(el) el.classList.add('open'); }
 function closeModal(id) { const el = document.getElementById(id); if(el) el.classList.remove('open'); }
 
-// ── Page access control ───────────────────────────────────────
+// Page access control 
 const PAGE_ACCESS = {
   'index.html':            ['Admin', 'Staff'],
   'parts.html':            ['Admin'],
@@ -175,7 +171,7 @@ function buildNav() {
   }
 }
 
-// ── Portal nav helper (for customer pages) ────────────────────
+//  Portal nav helper (for customer pages) 
 function buildPortalNav() {
   const user = getUser();
   if (!user) return;
@@ -188,7 +184,7 @@ function buildPortalNav() {
   }
 }
 
-// ── Connection check banner ───────────────────────────────────
+
 // Shows a friendly banner if backend is unreachable
 async function checkBackendConnection() {
   try {

@@ -49,6 +49,8 @@ public class SalesController : ControllerBase
                 Id = si.Id,
                 InvoiceNumber = si.InvoiceNumber,
                 InvoiceDate = si.InvoiceDate,
+                SubTotal = si.SubTotal,
+                DiscountAmount = si.DiscountAmount,
                 TotalAmount = si.TotalAmount,
                 LoyaltyDiscountApplied = si.LoyaltyDiscountApplied,
                 Status = si.Status,
@@ -59,7 +61,7 @@ public class SalesController : ControllerBase
         return Ok(invoices);
     }
 
-    // GET: api/sales/{id}
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -80,7 +82,7 @@ public class SalesController : ControllerBase
         return Ok(MapToDetailDto(invoice));
     }
 
-    // GET: api/sales/customer/{customerId}
+
     [HttpGet("customer/{customerId:int}")]
     public async Task<IActionResult> GetByCustomer(int customerId)
     {
@@ -96,14 +98,23 @@ public class SalesController : ControllerBase
         }
 
         var invoices = await _context.SaleInvoices
-            .Include(si => si.Customer)
-            .Include(si => si.Items)
-                .ThenInclude(i => i.Part)
             .Where(si => si.CustomerId == customerId)
             .OrderByDescending(si => si.InvoiceDate)
+            .Select(si => new SaleInvoiceSummaryDto
+            {
+                Id = si.Id,
+                InvoiceNumber = si.InvoiceNumber,
+                InvoiceDate = si.InvoiceDate,
+                SubTotal = si.SubTotal,
+                DiscountAmount = si.DiscountAmount,
+                TotalAmount = si.TotalAmount,
+                LoyaltyDiscountApplied = si.LoyaltyDiscountApplied,
+                Status = si.Status,
+                PaymentMethod = si.PaymentMethod
+            })
             .ToListAsync();
 
-        return Ok(invoices.Select(MapToDetailDto));
+        return Ok(invoices);
     }
 
     // POST: api/sales
@@ -309,7 +320,6 @@ public class SalesController : ControllerBase
         return NoContent();
     }
 
-    // POST: api/sales/{id}/send-email
     [HttpPost("{id:int}/send-email")]
     public async Task<IActionResult> SendEmail(int id)
     {
@@ -344,7 +354,7 @@ public class SalesController : ControllerBase
         });
     }
 
-    // ── Helper ───────────────────────────────────────────────
+    //  Helper 
 
     private static SaleInvoiceDetailDto MapToDetailDto(SaleInvoice si)
     {

@@ -3,18 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.Data;
 using VehiclePartsAPI.DTOs;
 
-/// <summary>
-/// Feature 9  — Staff can generate customer-related reports:
-///              top spenders, regular customers, pending credit payments.
-/// Feature 10 — Staff can search customers by vehicle number, phone, ID, or name.
-///
-/// Endpoints:
-///   GET /api/customer-reports/top-spenders        → customers ranked by total spend
-///   GET /api/customer-reports/regulars             → customers with 3+ purchases
-///   GET /api/customer-reports/pending-credits      → customers with unpaid credit invoices
-///   GET /api/customer-reports/overdue-credits      → credits overdue > 30 days
-///   GET /api/customer-reports/search               → ?q= search by name/phone/email/vehicle
-/// </summary>
 [ApiController]
 [Route("api/customer-reports")]
 public class CustomerReportsController : ControllerBase

@@ -3,12 +3,7 @@ using VehiclePartsAPI.Services;
 
 namespace VehiclePartsAPI.BackgroundServices
 {
-    /// <summary>
-    /// Feature 15 — Runs on a background timer.
-    /// Every hour:
-    ///   • Checks for parts with StockQty less than 10 and emails the first active Admin.
-    ///   • Checks for Credit invoices older than 30 days and emails each customer a reminder.
-    /// </summary>
+
     public class NotificationBackgroundService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;

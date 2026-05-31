@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════
-   API Helper — connects to http://localhost:5033
-   ═══════════════════════════════════════════════════════ */
-
 const BASE_URL = 'http://localhost:5033/api';
 
 const API = {

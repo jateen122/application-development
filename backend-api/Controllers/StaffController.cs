@@ -3,20 +3,7 @@ using VehiclePartsAPI.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
-/// <summary>
-/// Feature 2 — Admin can manage staff registration and roles.
-///
-/// Endpoints:
-///   GET    /api/staff                        → List all staff
-///   GET    /api/staff/{id}                   → Get staff member by ID
-///   POST   /api/staff                        → Register a new staff member (Admin only)
-///   PUT    /api/staff/{id}                   → Update staff contact details
-///   PATCH  /api/staff/{id}/role              → Change staff role (Staff ↔ Admin)
-///   PATCH  /api/staff/{id}/status            → Activate / deactivate a staff account
-///   DELETE /api/staff/{id}                   → Permanently remove a staff member
-///   GET    /api/staff/active                 → List only active staff
-///   GET    /api/staff/count                  → Total staff count
-/// </summary>
+
 [ApiController]
 [Route("api/staff")]
 public class StaffController : ControllerBase
@@ -170,7 +157,7 @@ public class StaffController : ControllerBase
         return Ok(new { message = $"Role updated to '{dto.Role}' successfully.", staff = MapToDto(staff) });
     }
 
-    // PATCH /api/staff/{id}/status
+
     [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateStaffStatusDto dto)
     {
@@ -194,9 +181,7 @@ public class StaffController : ControllerBase
     }
 
 
-    // DELETE /api/staff/{id}
-    // Permanently removes a staff member.
-    // Consider using PATCH /status to deactivate instead of hard-delete.
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

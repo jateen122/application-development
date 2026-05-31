@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace VehiclePartsAPI.DTOs;
 
-// ── Request DTOs ──────────────────────────────────────────────
+// Request DTOs 
 
 public class KhaltiInitiateDto
 {
@@ -22,7 +22,7 @@ public class KhaltiLookupDto
     public string Pidx { get; set; } = string.Empty;
 }
 
-// ── Khalti API Response DTOs ──────────────────────────────────
+// Khalti API Response DTOs 
 
 public class KhaltiInitiateResponse
 {

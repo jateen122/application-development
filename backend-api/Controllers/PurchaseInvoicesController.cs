@@ -3,16 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.Models;
 using VehiclePartsAPI.DTOs;
 
-/// <summary>
-/// Feature 4 — Admin can create purchase invoices for stock updates.
-/// When an invoice status is set to "Received", part stock quantities are incremented.
-/// Endpoints:
-///   GET    /api/purchase-invoices
-///   GET    /api/purchase-invoices/{id}
-///   POST   /api/purchase-invoices
-///   PATCH  /api/purchase-invoices/{id}/status
-///   DELETE /api/purchase-invoices/{id}
-/// </summary>
 [ApiController]
 [Route("api/purchase-invoices")]
 public class PurchaseInvoicesController : ControllerBase
@@ -21,7 +11,7 @@ public class PurchaseInvoicesController : ControllerBase
 
     public PurchaseInvoicesController(AppDbContext context) => _context = context;
 
-    // GET /api/purchase-invoices
+
     // Returns a summary list of all purchase invoices.
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] int? vendorId)
@@ -217,7 +207,7 @@ public class PurchaseInvoicesController : ControllerBase
         return NoContent();
     }
 
-    // ── Helpers ───────────────────────────────────────────────
+    //  Helpers 
     private static PurchaseInvoiceDetailDto MapToDetailDto(PurchaseInvoice pi) => new()
     {
         Id = pi.Id,

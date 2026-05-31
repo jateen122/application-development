@@ -13,8 +13,15 @@ public class SaleInvoice
 
     public bool LoyaltyDiscountApplied { get; set; }
 
-    public string PaymentMethod { get; set; } = string.Empty;   // Cash | Card | Credit
-    public string Status { get; set; } = "Paid";                // Paid | Credit | Cancelled
+    // Payment Details
+    public string PaymentMethod { get; set; } = string.Empty;   // Cash | Card | Credit | Khalti
+    public string Status { get; set; } = "Paid";                // Paid | Credit | Cancelled | Pending
+
+    // Khalti Payment Fields
+    public string? KhaltiPidx { get; set; }
+    public string? KhaltiTransactionId { get; set; }
+    public string? KhaltiPurchaseOrderId { get; set; }
+    public string? KhaltiReferenceId { get; set; }
 
     public int CustomerId { get; set; }
     public Customer Customer { get; set; } = null!;

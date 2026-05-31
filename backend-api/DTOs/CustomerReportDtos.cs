@@ -1,6 +1,5 @@
 namespace VehiclePartsAPI.DTOs;
 
-/// <summary>Used by top-spenders and regulars endpoints.</summary>
 public class CustomerSpendDto
 {
     public int Id { get; set; }

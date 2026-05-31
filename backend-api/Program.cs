@@ -10,18 +10,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// PostgreSQL
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// CORS — allow all for development
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins", policy =>
         policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
-// External services config (SMTP, Khalti key, etc.)
+
 builder.Services.Configure<ExternalServicesOptions>(
     builder.Configuration.GetSection("ExternalServices"));
 
@@ -36,7 +35,7 @@ builder.Services.AddHostedService<NotificationBackgroundService>();
 
 var app = builder.Build();
 
-// ── Database migrate + optional seed ─────────────────────────
+//  Database migrate + optional seed 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -44,21 +43,21 @@ using (var scope = app.Services.CreateScope())
     {
         if (db.Database.CanConnect())
         {
-            Console.WriteLine("✅ Database connected!");
+            Console.WriteLine(" Database connected!");
             db.Database.Migrate();
-            Console.WriteLine("✅ Migrations applied.");
+            Console.WriteLine(" Migrations applied.");
 
             if (args.Contains("--seed"))
                 await DatabaseSeeder.SeedAdminAsync(db);
         }
         else
         {
-            Console.WriteLine("❌ Database connection failed! Check appsettings.json → ConnectionStrings.");
+            Console.WriteLine(" Database connection failed! Check appsettings.json → ConnectionStrings.");
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ DB error: {ex.Message}");
+        Console.WriteLine($" DB error: {ex.Message}");
     }
 }
 

@@ -2,15 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.DTOs;
 using VehiclePartsAPI.Models;
-/// <summary>
-/// Feature 1 — Admin can generate and view financial reports (daily, monthly, yearly).
-///
-/// Endpoints:
-///   GET /api/reports/daily?date=2026-04-27         → Report for a specific day
-///   GET /api/reports/monthly?year=2026&amp;month=4      → Report for a specific month
-///   GET /api/reports/yearly?year=2026              → Report for a full year
-///   GET /api/reports/summary                       → Quick dashboard numbers
-/// </summary>
+
 [ApiController]
 [Route("api/reports")]
 public class ReportsController : ControllerBase
@@ -19,11 +11,7 @@ public class ReportsController : ControllerBase
 
     public ReportsController(AppDbContext context) => _context = context;
 
-    // ══════════════════════════════════════════════════════════
-    // DAILY REPORT
-    // GET /api/reports/daily?date=2026-04-27
-    // Returns a detailed financial breakdown for a single day.
-    // ══════════════════════════════════════════════════════════
+
 [HttpGet("daily")]
 public async Task<IActionResult> Daily([FromQuery] DateTime? date)
 {
@@ -58,11 +46,10 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
     }
 }
 
-    // ══════════════════════════════════════════════════════════
     // MONTHLY REPORT
     // GET /api/reports/monthly?year=2026&month=4
     // Returns financials for the whole month with a per-day breakdown.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("monthly")]
     public async Task<IActionResult> Monthly([FromQuery] int? year, [FromQuery] int? month)
     {
@@ -75,18 +62,18 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         var start = new DateTime(y, m, 1, 0, 0, 0, DateTimeKind.Utc);
         var end = start.AddMonths(1);
 
-        // ── Sales this month ─────────────────────────────────
+        //  Sales this month 
         var salesInvoices = await _context.SaleInvoices
             .Where(si => si.InvoiceDate >= start && si.InvoiceDate < end && si.Status != "Cancelled")
             .Include(si => si.Items)
             .ToListAsync();
 
-        // ── Purchases this month ─────────────────────────────
+        //  Purchases this month 
         var purchaseInvoices = await _context.PurchaseInvoices
             .Where(pi => pi.InvoiceDate >= start && pi.InvoiceDate < end && pi.Status == "Received")
             .ToListAsync();
 
-        // ── Per-day sales breakdown ──────────────────────────
+        // Per-day sales breakdown 
         var salesByDay = salesInvoices
             .GroupBy(si => si.InvoiceDate.Date)
             .Select(g => new SalesSummaryByDayDto
@@ -98,13 +85,13 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
             .OrderBy(d => d.Date)
             .ToList();
 
-        // ── Top selling parts ────────────────────────────────
+        //  Top selling parts
         var topParts = GetTopSellingParts(salesInvoices, topN: 10);
 
-        // ── Revenue by payment method ────────────────────────
+        //  Revenue by payment method 
         var byPayment = GetRevenueByPaymentMethod(salesInvoices);
 
-        // ── Aggregates ───────────────────────────────────────
+        // Aggregates 
         var totalRevenue = salesInvoices.Sum(si => si.TotalAmount);
         var totalDiscount = salesInvoices.Sum(si => si.DiscountAmount);
         var purchaseCost = purchaseInvoices.Sum(pi => pi.TotalAmount);
@@ -129,11 +116,11 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         return Ok(report);
     }
 
-    // ══════════════════════════════════════════════════════════
+
     // YEARLY REPORT
     // GET /api/reports/yearly?year=2026
     // Returns financials for the whole year with a per-month breakdown.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("yearly")]
     public async Task<IActionResult> Yearly([FromQuery] int? year)
     {
@@ -141,19 +128,19 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         var start = new DateTime(y, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var end = start.AddYears(1);
 
-        // ── Sales this year ──────────────────────────────────
+        //  Sales this year 
         var salesInvoices = await _context.SaleInvoices
             .Where(si => si.InvoiceDate >= start && si.InvoiceDate < end && si.Status != "Cancelled")
             .Include(si => si.Items)
                 .ThenInclude(i => i.Part)
             .ToListAsync();
 
-        // ── Purchases this year ──────────────────────────────
+        //  Purchases this year 
         var purchaseInvoices = await _context.PurchaseInvoices
             .Where(pi => pi.InvoiceDate >= start && pi.InvoiceDate < end && pi.Status == "Received")
             .ToListAsync();
 
-        // ── Per-month breakdown ──────────────────────────────
+
         var monthNames = new[]
         {
             "", "January", "February", "March", "April", "May", "June",
@@ -178,13 +165,11 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
             };
         }).ToList();
 
-        // ── Top selling parts ────────────────────────────────
+        // Top selling parts 
         var topParts = GetTopSellingParts(salesInvoices, topN: 10);
 
-        // ── Revenue by payment method ────────────────────────
         var byPayment = GetRevenueByPaymentMethod(salesInvoices);
 
-        // ── Aggregates ───────────────────────────────────────
         var totalRevenue = salesInvoices.Sum(si => si.TotalAmount);
         var totalDiscount = salesInvoices.Sum(si => si.DiscountAmount);
         var purchaseCost = purchaseInvoices.Sum(pi => pi.TotalAmount);
@@ -209,12 +194,7 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         return Ok(report);
     }
 
-    // ══════════════════════════════════════════════════════════
-    // SUMMARY (Dashboard numbers)
-    // GET /api/reports/summary
-    // Quick stats: today's revenue, this month's revenue, this year's revenue,
-    // total customers, low stock count, unpaid credits.
-    // ══════════════════════════════════════════════════════════
+
     [HttpGet("summary")]
     public async Task<IActionResult> Summary()
     {
@@ -264,11 +244,7 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         });
     }
 
-    // ══════════════════════════════════════════════════════════
-    // PRIVATE HELPERS
-    // ══════════════════════════════════════════════════════════
 
-    /// <summary>Builds a daily financial report from pre-loaded invoice lists.</summary>
     private static FinancialReportDto BuildDailyReport(
         DateTime date,
         List<SaleInvoice> sales,
@@ -296,9 +272,7 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         };
     }
 
-    /// <summary>
-    /// Groups sale invoice items by part and returns the top N by quantity sold.
-    /// </summary>
+
     private static List<TopSellingPartDto> GetTopSellingParts(List<SaleInvoice> invoices, int topN)
 {
     return invoices
@@ -324,9 +298,7 @@ public async Task<IActionResult> Daily([FromQuery] DateTime? date)
         .ToList();
 }
 
-    /// <summary>
-    /// Groups invoices by payment method and returns revenue per method.
-    /// </summary>
+
     private static List<PaymentMethodSummaryDto> GetRevenueByPaymentMethod(List<SaleInvoice> invoices)
 {
     return invoices

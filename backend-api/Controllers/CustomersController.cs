@@ -4,23 +4,6 @@ using VehiclePartsAPI.DTOs;
 using VehiclePartsAPI.Models;
 using VehiclePartsAPI.Data;
 
-/// <summary>
-/// Feature 6  — Staff can register new customers with vehicle details.
-/// Feature 12 — Customers can self-register and manage profile and vehicle details.
-///
-/// Endpoints:
-///   GET    /api/customers
-///   GET    /api/customers/{id}
-///   POST   /api/customers/register         (Staff registers a customer)
-///   POST   /api/customers/self-register    (Customer registers themselves)
-///   PUT    /api/customers/{id}             (Update profile)
-///   DELETE /api/customers/{id}
-///   GET    /api/customers/{id}/vehicles
-///   POST   /api/customers/{id}/vehicles    (Add a vehicle to a customer)
-///   PUT    /api/customers/{id}/vehicles/{vehicleId}
-///   DELETE /api/customers/{id}/vehicles/{vehicleId}
-///   GET    /api/customers/search           (?q= by name, phone, or email)
-/// </summary>
 namespace VehiclePartsAPI.Controllers
 {
     [ApiController]

@@ -301,7 +301,7 @@ function filterPurchases() {
   renderPI(filtered);
 }
 
-// ── Other Functions (unchanged except cancel) ─────────────────────────────
+
 let piIdx = 0;
 function addPiItem() {
   piIdx++;
@@ -406,7 +406,6 @@ async function confirmCancel() {
 // Attach confirm button
 document.getElementById('confirmCancelBtn').onclick = confirmCancel;
 
-// ── Create & Reset ─────────────────────────────
 async function createPurchase(e) {
   e.preventDefault();
   const items = [];

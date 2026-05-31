@@ -5,15 +5,6 @@ using VehiclePartsAPI.DTOs;
 using VehiclePartsAPI.Models;
 using System.Text.Json;
 
-/// <summary>
-/// Khalti Payment Integration (Sandbox / Production)
-///
-/// Endpoints:
-///   POST /api/payment/initiate       — Create Khalti payment, returns payment_url
-///   GET  /api/payment/callback       — Khalti redirects here after payment
-///   POST /api/payment/lookup         — Verify payment status via pidx
-///   GET  /api/payment/parts          — Public parts catalogue for customer shop
-/// </summary>
 [ApiController]
 [Route("api/payment")]
 public class PaymentController : ControllerBase
@@ -32,7 +23,6 @@ public class PaymentController : ControllerBase
         _http    = http;
     }
 
-    // ── GET /api/payment/parts ────────────────────────────────
     // Public catalogue for customer shop — no auth needed
     [HttpGet("parts")]
     public async Task<IActionResult> GetParts([FromQuery] string? category, [FromQuery] string? search)
@@ -65,7 +55,7 @@ public class PaymentController : ControllerBase
         return Ok(parts);
     }
 
-    // ── POST /api/payment/initiate ────────────────────────────
+    //  POST /api/payment/initiate 
     [HttpPost("initiate")]
     public async Task<IActionResult> Initiate([FromBody] KhaltiInitiateDto dto)
     {
@@ -137,7 +127,6 @@ public class PaymentController : ControllerBase
         var returnUrl  = $"{apiBaseUrl}/api/payment/callback?invoiceId={invoice.Id}";
 
         // Determine the frontend URL for final redirect
-        // Use the websiteUrl from the request (sent by the frontend), fallback to origin header
         var frontendOrigin = dto.WebsiteUrl?.TrimEnd('/') ?? GetFrontendOrigin();
 
         var amountInPaisa = (int)(totalAmount * 100);
@@ -217,7 +206,7 @@ public class PaymentController : ControllerBase
         });
     }
 
-    // ── GET /api/payment/callback ─────────────────────────────
+    //  GET /api/payment/callback 
     // Khalti redirects here after payment
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(
@@ -287,7 +276,7 @@ public class PaymentController : ControllerBase
             invoice.KhaltiTransactionId = transaction_id;
             await _context.SaveChangesAsync();
 
-            return Redirect($"{frontendOrigin}/portal-history.html?payment=success&invoice={invoice.InvoiceNumber}");
+            return Redirect("http://127.0.0.1:5501/frontend/payment-success.html?invoice=" + invoice.InvoiceNumber);
         }
         else
         {
@@ -297,7 +286,7 @@ public class PaymentController : ControllerBase
         }
     }
 
-    // ── POST /api/payment/lookup ──────────────────────────────
+
     [HttpPost("lookup")]
     public async Task<IActionResult> Lookup([FromBody] KhaltiLookupDto dto)
     {
@@ -318,20 +307,9 @@ public class PaymentController : ControllerBase
         return Content(body, "application/json");
     }
 
-    // ── Helper: detect frontend origin from Referer or Origin header ──
-    private string GetFrontendOrigin()
-    {
-        // Try the Origin header first (set by browsers on cross-origin requests)
-        var origin = Request.Headers["Origin"].ToString();
-        if (!string.IsNullOrWhiteSpace(origin))
-            return origin.TrimEnd('/');
-
-        // Try Referer
-        var referer = Request.Headers["Referer"].ToString();
-        if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var refUri))
-            return $"{refUri.Scheme}://{refUri.Authority}";
-
-        // Fallback — same host, assume frontend is served from root
-        return $"{Request.Scheme}://{Request.Host}";
-    }
+    //  Helper: detect frontend origin from Referer or Origin header 
+private string GetFrontendOrigin()
+{
+    return "http://127.0.0.1:5501/frontend";
+}
 }

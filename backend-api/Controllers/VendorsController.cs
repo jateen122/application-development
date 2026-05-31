@@ -2,11 +2,7 @@ using VehiclePartsAPI.Models;
 using VehiclePartsAPI.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
-/// <summary>
-/// Feature 5 — Admin can manage vendor details (CRUD operations).
-/// Endpoints: GET /api/vendors, GET /api/vendors/{id},
-///            POST /api/vendors, PUT /api/vendors/{id}, DELETE /api/vendors/{id}
-/// </summary>
+
 [ApiController]
 [Route("api/[controller]")]
 public class VendorsController : ControllerBase
@@ -15,8 +11,7 @@ public class VendorsController : ControllerBase
 
     public VendorsController(AppDbContext context) => _context = context;
 
-    // GET /api/vendors
-    // Returns all vendors.
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -37,8 +32,6 @@ public class VendorsController : ControllerBase
         return Ok(vendors);
     }
 
-    // GET /api/vendors/{id}
-    // Returns a single vendor by ID.
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -49,8 +42,7 @@ public class VendorsController : ControllerBase
         return Ok(MapToDto(vendor));
     }
 
-    // POST /api/vendors
-    // Creates a new vendor.
+
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateVendorDto dto)
     {
@@ -74,8 +66,7 @@ public class VendorsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = vendor.Id }, MapToDto(vendor));
     }
 
-    // PUT /api/vendors/{id}
-    // Updates an existing vendor.
+
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateVendorDto dto)
     {
@@ -83,7 +74,6 @@ public class VendorsController : ControllerBase
         if (vendor == null)
             return NotFound(new { message = $"Vendor with ID {id} not found." });
 
-        // Check that the new email doesn't belong to another vendor
         var emailConflict = await _context.Vendors.AnyAsync(v => v.Email == dto.Email && v.Id != id);
         if (emailConflict)
             return Conflict(new { message = "Another vendor is already using this email." });
@@ -98,7 +88,6 @@ public class VendorsController : ControllerBase
         return NoContent();
     }
 
-    // DELETE /api/vendors/{id}
     // Deletes a vendor (only if no associated purchase invoices exist).
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
@@ -107,7 +96,6 @@ public class VendorsController : ControllerBase
         if (vendor == null)
             return NotFound(new { message = $"Vendor with ID {id} not found." });
 
-        // Guard: cannot delete if invoices are linked
         var hasInvoices = await _context.PurchaseInvoices.AnyAsync(pi => pi.VendorId == id);
         if (hasInvoices)
             return BadRequest(new { message = "Cannot delete vendor — existing purchase invoices are linked to this vendor." });
@@ -117,8 +105,6 @@ public class VendorsController : ControllerBase
         return NoContent();
     }
 
-    // GET /api/vendors/{id}/invoices
-    // Returns all purchase invoices for a vendor (summary).
     [HttpGet("{id:int}/invoices")]
     public async Task<IActionResult> GetInvoices(int id)
     {

@@ -23,9 +23,29 @@
 .part-desc{font-size:12px;color:var(--text-2);line-height:1.5;flex:1;margin-bottom:12px}
 .part-price{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--blue);margin-bottom:4px}
 .part-stock{font-size:11px;font-family:'Space Mono',monospace;margin-bottom:14px}
-.part-stock.ok{color:var(--green)} .part-stock.low{color:var(--amber)} .part-stock.out{color:var(--red)}
+.part-stock.ok{color:var(--green)} 
+.part-stock.low{color:var(--amber)} 
+.part-stock.out{color:var(--red)}
 
-/* Cart */
+/* Pagination */
+.pagination{display:flex;justify-content:center;gap:8px;margin-top:32px;flex-wrap:wrap}
+.pagination button{
+  padding:8px 14px;
+  border:1px solid var(--border);
+  background:var(--surface);
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  font-size:13px;
+  transition:all 0.15s;
+}
+.pagination button:hover{background:var(--surface-2)}
+.pagination button.active{
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+}
+
+
 .cart-panel{position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:200;transform:translateX(100%);transition:transform 0.3s;box-shadow:var(--shadow-lg)}
 .cart-panel.open{transform:translateX(0)}
 .cart-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
@@ -49,23 +69,15 @@
 .cart-total-row{display:flex;justify-content:space-between;font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--blue);padding:10px 0 0;border-top:1px solid var(--border);margin-top:6px}
 .loyalty-note{font-size:11px;color:var(--green);font-family:'Space Mono',monospace;margin-bottom:10px}
 
-/* Cart toggle button */
 .cart-fab{position:fixed;bottom:28px;right:28px;background:var(--blue);color:#fff;border:none;border-radius:50px;padding:14px 22px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;transition:all 0.2s;z-index:100}
 .cart-fab:hover{background:#1d46d4;transform:translateY(-2px)}
 .cart-badge{background:#fff;color:var(--blue);border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
 
-/* Payment modal */
 .khalti-btn{width:100%;padding:13px;background:#5C2D91;color:#fff;border:none;border-radius:var(--radius);font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all 0.2s;margin-top:8px}
 .khalti-btn:hover{background:#4a2475}
 .khalti-btn:disabled{opacity:0.6;cursor:not-allowed}
-.khalti-logo{font-size:18px}
 
-/* Payment status banner */
-.pay-banner{padding:14px 20px;border-radius:var(--radius-lg);margin-bottom:20px;font-size:14px;font-weight:600;display:none;align-items:center;gap:10px}
-.pay-banner.success{background:var(--green-dim);color:var(--green);border:1px solid var(--green);display:flex}
-.pay-banner.error{background:var(--red-dim);color:var(--red);border:1px solid var(--red);display:flex}
-.pay-banner.cancelled{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);display:flex}
-
+@media(max-width:900px){.parts-grid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}}
 @media(max-width:600px){
   .cart-panel{width:100%}
   .parts-grid{grid-template-columns:1fr 1fr}
@@ -74,39 +86,26 @@
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
   <a href="portal-profile.html" class="nav-brand">
-    <div class="nav-brand-icon">&#9881;</div>
-    <span class="nav-brand-name">VehicleParts<span>Pro</span></span>
+    <span class="nav-brand-name">VehicleParts Pro</span>
   </a>
   <div class="portal-nav">
-    <a href="portal-profile.html"  class="portal-link">My Profile</a>
+    <a href="portal-profile.html" class="portal-link">My Profile</a>
     <a href="portal-vehicles.html" class="portal-link">My Vehicles</a>
-    <a href="portal-history.html"  class="portal-link">Purchase History</a>
+    <a href="portal-history.html" class="portal-link">Purchase History</a>
     <a href="portal-services.html" class="portal-link">Services</a>
-    <a href="portal-shop.html"     class="portal-link active">🛒 Shop</a>
+    <a href="portal-shop.html" class="portal-link active">Shop</a>
   </div>
   <div id="nav-user"></div>
 </nav>
 
-<main class="main" style="padding-right:20px">
+<main class="main">
   <div class="page-hd">
     <div class="page-hd-left">
       <div class="page-eyebrow">Customer Portal</div>
       <h1 class="page-title">Parts Shop</h1>
     </div>
-  </div>
-
-  <!-- Payment result banners (shown after Khalti redirect) -->
-  <div class="pay-banner success" id="bannerSuccess">
-    ✅ <span id="bannerSuccessMsg">Payment successful! Your order has been placed.</span>
-  </div>
-  <div class="pay-banner error" id="bannerError">
-    ❌ Payment failed. Please try again.
-  </div>
-  <div class="pay-banner cancelled" id="bannerCancelled">
-    ⚠ Payment cancelled. Your cart items are still available.
   </div>
 
   <!-- Filters -->
@@ -122,17 +121,19 @@
   <div class="parts-grid" id="partsGrid">
     <div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3);font-family:'Space Mono',monospace;font-size:12px">Loading parts…</div>
   </div>
+
+  <div class="pagination" id="pagination"></div>
 </main>
 
-<!-- CART FAB -->
+
 <button class="cart-fab" onclick="toggleCart()" id="cartFab" style="display:none">
-  🛒 Cart <span class="cart-badge" id="cartBadge">0</span>
+   Cart <span class="cart-badge" id="cartBadge">0</span>
 </button>
 
-<!-- CART PANEL -->
+
 <div class="cart-panel" id="cartPanel">
   <div class="cart-header">
-    <div class="cart-title">🛒 Your Cart</div>
+    <div class="cart-title">Your Cart</div>
     <button class="btn btn-outline btn-sm" onclick="toggleCart()">✕ Close</button>
   </div>
   <div class="cart-body" id="cartBody">
@@ -146,7 +147,7 @@
     <div class="cart-total-row"><span>Total</span><span id="cTotal">NPR 0.00</span></div>
     <div class="loyalty-note" id="loyaltyNote" style="display:none">★ Loyalty discount applied (subtotal > NPR 5,000)</div>
     <button class="khalti-btn" onclick="payWithKhalti()" id="khaltiBtn">
-      <span class="khalti-logo">💜</span> Pay with Khalti
+      Pay with Khalti
     </button>
     <p style="font-size:10px;color:var(--text-3);text-align:center;margin-top:8px;font-family:'Space Mono',monospace">
       Sandbox mode — use test phone 9800000001, MPIN 1111, OTP 987654
@@ -154,67 +155,66 @@
   </div>
 </div>
 
-<!-- Overlay when cart is open -->
 <div id="cartOverlay" onclick="toggleCart()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:199"></div>
 
 <script src="auth.js"></script>
 <script>
-// ── All variables declared FIRST ───────────────────────────
-let allParts  = [];
-let cart      = {};   // { partId: { part, quantity } }
+// Variables
+let allParts = [];
+let cart = {};
+let currentPage = 1;
+const itemsPerPage = 12;
 
 const user = requireRole('Customer');
 if (user) {
   buildPortalNav();
-  checkPaymentResult();
   loadParts();
 }
 
-// ── Payment result from Khalti redirect ────────────────────
-function checkPaymentResult() {
-  const params  = new URLSearchParams(location.search);
-  const payment = params.get('payment');
-  const invoice = params.get('invoice');
-
-  if (payment === 'success') {
-    const el = document.getElementById('bannerSuccess');
-    document.getElementById('bannerSuccessMsg').textContent =
-      `✅ Payment successful! Invoice ${invoice || ''} has been created. Check your Purchase History.`;
-    el.style.display = 'flex';
-    cart = {}; renderCart();
-    history.replaceState({}, '', 'portal-shop.html');
-  } else if (payment === 'failed') {
-    document.getElementById('bannerError').style.display = 'flex';
-    history.replaceState({}, '', 'portal-shop.html');
-  } else if (payment === 'cancelled') {
-    document.getElementById('bannerCancelled').style.display = 'flex';
-    history.replaceState({}, '', 'portal-shop.html');
-  }
-}
-
-// ── Load parts catalogue ───────────────────────────────────
+// Load parts
 async function loadParts() {
   try {
     allParts = await API.get('/payment/parts');
+    currentPage = 1;
     renderParts(allParts);
     loadCategories();
   } catch(e) {
-    document.getElementById('partsGrid').innerHTML =
+    document.getElementById('partsGrid').innerHTML = 
       `<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--red);font-size:13px">${e.message}</div>`;
   }
 }
 
-function renderParts(parts) {
-  document.getElementById('partCount').textContent = parts.length;
+function getFilteredParts() {
+  const q = document.getElementById('partSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  
+  return allParts.filter(p => 
+    (!cat || p.category === cat) &&
+    (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q))
+  );
+}
+
+function renderParts(allFiltered) {
+  const totalParts = allFiltered.length;
+  document.getElementById('partCount').textContent = totalParts;
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginatedParts = allFiltered.slice(start, end);
+
   const grid = document.getElementById('partsGrid');
-  if (!parts.length) {
+
+  if (!paginatedParts.length) {
     grid.innerHTML = '<div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--text-3);font-family:\'Space Mono\',monospace;font-size:12px">No parts found</div>';
+    document.getElementById('pagination').innerHTML = '';
     return;
   }
-  grid.innerHTML = parts.map(p => {
-    const stockCls  = p.stockQty === 0 ? 'out' : p.stockQty < 10 ? 'low' : 'ok';
+
+  grid.innerHTML = paginatedParts.map(p => {
+    const stockCls = p.stockQty === 0 ? 'out' : p.stockQty < 10 ? 'low' : 'ok';
     const stockText = p.stockQty === 0 ? 'Out of stock' : p.stockQty < 10 ? `Only ${p.stockQty} left` : `${p.stockQty} in stock`;
-    const inCart    = cart[p.id] ? cart[p.id].quantity : 0;
+    const inCart = cart[p.id] ? cart[p.id].quantity : 0;
+
     return `
     <div class="part-card">
       <div class="part-cat">${p.category}</div>
@@ -223,55 +223,83 @@ function renderParts(parts) {
       <div class="part-desc">${p.description || 'No description available.'}</div>
       <div class="part-price">NPR ${fmt(p.sellingPrice)}</div>
       <div class="part-stock ${stockCls}">${stockText}</div>
-      ${p.stockQty > 0
-        ? inCart > 0
-          ? `<button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})" style="width:100%">
-              ✓ In Cart (${inCart}) — Add More
-            </button>`
-          : `<button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})" style="width:100%">
-              + Add to Cart
-            </button>`
+      ${p.stockQty > 0 
+        ? `<button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})" style="width:100%">
+            ${inCart > 0 ? `✓ In Cart (${inCart}) — Add More` : '+ Add to Cart'}
+          </button>`
         : `<button class="btn btn-outline btn-sm" disabled style="width:100%;opacity:0.5">Out of Stock</button>`
       }
     </div>`;
   }).join('');
+
+  renderPagination(totalParts);
+}
+
+function renderPagination(total) {
+  const totalPages = Math.ceil(total / itemsPerPage);
+  const paginationEl = document.getElementById('pagination');
+  
+  if (totalPages <= 1) {
+    paginationEl.innerHTML = '';
+    return;
+  }
+
+  let html = '';
+
+  html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Previous</button>`;
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentPage) {
+      html += `<button class="active">${i}</button>`;
+    } else {
+      html += `<button onclick="changePage(${i})">${i}</button>`;
+    }
+  }
+
+  html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+
+  paginationEl.innerHTML = html;
+}
+
+function changePage(page) {
+  const totalFiltered = getFilteredParts().length;
+  const totalPages = Math.ceil(totalFiltered / itemsPerPage);
+  if (page < 1 || page > totalPages) return;
+  
+  currentPage = page;
+  renderParts(getFilteredParts());
 }
 
 function loadCategories() {
   const cats = [...new Set(allParts.map(p => p.category))].sort();
-  const sel  = document.getElementById('catFilter');
+  const sel = document.getElementById('catFilter');
   while (sel.options.length > 1) sel.remove(1);
-  cats.forEach(c => { const o = new Option(c, c); sel.add(o); });
+  cats.forEach(c => sel.add(new Option(c, c)));
 }
 
 function filterParts() {
-  const q   = document.getElementById('partSearch').value.toLowerCase();
-  const cat = document.getElementById('catFilter').value;
-  renderParts(allParts.filter(p =>
-    (!cat || p.category === cat) &&
-    (!q || p.name.toLowerCase().includes(q) || p.partNumber.toLowerCase().includes(q))
-  ));
+  currentPage = 1;
+  renderParts(getFilteredParts());
 }
 
-// ── Cart logic ─────────────────────────────────────────────
+// Cart Functions
 function addToCart(partId) {
   const part = allParts.find(p => p.id === partId);
   if (!part || part.stockQty === 0) return;
 
   if (cart[partId]) {
     if (cart[partId].quantity >= part.stockQty) {
-      notify(`Max stock for "${part.name}" is ${part.stockQty}`, 'error'); return;
+      notify(`Max stock for "${part.name}" is ${part.stockQty}`, 'error');
+      return;
     }
     cart[partId].quantity++;
   } else {
     cart[partId] = { part, quantity: 1 };
   }
+  
   renderCart();
-  filterParts();
-  notify(`"${part.name}" added to cart`, 'success');
-  if (!document.getElementById('cartPanel').classList.contains('open')) {
-    document.getElementById('cartFab').style.display = 'flex';
-  }
+  filterParts(); 
+
 }
 
 function removeFromCart(partId) {
@@ -283,23 +311,25 @@ function removeFromCart(partId) {
 function updateQty(partId, delta) {
   if (!cart[partId]) return;
   const maxStock = cart[partId].part.stockQty;
-  const newQty   = cart[partId].quantity + delta;
+  const newQty = cart[partId].quantity + delta;
   if (newQty <= 0) { removeFromCart(partId); return; }
-  if (newQty > maxStock) { notify(`Max stock is ${maxStock}`, 'error'); return; }
+  if (newQty > maxStock) { 
+    notify(`Max stock is ${maxStock}`, 'error'); 
+    return; 
+  }
   cart[partId].quantity = newQty;
   renderCart();
 }
 
 function renderCart() {
-  const items    = Object.values(cart);
-  const badge    = document.getElementById('cartBadge');
-  const body     = document.getElementById('cartBody');
-  const footer   = document.getElementById('cartFooter');
-  const fab      = document.getElementById('cartFab');
+  const items = Object.values(cart);
   const totalQty = items.reduce((s, i) => s + i.quantity, 0);
 
-  badge.textContent = totalQty;
-  fab.style.display = totalQty > 0 ? 'flex' : 'none';
+  document.getElementById('cartBadge').textContent = totalQty;
+  document.getElementById('cartFab').style.display = totalQty > 0 ? 'flex' : 'none';
+
+  const body = document.getElementById('cartBody');
+  const footer = document.getElementById('cartFooter');
 
   if (!items.length) {
     body.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add parts from the shop.</div>';
@@ -324,27 +354,26 @@ function renderCart() {
       </div>
     </div>`).join('');
 
-  const subtotal  = items.reduce((s, i) => s + (i.part.sellingPrice * i.quantity), 0);
-  const loyalty   = subtotal > 5000;
-  const discount  = loyalty ? subtotal * 0.10 : 0;
-  const total     = subtotal - discount;
+  const subtotal = items.reduce((s, i) => s + (i.part.sellingPrice * i.quantity), 0);
+  const loyalty = subtotal > 5000;
+  const discount = loyalty ? subtotal * 0.10 : 0;
+  const total = subtotal - discount;
 
-  document.getElementById('cSubtotal').textContent     = `NPR ${fmt(subtotal)}`;
+  document.getElementById('cSubtotal').textContent = `NPR ${fmt(subtotal)}`;
   document.getElementById('cDiscountRow').style.display = loyalty ? 'flex' : 'none';
-  document.getElementById('cDiscount').textContent     = `− NPR ${fmt(discount)}`;
-  document.getElementById('cTotal').textContent        = `NPR ${fmt(total)}`;
+  document.getElementById('cDiscount').textContent = `− NPR ${fmt(discount)}`;
+  document.getElementById('cTotal').textContent = `NPR ${fmt(total)}`;
   document.getElementById('loyaltyNote').style.display = loyalty ? 'block' : 'none';
   footer.style.display = 'block';
 }
 
 function toggleCart() {
-  const panel   = document.getElementById('cartPanel');
+  const panel = document.getElementById('cartPanel');
   const overlay = document.getElementById('cartOverlay');
-  const open    = panel.classList.toggle('open');
+  const open = panel.classList.toggle('open');
   overlay.style.display = open ? 'block' : 'none';
 }
 
-// ── Khalti Payment ─────────────────────────────────────────
 async function payWithKhalti() {
   const items = Object.values(cart);
   if (!items.length) { notify('Your cart is empty', 'error'); return; }
@@ -356,25 +385,22 @@ async function payWithKhalti() {
   try {
     const payload = {
       customerId: user.id,
-      // Send the current page's origin so the backend can redirect back correctly
       websiteUrl: window.location.origin,
       items: items.map(({ part, quantity }) => ({
-        partId:   part.id,
+        partId: part.id,
         quantity: quantity
       }))
     };
 
     const res = await API.post('/payment/initiate', payload);
-
-    notify('Redirecting to Khalti…', 'info');
     setTimeout(() => {
       window.location.href = res.paymentUrl;
     }, 800);
 
   } catch(err) {
-    notify(err.message || 'Payment initiation failed. Please try again.', 'error');
+    notify(err.message || 'Payment initiation failed', 'error');
     btn.disabled = false;
-    btn.innerHTML = '<span class="khalti-logo">💜</span> Pay with Khalti';
+    btn.innerHTML = 'Pay with Khalti';
   }
 }
 

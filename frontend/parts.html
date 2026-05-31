@@ -153,21 +153,21 @@
 
 <script src="auth.js"></script>
 <script>
-// ── Variables ────────────────────────────
+
 let allParts = [];
 let currentPage = 1;
 const itemsPerPage = 10;
 let deletePendingId = null;
 let deletePendingName = '';
 
-// ── Init ────────────────────────────
+
 const user = requireRole('Admin');
 if (user) { 
   buildNav(); 
   loadParts(); 
 }
 
-// ── Load & Render Parts with Pagination ────────────────────────────
+
 async function loadParts() {
   try {
     allParts = await API.get('/parts');

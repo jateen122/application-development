@@ -1,6 +1,6 @@
 namespace VehiclePartsAPI.DTOs
 {
-    // ── Request DTOs ─────────────────────────────────────────────
+    // Request DTOs 
 
     public class CreatePurchaseInvoiceDto
     {
@@ -21,7 +21,7 @@ namespace VehiclePartsAPI.DTOs
         public string Status { get; set; } = string.Empty;  // Pending | Received | Cancelled
     }
 
-    // ── Response DTOs ────────────────────────────────────────────
+    // Response DTOs
 
     /// <summary>Summary row used in list endpoints.</summary>
     public class PurchaseInvoiceDto
@@ -36,7 +36,6 @@ namespace VehiclePartsAPI.DTOs
         public int ItemCount { get; set; }
     }
 
-    /// <summary>Full detail — includes vendor object and line items.</summary>
     public class PurchaseInvoiceDetailDto
     {
         public int Id { get; set; }

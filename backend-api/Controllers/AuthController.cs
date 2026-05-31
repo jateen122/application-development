@@ -3,12 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using VehiclePartsAPI.Data;
 using VehiclePartsAPI.DTOs;
 
-/// <summary>
-/// Authentication — shared login endpoint for Admin, Staff, and Customer.
-///
-/// Endpoints:
-///   POST /api/auth/login   → returns role + id + name on success
-/// </summary>
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
